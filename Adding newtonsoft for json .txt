@@ -1,0 +1,8 @@
+﻿Install-Package Microsoft.AspNetCore.Mvc.NewtonsoftJson
+
+replace the "services.AddControllersWithViews()" by pasting this on the startup.cs
+
+services.AddControllersWithViews().AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null)
+                 .AddNewtonsoftJson(options =>
+                  options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+);;

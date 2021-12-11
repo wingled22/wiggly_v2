@@ -1,0 +1,61 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model Wiggly.Entities.Schedules
+
+@{
+    ViewData["Title"] = "Create Schedule";
+    Layout = "_Layout";
+}
+
+<h1>Create</h1>
+
+<h4>Schedules</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+          
+            <div class="form-group">
+                <label asp-for="Vendor" class="control-label"></label>
+                <input asp-for="Vendor" class="form-control" />
+                <span asp-validation-for="Vendor" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Farmer" class="control-label"></label>
+                <input asp-for="Farmer" class="form-control" />
+                <span asp-validation-for="Farmer" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="BookingStartDate" class="control-label"></label>
+                <input asp-for="BookingStartDate" class="form-control" />
+                <span asp-validation-for="BookingStartDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="BookingEndDate" class="control-label"></label>
+                <input asp-for="BookingEndDate" class="form-control" />
+                <span asp-validation-for="BookingEndDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DateCreated" class="control-label"></label>
+                <input asp-for="DateCreated" class="form-control" />
+                <span asp-validation-for="DateCreated" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Status" class="control-label"></label>
+                <input asp-for="Status" class="form-control" />
+                <span asp-validation-for="Status" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

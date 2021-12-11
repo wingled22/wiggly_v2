@@ -1,0 +1,68 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model IEnumerable<Wiggly.Entities.Schedules>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "_Layout";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create" asp-controller="Schedule" asp-area="Vendor">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Vendor)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Farmer)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.BookingStartDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.BookingEndDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DateCreated)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Status)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Vendor)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Farmer)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.BookingStartDate)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.BookingEndDate)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DateCreated)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Status)
+                </td>
+                <td>
+                    <a  asp-area="Vendor" asp-action="Edit" asp-controller="Schedule" asp-route-id="@item.SchedId">Edit</a> |
+                    <a  asp-area="Vendor" asp-action="Details" asp-controller="Schedule" asp-route-id="@item.SchedId">Details</a> |
+                    <a  asp-area="Vendor" asp-action="Delete" asp-controller="Schedule" asp-route-id="@item.SchedId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

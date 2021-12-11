@@ -1,0 +1,37 @@
+﻿Identity for asp.net 5.0
+	1. Create a User class
+		public class User : IdentityUser<int>
+        {
+            public int UserId { get; set; }
+            public string Firstname { get; set; }
+            public string MiddleName { get; set; }
+            public string LastName { get; set; }
+            public string Contact { get; set; }
+            public string Email { get; set; }
+            public string UserName { get; set; }
+            public string Password { get; set; }
+            public string UserType { get; set; }
+        }
+		
+    2. Create a Role Class
+        public class Role : IdentityRole<int>
+        {
+        }
+    
+    3. Add an Contextclass
+        public partial class WigglyContext : IdentityDbContext<User, Role, int>
+        {
+            public WigglyContext(DbContextOptions<WigglyContext> options)
+                : base(options)
+            {
+            }
+        }
+
+    4. Inject this dependency to your Startup.cs
+        services.AddIdentity<User, Role>()
+                .AddEntityFrameworkStores<WigglyContext>();
+    5. then run this command on the nuget package manager console
+            Add-Migration CreateIdentitySchema
+
+       if there is no err this will create the migration code to be publish in your database then 
+            update-database

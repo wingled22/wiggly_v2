@@ -1,0 +1,10 @@
+1. Install first the following EF packages:
+	<PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.0" />
+	<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="5.0.0" />
+	<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.0" />
+2. Run this command in the package manager console
+
+	Scaffold-DbContext "Server=WINSHIERO\SQLEXPRESS;Database=Wiggly;Trusted_Connection=True;" 	Microsoft.EntityFrameworkCore.SqlServer -OutputDir Entities -Force
+
+Scaffold-DbContext [-Connection] [-Provider] [-OutputDir] [-Context] [-Schemas>] [-Tables>] 
+                    [-DataAnnotations] [-Force] [-Project] [-StartupProject] [<CommonParameters>]
