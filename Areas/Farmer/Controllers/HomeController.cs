@@ -3,12 +3,15 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Wiggly.Areas.Farmer.Models;
 using Wiggly.Entities;
 using Wiggly.Identity;
+using Wiggly.Models;
 
 namespace Wiggly.Areas.Farmer.Controllers
 {
@@ -44,6 +47,42 @@ namespace Wiggly.Areas.Farmer.Controllers
             return View();
         }
 
-       
+        public ActionResult GetSched(){
+            var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
+            var scheds = _context.Schedules.Where(q => q.Farmer == loggedInUser.Id).ToList();
+            return Ok(scheds);
+        }
+
+        [HttpPost]
+        public ActionResult SetSched(string values)
+        {
+            var loggedInUser =  _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
+            var newAppointment = new FarmerAppointmentViewModel();
+            JsonConvert.PopulateObject(values, newAppointment);
+
+            if (!TryValidateModel(newAppointment))
+                return BadRequest("error");
+
+            var schedule = new Schedules() {
+                Vendor = newAppointment.Vendor,
+                BookingEndDate = newAppointment.BookingEndDate,
+                BookingStartDate = newAppointment.BookingStartDate,
+                Status = newAppointment.Status,
+                Farmer = loggedInUser.Id
+            };
+
+            _context.Schedules.Add(schedule);
+            _context.SaveChanges();
+            return Ok();
+        }
+
+
+        public ActionResult GetVendors()
+        {
+            var res =  _context.AspNetUsers.Where(q => q.UserType == "Vendor").ToList();
+            if (res == null)
+                BadRequest("No Vendor ");
+            return Ok(res);
+        }
     }
 }

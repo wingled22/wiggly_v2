@@ -1,4 +1,9 @@
+@using Wiggly
+@namespace Wiggly.Models
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using DevExtreme.AspNet.Mvc
+@model Wiggly.Entities.Schedules;
+
 @{
     ViewData["Title"] = "Index";
     Layout = "_Layout";
@@ -9,3 +14,95 @@
 <p>
     <a asp-action="Index">Home Farmer</a>
 </p>
+
+@(Html.DevExtreme().Scheduler()
+    .ID("scheduler")
+    .DataSource(d => d.Mvc()
+        .Controller("Home")
+        .Key("SchedId")
+        .LoadAction("GetSched")
+        .InsertAction("SetSched")
+        
+    )
+    .Editing(e => e.AllowAdding(true))
+    .CurrentView(SchedulerViewType.Month)
+    .StartDateExpr("BookingStartDate")
+    .EndDateExpr("BookingEndDate")
+    .StartDayHour(1)
+    .EndDayHour(24)
+    .Height(600)
+    .OnAppointmentFormOpening("onAppointmentFormOpening")
+)
+
+
+<script>
+    var vendors;
+    $.ajax("Farmer/Home/GetVendors").done(function (data) {
+        //console.log(data);
+        vendors = data;
+    });
+   
+    function onAppointmentFormOpening(data){
+        //console.log(data);
+        //console.log(data.form);
+
+       
+
+        var form = data.form;
+        form.option("items", [
+            {
+                dataField: "BookingStartDate",
+                editorType: "dxDateBox",
+                editorOptions: {
+                    width: "100%",
+                    type: "datetime"
+                }
+            },
+            {
+                dataField: "BookingEndDate",
+                editorType: "dxDateBox",
+                editorOptions: {
+                    width: "100%",
+                    type: "datetime"
+                }
+            },
+            {
+                name: "Vendor",
+                dataField: "Vendor",
+                editorType: "dxSelectBox",
+                editorOptions: {
+                    dataSource: vendors,
+                    valueExpr: "Id",
+
+                    displayExpr: (item) => function () {
+                        if (item != null) {
+                            //console.log(item);
+                            console.log(item.Firstname + " " + item.LastName);
+                            return item.Firstname + " " + item.LastName;
+
+                        }
+                    },
+                    width: "100%",
+                    readOnly: false,
+                    itemTemplate: function (itemData) {
+                        return itemData.Firstname + " " + itemData.LastName;
+                    }
+                }
+            },
+            {
+                dataField: "Status",
+                editorType: "dxRadioGroup",
+                editorOptions: {
+                    dataSource: ["Pending", "Done", "Canceled"],
+                    itemTemplate: function (itemData) {
+                        return itemData;
+                    }
+                }
+            }
+        ]);
+    }
+
+    function onInit(e) {
+        console.log(e);
+    }
+</script>

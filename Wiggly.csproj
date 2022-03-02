@@ -53,7 +53,6 @@
 
     <ItemGroup>
       <Folder Include="Areas\Farmer\Data\" />
-      <Folder Include="Areas\Farmer\Models\" />
       <Folder Include="Areas\Vendor\Data\" />
       <Folder Include="Areas\Vendor\Models\" />
     </ItemGroup>
