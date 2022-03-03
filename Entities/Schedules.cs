@@ -12,5 +12,6 @@ namespace Wiggly.Entities
         public DateTime? BookingEndDate { get; set; }
         public DateTime? DateCreated { get; set; }
         public string Status { get; set; }
+        public string Notes { get; set; }
     }
 }

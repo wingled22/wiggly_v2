@@ -14,7 +14,9 @@
 <p>
     <a asp-action="Index">Home Farmer</a>
 </p>
-
+<button onclick="addAppointment()">
+    add appointment
+</button>
 @(Html.DevExtreme().Scheduler()
     .ID("scheduler")
     .DataSource(d => d.Mvc()
@@ -22,87 +24,308 @@
         .Key("SchedId")
         .LoadAction("GetSched")
         .InsertAction("SetSched")
-        
+        .UpdateAction("UpdateSched")
+        .DeleteAction("DeleteSched")
     )
-    .Editing(e => e.AllowAdding(true))
+    .Views(new[] {
+        SchedulerViewType.Day,
+        SchedulerViewType.Month
+    })
+    .Editing(e => e.AllowAdding(true).AllowUpdating(true).AllowDeleting(true))
     .CurrentView(SchedulerViewType.Month)
     .StartDateExpr("BookingStartDate")
     .EndDateExpr("BookingEndDate")
+    .TextExpr("Notes")
     .StartDayHour(1)
     .EndDayHour(24)
-    .Height(600)
+    .OnInitialized("onInit")
+    .Height(500)
     .OnAppointmentFormOpening("onAppointmentFormOpening")
+    .OnAppointmentDblClick("OnAppointmentDblClick")
+    .OnCellClick("OnCellClick")
 )
 
 
+@(Html.DevExtreme().Popup()
+    .ID("popupDetails")
+    .Title("Appointment info")
+    .Width(700)
+    .Height(450)
+    .ContentTemplate(new TemplateName("customPopupContentTemplate"))
+    .ToolbarItems(items =>
+    {
+        items.Add()
+            .Widget(editor => editor.Button()
+                .Text("Confirm")
+                .Type(ButtonType.Success)
+                .OnClick("onConfirmClick")
+            )
+            .Location(ToolbarItemLocation.After)
+            .Toolbar(Toolbar.Bottom);
+        items.Add()
+            .Widget(editor => editor.Button()
+                .Text("Cancel")
+                .Type(ButtonType.Success)
+                .OnClick("onCancelClick")
+            )
+            .Location(ToolbarItemLocation.After)
+            .Toolbar(Toolbar.Bottom);
+        
+    })
+    .DragEnabled(true)
+    .CloseOnOutsideClick(true)
+    .ShowCloseButton(true)
+    .OnInitialized("onPopupInitialized")
+
+)
+
+@using (Html.DevExtreme().NamedTemplate("customPopupContentTemplate"))
+{
+    @(Html.DevExtreme().Form<Wiggly.Areas.Farmer.Models.FarmerAppointmentViewModel>()
+        .ID("formDetails")
+        .ColCount(2)
+        .ActiveStateEnabled(false)
+        .LabelLocation(FormLabelLocation.Left)
+        .MinColWidth(300)
+        .ShowValidationSummary(true)
+        .ReadOnly(false)
+        .ActiveStateEnabled(false)
+        .Items(items =>
+        {
+            items.AddGroup().ColCount(2).ColSpan(2).Items(gItem =>
+            {
+                gItem.AddSimpleFor(m => m.BookingStartDate).Editor(e => e.DateBox().Type(DateBoxType.DateTime)).ColSpan(1).IsRequired(true);
+                gItem.AddSimpleFor(m => m.BookingEndDate).Editor(e => e.DateBox().Type(DateBoxType.DateTime)).ColSpan(1).IsRequired(true);
+                gItem.AddSimpleFor(m => m.Vendor).ColSpan(1).IsRequired(true)
+                    .Editor(e => e.SelectBox()
+                        .Placeholder("Select Vendor")
+                        .DataSource(new JS("vendors"))
+                        .ItemTemplate(new JS("ItemTemplate"))
+                        .DisplayExpr("Email")
+                        .ValueExpr("Id")
+                        .SearchEnabled(true)
+                      ); 
+                gItem.AddSimpleFor(m => m.Status).ColSpan(1).IsRequired(true).Editor(e => e.SelectBox().Placeholder("Select Status").DataSource(new JS("Status")).DisplayExpr("Name").ValueExpr("Name"));
+                gItem.AddSimpleFor(m => m.Notes).IsRequired(true).Editor(e => e.TextArea().Placeholder("Enter Notes").Height(200)).ColSpan(2);
+            });
+        })
+        .ShowColonAfterLabel(true).Visible(true).OnInitialized("onFormInitialized")
+    )
+}
+
+
+
+
 <script>
-    var vendors;
-    $.ajax("Farmer/Home/GetVendors").done(function (data) {
-        //console.log(data);
-        vendors = data;
-    });
-   
-    function onAppointmentFormOpening(data){
-        //console.log(data);
-        //console.log(data.form);
+    var vendors, scheduler, selectedSched;
 
-       
+    let form;
+    let popup;
+    var Status = [{
+            "Name": "Pending"
+        },
+        {
+            "Name": "Done"
+        },
+        {
+            "Name": "Cancelled"
+        }
+    ];
 
-        var form = data.form;
-        form.option("items", [
-            {
-                dataField: "BookingStartDate",
-                editorType: "dxDateBox",
-                editorOptions: {
-                    width: "100%",
-                    type: "datetime"
-                }
-            },
-            {
-                dataField: "BookingEndDate",
-                editorType: "dxDateBox",
-                editorOptions: {
-                    width: "100%",
-                    type: "datetime"
-                }
-            },
-            {
-                name: "Vendor",
-                dataField: "Vendor",
-                editorType: "dxSelectBox",
-                editorOptions: {
-                    dataSource: vendors,
-                    valueExpr: "Id",
+    let rowData = {}, mode;
 
-                    displayExpr: (item) => function () {
-                        if (item != null) {
-                            //console.log(item);
-                            console.log(item.Firstname + " " + item.LastName);
-                            return item.Firstname + " " + item.LastName;
-
-                        }
-                    },
-                    width: "100%",
-                    readOnly: false,
-                    itemTemplate: function (itemData) {
-                        return itemData.Firstname + " " + itemData.LastName;
-                    }
-                }
-            },
-            {
-                dataField: "Status",
-                editorType: "dxRadioGroup",
-                editorOptions: {
-                    dataSource: ["Pending", "Done", "Canceled"],
-                    itemTemplate: function (itemData) {
-                        return itemData;
-                    }
-                }
-            }
-        ]);
+    function ItemTemplate(data) {
+        return data.Firstname + " " + data.LastName;
     }
 
-    function onInit(e) {
+    //var varDispExpr;
+    //function DispExpr() {
+
+    //    varDispExpr = this;
+    //    return data.Firstname + " " + data.LastName;
+    //}
+
+    var DispExpr = (item) => function () {
+        console.log(item);
+        //return item.Firstname + " " + item.LastName;
+    }
+
+    function OnCellClick(e) {
         console.log(e);
     }
+
+    //init form
+    function onFormInitialized(e) {
+        form = e.component;
+    }
+
+
+    //init popup
+    function onPopupInitialized(e) {
+        popup = e.component;
+    }
+    
+
+
+    function addAppointment(e) {
+
+        showPopup("Add", {});
+    }
+
+    function onToolbarPreparing(e) {
+        let toolbarItems = e.toolbarOptions.items;
+        // customize addRow toolbar button
+        for (let i = 0; i < toolbarItems.length; i++) {
+            let item = toolbarItems[i];
+            if (item.name === "addRowButton") {
+                item.options.onClick = onClickAdd;
+                break;
+            }
+        }
+    }
+    function onClickEdit(e) {
+        showPopup("Edit", e.row.data)
+    }
+    function onClickAdd(e) {
+        showPopup("Add", {})
+    }
+
+    function onConfirmClick() {
+        let data = form.option("formData");
+        let schedSrc = scheduler.getDataSource();
+        let schedStr = schedSrc.store();
+
+        if (mode == "Add") {
+            var res = scheduler.addAppointment(data);
+
+            schedSrc.reload();
+            popup.hide();
+        } else if (mode == "Edit") {
+            scheduler.updateAppointment(selectedSched, data);
+            schedSrc.reload();
+            popup.hide();
+        }
+
+
+
+    }
+  
+
+    function onCancelClick() {
+        popup.hide();
+    }
+
+    function OnAppointmentDblClick(e) {
+        selectedSched = e.appointmentData;
+        showPopup("Edit", e.appointmentData);
+    }
+
+    function showPopup(popupMode, data) {
+        mode = popupMode;
+        //console.log(form);
+       
+
+        popup.option({
+            title: popupMode,
+            visible: true
+        })
+
+        if (form) {
+            //form.option('key', data.SchedId);
+            form.option('formData', data);
+
+            //console.log(data);
+        }
+        else
+            rowData = { ...data };
+
+    }
+
+
+    $.ajax("Farmer/Home/GetVendors").done(function (data) {
+        vendors = data;
+    });
+
+
+    function onInit(e) {
+        scheduler = e.component;
+        //console.log(scheduler);
+
+    }
+
+    function onAppointmentFormOpening(data) {
+        data.cancel = true;
+        var form = data.form;
+        form.option("cancel", true);
+
+        //form.option("colSpan", 2);
+        //form.option("items", [
+        //    {
+        //        dataField: "BookingStartDate",
+        //        editorType: "dxDateBox",
+        //        editorOptions: {
+        //            width: "100%",
+        //            type: "datetime"
+        //            , colSpan: 2,
+        //            colCount: 2
+        //        }
+        //    },
+        //    {
+        //        dataField: "BookingEndDate",
+        //        editorType: "dxDateBox",
+        //        editorOptions: {
+        //            width: "100%",
+        //            type: "datetime"
+        //            , colSpan: 2
+        //        }
+        //    },
+        //    {
+        //        name: "Vendor",
+        //        dataField: "Vendor",
+        //        editorType: "dxSelectBox",
+        //        required: true,
+        //        editorOptions: {
+        //            dataSource: vendors,
+        //            valueExpr: "Id",
+        //            displayExpr: (item) => function () {
+        //                if (item != null) {
+        //                    //console.log(item);
+        //                    console.log(item.Firstname + " " + item.LastName);
+        //                    return item.Firstname + " " + item.LastName;
+        //                }
+        //            },
+        //            width: "100%",
+        //            readOnly: false,
+        //            itemTemplate: function (itemData) {
+        //                return itemData.Firstname + " " + itemData.LastName;
+        //            }
+        //        }
+        //    },
+        //    {
+        //        name: "Notes",
+        //        dataField: "Notes",
+        //        editorType: "dxTextArea",
+        //        editorOptions: {
+        //            readOnly: false
+        //        }
+        //    }
+        //    ,
+        //    {
+        //        dataField: "Status",
+        //        editorType: "dxRadioGroup",
+        //        editorOptions: {
+        //            dataSource: ["Pending", "Done", "Canceled"],
+        //            itemTemplate: function (itemData) {
+        //                return itemData;
+        //            }
+        //        }
+        //    }
+        //]);
+
+
+    }
+
+
+
+
 </script>

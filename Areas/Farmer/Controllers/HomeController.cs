@@ -68,7 +68,9 @@ namespace Wiggly.Areas.Farmer.Controllers
                 BookingEndDate = newAppointment.BookingEndDate,
                 BookingStartDate = newAppointment.BookingStartDate,
                 Status = newAppointment.Status,
-                Farmer = loggedInUser.Id
+                Farmer = loggedInUser.Id,
+                Notes = newAppointment.Notes,
+                DateCreated = DateTime.Now
             };
 
             _context.Schedules.Add(schedule);
@@ -77,12 +79,61 @@ namespace Wiggly.Areas.Farmer.Controllers
         }
 
 
+        [HttpPut]
+        public async Task<IActionResult> UpdateSched(int? key, string values)
+        {
+            if (key == null)
+            {
+                return BadRequest("Id has no value");
+            }
+
+            var sched = _context.Schedules.Where(q => q.SchedId == key).FirstOrDefault();
+
+            if (sched == null)
+            {
+                return BadRequest("Book not found");
+            }
+
+
+            JsonConvert.PopulateObject(values, sched);
+            //book.AvailableCopies = book.NoCopies;
+
+            if (!TryValidateModel(sched))
+                return BadRequest("values are incorrect");
+
+            _context.Schedules.Update(sched);
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteSched(int key) {
+
+            var toDelete = await _context.Schedules.FindAsync(key);
+            if (toDelete == null)
+            {
+                return BadRequest("Item is already deleted.(Or doesn't exist on the system)");
+            }
+
+            _context.Schedules.Remove(toDelete);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpGet]
         public ActionResult GetVendors()
         {
             var res =  _context.AspNetUsers.Where(q => q.UserType == "Vendor").ToList();
             if (res == null)
                 BadRequest("No Vendor ");
             return Ok(res);
+        }
+
+        private bool SchedExists(int id)
+        {
+            return _context.Schedules.Any(e => e.SchedId == id);
         }
     }
 }

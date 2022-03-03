@@ -30,7 +30,7 @@ namespace Wiggly.Entities
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
-                optionsBuilder.UseSqlServer("Server=WINSHIERO\\SQLEXPRESS;Database=Wiggly;Trusted_Connection=True;");
+                optionsBuilder.UseSqlServer("Server=DESKTOP-E4OKK0E\\SQLEXPRESS;Database=Wiggly;Trusted_Connection=True;");
             }
         }
 
@@ -136,15 +136,15 @@ namespace Wiggly.Entities
             modelBuilder.Entity<Schedules>(entity =>
             {
                 entity.HasKey(e => e.SchedId)
-                    .HasName("PK__Schedule__BB086B45A490805F");
-
-                entity.Property(e => e.SchedId).ValueGeneratedNever();
+                    .HasName("PK__tmp_ms_x__BB086B45973C7644");
 
                 entity.Property(e => e.BookingEndDate).HasColumnType("datetime");
 
                 entity.Property(e => e.BookingStartDate).HasColumnType("datetime");
 
                 entity.Property(e => e.DateCreated).HasColumnType("datetime");
+
+                entity.Property(e => e.Notes).HasColumnType("text");
 
                 entity.Property(e => e.Status)
                     .HasMaxLength(50)
