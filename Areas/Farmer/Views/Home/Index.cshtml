@@ -138,74 +138,71 @@
         return data.Firstname + " " + data.LastName;
     }
 
-    //var varDispExpr;
-    //function DispExpr() {
-
-    //    varDispExpr = this;
-    //    return data.Firstname + " " + data.LastName;
-    //}
 
     var DispExpr = (item) => function () {
         console.log(item);
-        //return item.Firstname + " " + item.LastName;
     }
 
     function OnCellClick(e) {
-        console.log(e);
+        //console.log(e);
     }
 
-    //init form
+    //custom form initialization
     function onFormInitialized(e) {
         form = e.component;
     }
 
-
-    //init popup
+    //Custom popUpInitialization
     function onPopupInitialized(e) {
         popup = e.component;
     }
     
 
-
+    //custom button Clicked to add
     function addAppointment(e) {
-
         showPopup("Add", {});
     }
 
-    function onToolbarPreparing(e) {
-        let toolbarItems = e.toolbarOptions.items;
-        // customize addRow toolbar button
-        for (let i = 0; i < toolbarItems.length; i++) {
-            let item = toolbarItems[i];
-            if (item.name === "addRowButton") {
-                item.options.onClick = onClickAdd;
-                break;
-            }
-        }
-    }
-    function onClickEdit(e) {
-        showPopup("Edit", e.row.data)
-    }
-    function onClickAdd(e) {
-        showPopup("Add", {})
-    }
+    //function onToolbarPreparing(e) {
+    //    let toolbarItems = e.toolbarOptions.items;
+    //    // customize addRow toolbar button
+    //    for (let i = 0; i < toolbarItems.length; i++) {
+    //        let item = toolbarItems[i];
+    //        if (item.name === "addRowButton") {
+    //            item.options.onClick = onClickAdd;
+    //            break;
+    //        }
+    //    }
+    //}
+    //function onClickEdit(e) {
+    //    showPopup("Edit", e.row.data)
+    //}
+    //function onClickAdd(e) {
+    //    showPopup("Add", {})
+    //}
 
     function onConfirmClick() {
         let data = form.option("formData");
         let schedSrc = scheduler.getDataSource();
         let schedStr = schedSrc.store();
 
-        if (mode == "Add") {
-            var res = scheduler.addAppointment(data);
+        var validationResult = form.validate();
+        if (validationResult != null && !validationResult.isValid) {
+            //alert('Please fix invalid fields');
+            return false;
+        } else {
+            if (mode == "Add") {
+                var res = scheduler.addAppointment(data);
 
-            schedSrc.reload();
-            popup.hide();
-        } else if (mode == "Edit") {
-            scheduler.updateAppointment(selectedSched, data);
-            schedSrc.reload();
-            popup.hide();
+                schedSrc.reload();
+                popup.hide();
+            } else if (mode == "Edit") {
+                scheduler.updateAppointment(selectedSched, data);
+                schedSrc.reload();
+                popup.hide();
+            }
         }
-
+        
 
 
     }
@@ -256,7 +253,7 @@
     function onAppointmentFormOpening(data) {
         data.cancel = true;
         var form = data.form;
-        form.option("cancel", true);
+        //form.option("cancel", true);
 
         //form.option("colSpan", 2);
         //form.option("items", [
