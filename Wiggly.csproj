@@ -5,6 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <None Include="Areas\Vendor\Views\Page\Index.cshtml" />
       <None Include="Views\Home\Index.cshtml" />
       <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css.map" />
       <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-grid.min.css.map" />

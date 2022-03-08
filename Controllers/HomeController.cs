@@ -15,7 +15,7 @@ namespace Wiggly.Controllers
                 System.Security.Claims.ClaimsPrincipal currentUser = this.User;
                 if (currentUser.IsInRole("Vendor"))
                 {
-                    return RedirectToAction("Index", "Home", new { area = "Vendor" });
+                    return RedirectToAction("Index", "Page", new { area = "Vendor" });
                 }
                 if (currentUser.IsInRole("Farmer"))
                 {
