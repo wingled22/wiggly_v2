@@ -15,5 +15,10 @@ namespace Wiggly.Areas.Vendor.Controllers
         {
             return View();
         }
+
+        public IActionResult Transaction()
+        {
+            return View();
+        }
     }
 }

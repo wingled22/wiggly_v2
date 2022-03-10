@@ -22,8 +22,11 @@ namespace Wiggly.Entities
         public virtual DbSet<AspNetUserRoles> AspNetUserRoles { get; set; }
         public virtual DbSet<AspNetUserTokens> AspNetUserTokens { get; set; }
         public virtual DbSet<AspNetUsers> AspNetUsers { get; set; }
+        public virtual DbSet<Kilos> Kilos { get; set; }
+        public virtual DbSet<Payment> Payment { get; set; }
         public virtual DbSet<Profiles> Profiles { get; set; }
         public virtual DbSet<Schedules> Schedules { get; set; }
+        public virtual DbSet<Transaction> Transaction { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -120,6 +123,21 @@ namespace Wiggly.Entities
                 entity.Property(e => e.UserName).HasMaxLength(256);
             });
 
+            modelBuilder.Entity<Payment>(entity =>
+            {
+                entity.Property(e => e.ProofPaymentFarmer).IsUnicode(false);
+
+                entity.Property(e => e.ProofPaymentVendor).IsUnicode(false);
+
+                entity.Property(e => e.Status).IsUnicode(false);
+
+                entity.Property(e => e.Total).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.Type)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+            });
+
             modelBuilder.Entity<Profiles>(entity =>
             {
                 entity.Property(e => e.Id).ValueGeneratedNever();
@@ -146,6 +164,13 @@ namespace Wiggly.Entities
 
                 entity.Property(e => e.Notes).HasColumnType("text");
 
+                entity.Property(e => e.Status)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<Transaction>(entity =>
+            {
                 entity.Property(e => e.Status)
                     .HasMaxLength(50)
                     .IsUnicode(false);
