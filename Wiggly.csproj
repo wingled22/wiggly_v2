@@ -55,7 +55,6 @@
     <ItemGroup>
       <Folder Include="Areas\Farmer\Data\" />
       <Folder Include="Areas\Vendor\Data\" />
-      <Folder Include="Areas\Vendor\Models\" />
     </ItemGroup>
 
     <ProjectExtensions><VisualStudio><UserProperties TemplateFeatures="NETCORE" /></VisualStudio></ProjectExtensions>
