@@ -125,6 +125,8 @@ namespace Wiggly.Entities
 
             modelBuilder.Entity<Payment>(entity =>
             {
+                entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
+
                 entity.Property(e => e.ProofPaymentFarmer).IsUnicode(false);
 
                 entity.Property(e => e.ProofPaymentVendor).IsUnicode(false);
@@ -171,6 +173,10 @@ namespace Wiggly.Entities
 
             modelBuilder.Entity<Transaction>(entity =>
             {
+                entity.Property(e => e.BookDate).HasColumnType("date");
+
+                entity.Property(e => e.DateCreated).HasColumnType("date");
+
                 entity.Property(e => e.Status)
                     .HasMaxLength(50)
                     .IsUnicode(false);

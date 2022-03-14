@@ -10,7 +10,10 @@ namespace Wiggly.Entities
         public decimal? Total { get; set; }
         public string Status { get; set; }
         public int? Transaction { get; set; }
+        public int? Vendor { get; set; }
+        public int? Farmer { get; set; }
         public string ProofPaymentVendor { get; set; }
         public string ProofPaymentFarmer { get; set; }
+        public decimal? Amount { get; set; }
     }
 }

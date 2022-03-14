@@ -9,5 +9,7 @@ namespace Wiggly.Entities
         public int? Vendor { get; set; }
         public int? Farmer { get; set; }
         public string Status { get; set; }
+        public DateTime? BookDate { get; set; }
+        public DateTime? DateCreated { get; set; }
     }
 }
