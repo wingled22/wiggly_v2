@@ -6,7 +6,7 @@
 
 @{
     ViewData["Title"] = "Index";
-    Layout = "_LayoutAdminLTE";
+    Layout = "_LayoutAdminLTEFarmer";
 }
 
 <h1>Index</h1>
@@ -238,7 +238,7 @@
 
     }
 
-
+    //Get the vendor
     $.ajax("Farmer/Home/GetVendors").done(function (data) {
         vendors = data;
     });
@@ -250,6 +250,7 @@
 
     }
 
+    //disable the default form for editing/adding data
     function onAppointmentFormOpening(data) {
         data.cancel = true;
         //var form = data.form;
