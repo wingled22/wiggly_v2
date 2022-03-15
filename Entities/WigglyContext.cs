@@ -173,9 +173,9 @@ namespace Wiggly.Entities
 
             modelBuilder.Entity<Transaction>(entity =>
             {
-                entity.Property(e => e.BookDate).HasColumnType("date");
+                entity.Property(e => e.BookDate).HasColumnType("datetime");
 
-                entity.Property(e => e.DateCreated).HasColumnType("date");
+                entity.Property(e => e.DateCreated).HasColumnType("datetime");
 
                 entity.Property(e => e.Status)
                     .HasMaxLength(50)
