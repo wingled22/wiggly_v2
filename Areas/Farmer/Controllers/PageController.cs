@@ -32,14 +32,19 @@ namespace Wiggly.Areas.Farmer.Controllers
             return View();
         }
 
+        //todo: view thier calendar and other people calendar
         public IActionResult Calendar()
         {
             return View();
         }
+
+        //todo: view transactions
         public IActionResult Transaction()
         {
             return View();
         }
+
+        //todo: chat to users
         public IActionResult Chat()
         {
             return View();

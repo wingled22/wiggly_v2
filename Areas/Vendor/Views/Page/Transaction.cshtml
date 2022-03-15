@@ -48,6 +48,8 @@
             .ValueExpr("Id")
             ); 
         col.AddFor(m => m.BookDate);
+        col.AddFor(m => m.Status);
+
 
         //kilos
         col.AddFor(m => m.Pork).Visible(false);

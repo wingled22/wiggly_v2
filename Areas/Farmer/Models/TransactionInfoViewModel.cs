@@ -4,17 +4,14 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Wiggly.Areas.Vendor.Models
+namespace Wiggly.Areas.Farmer.Models
 {
     public class TransactionInfoViewModel
     {
         public int TransactionID { get; set; }
         
-        [Required]
         public int Farmer { get; set; }
-        public string FarmerFullname { get; set; }
-        public string Status { get; set; }
-        [Required]
+        public string VendorFullname { get; set; }
         public DateTime? BookDate { get; set; }
         //public DateTime? DateCreated { get; set; }
 
@@ -45,10 +42,11 @@ namespace Wiggly.Areas.Vendor.Models
         /*
          Payment
         */
-        [Required]
         public string PaymentType { get; set; }
         //public string PaymentStatus { get; set; }
-        [Required]
         public decimal? Amount { get; set; }
+
+        public string Status { get; set; }
+
     }
 }

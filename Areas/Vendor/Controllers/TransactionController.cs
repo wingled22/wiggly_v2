@@ -38,12 +38,14 @@ namespace Wiggly.Areas.Vendor.Controllers
             var transactions = (from trnsctn in _context.Transaction
                                 join kilos in _context.Kilos on trnsctn.Id equals kilos.Transaction
                                 join pymt in _context.Payment on trnsctn.Id equals pymt.Transaction
+                                join frmer in _context.AspNetUsers on trnsctn.Farmer equals frmer.Id
                                 where trnsctn.Vendor == loggedInUser.Id
 
                                 select new TransactionInfoViewModel
                                 {
                                     TransactionID = trnsctn.Id,
                                     Farmer = (int)trnsctn.Farmer,
+                                    FarmerFullname = frmer.Firstname + " " + frmer.LastName,
                                     BookDate = trnsctn.BookDate,
                                     PorkNum = kilos.PorkNum,
                                     Pork = kilos.Pork,
@@ -56,6 +58,7 @@ namespace Wiggly.Areas.Vendor.Controllers
                                     CarabaoNum = kilos.CarabaoNum,
                                     Carabao = kilos.Carabao,
                                     PaymentType = pymt.Type,
+                                    Status = pymt.Status,
                                     Amount = pymt.Amount
                                 }).ToList();
 
@@ -80,7 +83,8 @@ namespace Wiggly.Areas.Vendor.Controllers
                 Vendor = loggedInUser.Id,
                 Farmer = info.Farmer,
                 BookDate = info.BookDate,
-                DateCreated = DateTime.Now
+                DateCreated = DateTime.Now,
+                Status = "Pending"
             };
 
             if (!TryValidateModel(transaction))

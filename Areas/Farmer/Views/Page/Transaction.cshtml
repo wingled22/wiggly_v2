@@ -10,3 +10,205 @@
 }
 
 <h1>@ViewData["Title"]</h1>
+
+
+
+@(Html.DevExtreme().DataGrid<Wiggly.Areas.Farmer.Models.TransactionInfoViewModel>()
+    .DataSource(ds => ds.Mvc()
+        .Controller("Transaction")
+        .LoadAction("GetTransactions")
+        //.InsertAction("PostTransaction")
+        .UpdateAction("PutTransaction")
+        //.DeleteAction("DeleteTransactions")
+        .Key("TransactionID")
+    )
+    .Selection(s => s.Mode(SelectionMode.Single))
+    .HoverStateEnabled(true)
+    .ShowColumnLines(true)
+    .ShowRowLines(true)
+    .RowAlternationEnabled(true)
+    .ShowBorders(true)
+    .SearchPanel(searchPanel => searchPanel
+        .Visible(true)
+        .Width(240)
+        .Placeholder("Search...")
+    )
+    .Columns(col =>
+    {
+        col.AddFor(m => m.TransactionID).Name("Transaction ID");
+        //col.AddFor(m => m.Farmer)
+        //    .Lookup(lookup => lookup.DataSource(d => d.Mvc()
+        //        .Controller("Transaction")
+        //        .LoadAction("GetVendors")
+        //        .Key("Id")
+        //    ).DisplayExpr(new JS("FarmerDisplayExpr"))
+        //    .ValueExpr("Id")
+        //    );
+        col.AddFor(m => m.VendorFullname);
+        col.AddFor(m => m.BookDate);
+        col.AddFor(m => m.Status);
+
+        //kilos
+        col.AddFor(m => m.Pork).Visible(false);
+        col.AddFor(m => m.PorkNum).Visible(false);
+        col.AddFor(m => m.Beef).Visible(false);
+        col.AddFor(m => m.BeefNum).Visible(false);
+        col.AddFor(m => m.Chicken).Visible(false);
+        col.AddFor(m => m.ChickenNum).Visible(false);
+        col.AddFor(m => m.Goat).Visible(false);
+        col.AddFor(m => m.GoatNum).Visible(false);
+        col.AddFor(m => m.Carabao).Visible(false);
+        col.AddFor(m => m.CarabaoNum).Visible(false);
+
+        //payment
+
+        col.AddFor(m => m.PaymentType).Visible(false);
+        col.AddFor(m => m.Amount).Visible(false);
+
+        col.Add()
+            .Type(GridCommandColumnType.Buttons)
+            .Buttons(b =>
+            {
+                b.Add().Name(GridColumnButtonName.Edit);
+                b.Add().Name(GridColumnButtonName.Delete);
+                //b.Add().Name("Details")
+                //    .Icon("info")
+                //    .OnClick("onInfoIconClick")
+                //;
+                //b.Add().Name("ViewTopic")
+                //    .Icon("doc")
+                //    .OnClick("onTopicIconClick");
+                //;
+
+            });
+    })
+    .Editing(e => {
+        e.UseIcons(true);
+        e.Mode(GridEditMode.Popup)
+        //.Popup(p => p
+        //    .Title("Transaction Info")
+        //    .ShowTitle(true)
+        //    .Width(700)
+        //    .Height(525)
+        //)
+        .AllowUpdating(true)
+        .Form(f => f.Items(items =>
+        {
+            items.AddGroup()
+                .ColCount(2)
+                .ColSpan(2)
+                .Caption("Transaction")
+                .Items(gItem =>
+                {
+                    gItem.AddSimpleFor(m => m.VendorFullname).Editor(e => e.TextBox().ReadOnly(true)).ColSpan(1).IsRequired(true);
+
+                    gItem.AddSimpleFor(m => m.BookDate).Editor(e => e.DateBox().ReadOnly(true).Type(DateBoxType.DateTime)).ColSpan(1).IsRequired(true);
+                });
+
+            items.AddGroup()
+                .ColCount(2)
+                .ColSpan(2)
+                .Caption("Kilos")
+                .Items(gItem => {
+
+                    gItem.AddSimpleFor(m => m.PorkNum).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
+                    gItem.AddSimpleFor(m => m.Pork).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
+
+                    gItem.AddSimpleFor(m => m.BeefNum).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
+                    gItem.AddSimpleFor(m => m.Beef).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
+
+                    gItem.AddSimpleFor(m => m.ChickenNum).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
+                    gItem.AddSimpleFor(m => m.Chicken).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
+
+                    gItem.AddSimpleFor(m => m.GoatNum).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
+                    gItem.AddSimpleFor(m => m.Goat).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
+
+                    gItem.AddSimpleFor(m => m.Carabao).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
+                    gItem.AddSimpleFor(m => m.Carabao).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
+
+
+                });
+
+            items.AddGroup()
+                .ColCount(2)
+                .ColSpan(2)
+                .Caption("Payment")
+                .Items(gItem => {
+                    gItem.AddSimpleFor(m => m.PaymentType).ColSpan(1).IsRequired(true).Editor(e => e.SelectBox().ReadOnly(true).Placeholder("Select Status").DataSource(new JS("PaymentType")).DisplayExpr("Name").ValueExpr("Name"));
+                    gItem.AddSimpleFor(m => m.Amount).ColSpan(1).IsRequired(true).Editor(e => e.NumberBox());
+                    gItem.AddSimpleFor(m => m.Status).ColSpan(1).IsRequired(true).Editor(e => e.SelectBox().ReadOnly(false).Placeholder("Select Status").DataSource(new JS("Status")).DisplayExpr("Name").ValueExpr("Name"));
+                });
+
+        }).OnInitialized("onFormInitialized")
+        );
+
+    })
+)
+
+
+
+<script>
+    var asdfasdf;
+    var Status = [
+        {
+            "Name": "Pending"
+        },
+        {
+            "Name": "Done"
+        },
+        {
+            "Name": "Cancelled"
+        }
+    ];
+
+    var PaymentType = [
+        {
+            "Name": "Bank Deposit"
+        },
+        {
+            "Name": "Gcash"
+        },
+        {
+            "Name": "Cash on Hand"
+        }
+    ];
+
+    //ui components init
+    var farmerSelectBox;
+
+    let form;
+    //custom form initialization
+    function onFormInitialized(e) {
+        form = e.component;
+        console.log(form);
+    }
+
+
+    $.ajax("../Transaction/GetVendors").done(function (data) {
+        asdfasdf = data;
+    });
+
+    function ItemTemplate(data) {
+        return data.Firstname + " " + data.LastName;
+    }
+
+
+    function FarmerDisplayExpr(item) {
+        if (item) {
+            //console.log(item);
+            return item.Firstname + " " + item.LastName;
+        } else {
+        }
+    }
+
+
+    let dExpr = (item) => function () {
+        if (item) {
+            //console.log(item);
+            return item.Firstname + " " + item.LastName;
+        } else {
+            console.log("no data")
+        }
+    }
+
+</script>
