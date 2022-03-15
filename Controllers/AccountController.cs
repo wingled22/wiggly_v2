@@ -44,7 +44,7 @@ namespace Wiggly.Controllers
                 }
                 if (currentUser.IsInRole("Farmer"))
                 {
-                    return RedirectToAction("Index", "Home", new { area = "Farmer" });
+                    return RedirectToAction("Index", "Page", new { area = "Farmer" });
                 }
             }
             return View(new RegisterViewModel());
@@ -110,11 +110,11 @@ namespace Wiggly.Controllers
                 System.Security.Claims.ClaimsPrincipal currentUser = this.User;
                 if (currentUser.IsInRole("Vendor"))
                 {
-                    return RedirectToAction("Index", "Vendor", new { area = "Vendor" });
+                    return RedirectToAction("Index", "Page", new { area = "Vendor" });
                 }
                 if (currentUser.IsInRole("Farmer"))
                 {
-                    return RedirectToAction("Index", "Farmer", new { area = "Farmer" });
+                    return RedirectToAction("Index", "Page", new { area = "Farmer" });
                 }
             }
             return View();
@@ -136,11 +136,11 @@ namespace Wiggly.Controllers
                         _logger.LogInformation("User logged in.");
                         if (user.UserType == "Farmer")
                         {
-                            return RedirectToAction("Index", "Home", new { area = "Farmer"});
+                            return RedirectToAction("Index", "Page", new { area = "Farmer"});
                         }
                         else
                         {
-                            return RedirectToAction("Index", "Home", new { area = "Vendor" });
+                            return RedirectToAction("Index", "Page", new { area = "Vendor" });
                         }
                     }
                     else
