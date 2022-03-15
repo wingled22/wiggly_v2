@@ -206,7 +206,7 @@
     with font-awesome or any other icon font library -->
 
                         <li class="nav-item">
-                            <a asp-area="Admin" asp-controller="Page" asp-action="Index" class="nav-link">
+                            <a class="nav-link">
                                 <i class="nav-icon fas fa-tachometer-alt"></i>
                                 <p>
                                     Dashboard
@@ -215,30 +215,26 @@
                         </li>
 
                         <li class="nav-item">
-                            <a asp-area="Admin" asp-controller="Page" asp-action="Book" class="nav-link">
-                                <i class="nav-icon fas fa-book-open"></i>
-                                <p>Books</p>
+                            <a asp-area="Farmer" asp-controller="Page" asp-action="Transaction" class="nav-link">
+                                <i class="nav-icon fas fa-file-invoice-dollar"></i>
+                                @*<i class="fa-solid fa-file-invoice-dollar"></i>*@
+                                <p>Transactions</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a asp-area="Farmer" asp-controller="Page" asp-action="Calendar" class="nav-link">
+                                <i class="nav-icon fas fa-calendar-day"></i>
+                                @*<i class="fa-solid fa-file-invoice-dollar"></i>*@
+                                <p>Calendar</p>
                             </a>
                         </li>
 
                         <li class="nav-item">
-                            <a asp-area="Admin" asp-controller="Page" asp-action="Journal" class="nav-link">
-                                <i class="nav-icon fas fa-journal-whills"></i>
-                                <p>Journal</p>
-                            </a>
-                        </li>
-
-                        <li class="nav-item">
-                            <a asp-area="Admin" asp-controller="Page" asp-action="Newspaper" class="nav-link">
-                                <i class="nav-icon fas fa-newspaper"></i>
-                                <p>Newspapers</p>
-                            </a>
-                        </li>
-
-                        <li class="nav-item">
-                            <a asp-area="Admin" asp-controller="Page" asp-action="Thesis" class="nav-link">
-                                <i class="nav-icon fas fa-journal-whills"></i>
-                                <p>Thesis</p>
+                            <a asp-area="Farmer" asp-controller="Account" asp-action="Logout" class="nav-link">
+                                @*<i class="nav-icon fas fa=log"></i>*@
+                                <i class="nav-icon fas fa-arrow-right"></i>
+                                @*<i class="fa-solid fa-file-invoice-dollar"></i>*@
+                                <p>Logout</p>
                             </a>
                         </li>
 
