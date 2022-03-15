@@ -20,5 +20,10 @@ namespace Wiggly.Areas.Vendor.Controllers
         {
             return View();
         }
+
+        public IActionResult Schedule()
+        {
+            return View();
+        }
     }
 }

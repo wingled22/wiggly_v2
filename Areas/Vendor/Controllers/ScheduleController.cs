@@ -8,13 +8,16 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Wiggly.Areas.Farmer.Models;
+using Wiggly.Areas.Vendor.Models;
 using Wiggly.Entities;
 using Wiggly.Identity;
 
-namespace Wiggly.Areas_Vendor_Controllers
+namespace Wiggly.Areas.Vendor.Controllers
 {
 
-    [Authorize(Roles = "Vendor")]
+    //[Authorize(Roles = "Vendor")]
     [Area("Vendor")]
     public class ScheduleController : Controller
     {
@@ -31,135 +34,82 @@ namespace Wiggly.Areas_Vendor_Controllers
             _logger = logger;
         }
 
-        // GET: Schedule
-        public async Task<IActionResult> Index()
+        public ActionResult GetSched()
         {
-            return View(await _context.Schedules.ToListAsync());
+            var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
+            var scheds = _context.Schedules.Where(q => q.Vendor == loggedInUser.Id).ToList();
+            return Ok(scheds);
         }
 
-        // GET: Schedule/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var schedules = await _context.Schedules
-                .FirstOrDefaultAsync(m => m.SchedId == id);
-            if (schedules == null)
-            {
-                return NotFound();
-            }
-
-            return View(schedules);
-        }
-
-        // GET: Schedule/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: Schedule/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create( Schedules schedules)
+        public ActionResult SetSched(string values)
         {
-            if (ModelState.IsValid)
+            var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
+            var newAppointment = new VendorAppointmentViewModel();
+            JsonConvert.PopulateObject(values, newAppointment);
+
+            if (!TryValidateModel(newAppointment))
+                return BadRequest("error");
+
+            var schedule = new Schedules()
             {
-                _context.Add(schedules);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(schedules);
+                Farmer = newAppointment.Farmer,
+                BookingEndDate = newAppointment.BookingEndDate,
+                BookingStartDate = newAppointment.BookingStartDate,
+                Status = newAppointment.Status,
+                Vendor = loggedInUser.Id,
+                Notes = newAppointment.Notes,
+                DateCreated = DateTime.Now
+            };
+
+            _context.Schedules.Add(schedule);
+            _context.SaveChanges();
+            return Ok();
         }
 
-        // GET: Schedule/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+
+        [HttpPut]
+        public async Task<IActionResult> UpdateSched(int? key, string values)
         {
-            if (id == null)
+            if (key == null)
             {
-                return NotFound();
+                return BadRequest("Id has no value");
             }
 
-            var schedules = await _context.Schedules.FindAsync(id);
-            if (schedules == null)
-            {
-                return NotFound();
-            }
-            return View(schedules);
-        }
+            var sched = _context.Schedules.Where(q => q.SchedId == key).FirstOrDefault();
 
-        // POST: Schedule/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Schedules schedules)
-        {
-            if (id != schedules.SchedId)
+            if (sched == null)
             {
-                return NotFound();
+                return BadRequest("Book not found");
             }
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(schedules);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!SchedulesExists(schedules.SchedId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(schedules);
-        }
 
-        // GET: Schedule/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            JsonConvert.PopulateObject(values, sched);
+            //book.AvailableCopies = book.NoCopies;
 
-            var schedules = await _context.Schedules
-                .FirstOrDefaultAsync(m => m.SchedId == id);
-            if (schedules == null)
-            {
-                return NotFound();
-            }
+            if (!TryValidateModel(sched))
+                return BadRequest("values are incorrect");
 
-            return View(schedules);
-        }
-
-        // POST: Schedule/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var schedules = await _context.Schedules.FindAsync(id);
-            _context.Schedules.Remove(schedules);
+            _context.Schedules.Update(sched);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+
+            return Ok();
         }
 
-        private bool SchedulesExists(int id)
+        [HttpDelete]
+        public async Task<IActionResult> DeleteSched(int key)
         {
-            return _context.Schedules.Any(e => e.SchedId == id);
+
+            var toDelete = await _context.Schedules.FindAsync(key);
+            if (toDelete == null)
+            {
+                return BadRequest("Item is already deleted.(Or doesn't exist on the system)");
+            }
+
+            _context.Schedules.Remove(toDelete);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
     }
 }
