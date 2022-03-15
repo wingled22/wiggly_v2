@@ -41,6 +41,7 @@ namespace Wiggly.Areas.Farmer.Controllers
                                 {
                                     TransactionID = trnsctn.Id,
                                     Farmer = (int)trnsctn.Farmer,
+                                    Vendor = (int)trnsctn.Vendor,
                                     VendorFullname = frmer.Firstname+" "+frmer.LastName,
                                     BookDate = trnsctn.BookDate,
                                     PorkNum = kilos.PorkNum,

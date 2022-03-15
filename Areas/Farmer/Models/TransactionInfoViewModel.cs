@@ -11,6 +11,7 @@ namespace Wiggly.Areas.Farmer.Models
         public int TransactionID { get; set; }
         
         public int Farmer { get; set; }
+        public int Vendor { get; set; }
         public string VendorFullname { get; set; }
         public DateTime? BookDate { get; set; }
         //public DateTime? DateCreated { get; set; }
