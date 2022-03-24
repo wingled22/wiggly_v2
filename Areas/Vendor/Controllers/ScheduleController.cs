@@ -80,7 +80,7 @@ namespace Wiggly.Areas.Vendor.Controllers
 
             if (sched == null)
             {
-                return BadRequest("Book not found");
+                return BadRequest("Sched not found");
             }
 
 

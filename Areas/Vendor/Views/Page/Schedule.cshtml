@@ -9,16 +9,16 @@
     Layout = "_LayoutAdminLTEVendor";
 }
 
-<h1>My Schedule</h1>
+<h3>My Schedule</h3>
 
-<p>
+@*<p>
     <a asp-action="Index">Home Farmer</a>
-</p>
-<button onclick="addAppointment()">
-    add appointment
-</button>
+</p>*@
+<button type="button" class="btn btn-primary" onclick="addAppointment()">Add Appointment</button>
+<br />
+<br />
 @(Html.DevExtreme().Scheduler()
-    .ID("scheduler")    
+    .ID("scheduler")
     .DataSource(d => d.Mvc()
         .Controller("Schedule")
         .Key("SchedId")
@@ -99,10 +99,10 @@
                         .Placeholder("Select Farmer")
                         .DataSource(new JS("vendors"))
                         .ItemTemplate(new JS("ItemTemplate"))
-                        .DisplayExpr("Email")
+                        .DisplayExpr(new JS("DispExpr"))
                         .ValueExpr("Id")
                         .SearchEnabled(true)
-                      );
+                    );
                 gItem.AddSimpleFor(m => m.Status).ColSpan(1).IsRequired(true).Editor(e => e.SelectBox().Placeholder("Select Status").DataSource(new JS("Status")).DisplayExpr("Name").ValueExpr("Name"));
                 gItem.AddSimpleFor(m => m.Notes).IsRequired(true).Editor(e => e.TextArea().Placeholder("Enter Notes").Height(200)).ColSpan(2);
             });

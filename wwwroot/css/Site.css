@@ -1,2 +1,8 @@
 body {
 }
+
+div.post-container {
+    padding: 10px;
+    background: white;
+    min-height: 300px;
+}

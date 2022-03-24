@@ -103,11 +103,9 @@ namespace Wiggly
         }
     }
 }
+
 //todo: post of farmers
 //todo: feed of post of farmers on meat dealer side and farmer side
 //todo: Chat support
 
-/// Description 
-/// photo
-/// 
-///
+//TODO: marketplace, timeline, profiles, notif, post, dashboard 

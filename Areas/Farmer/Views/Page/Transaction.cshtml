@@ -5,7 +5,7 @@
 @*@model Wiggly.Entities.Schedules;*@
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Transactions";
     Layout = "_LayoutAdminLTEFarmer";
 }
 
@@ -17,9 +17,7 @@
     .DataSource(ds => ds.Mvc()
         .Controller("Transaction")
         .LoadAction("GetTransactions")
-        //.InsertAction("PostTransaction")
         .UpdateAction("PutTransaction")
-        //.DeleteAction("DeleteTransactions")
         .Key("TransactionID")
     )
     .Selection(s => s.Mode(SelectionMode.Single))
@@ -28,6 +26,7 @@
     .ShowRowLines(true)
     .RowAlternationEnabled(true)
     .ShowBorders(true)
+    .HeaderFilter(hf => hf.Visible(true))
     .SearchPanel(searchPanel => searchPanel
         .Visible(true)
         .Width(240)
@@ -36,18 +35,11 @@
     .Columns(col =>
     {
         col.AddFor(m => m.TransactionID).Name("Transaction ID");
-        //col.AddFor(m => m.Farmer)
-        //    .Lookup(lookup => lookup.DataSource(d => d.Mvc()
-        //        .Controller("Transaction")
-        //        .LoadAction("GetVendors")
-        //        .Key("Id")
-        //    ).DisplayExpr(new JS("FarmerDisplayExpr"))
-        //    .ValueExpr("Id")
-        //    );
+      
         col.AddFor(m => m.VendorFullname);
         col.AddFor(m => m.BookDate);
+        col.AddFor(m => m.Amount).Visible(true);
         col.AddFor(m => m.Status);
-
         //kilos
         col.AddFor(m => m.Pork).Visible(false);
         col.AddFor(m => m.PorkNum).Visible(false);
@@ -59,12 +51,8 @@
         col.AddFor(m => m.GoatNum).Visible(false);
         col.AddFor(m => m.Carabao).Visible(false);
         col.AddFor(m => m.CarabaoNum).Visible(false);
-
         //payment
-
         col.AddFor(m => m.PaymentType).Visible(false);
-        col.AddFor(m => m.Amount).Visible(false);
-
         col.Add()
             .Type(GridCommandColumnType.Buttons)
             .Buttons(b =>
@@ -85,12 +73,10 @@
     .Editing(e => {
         e.UseIcons(true);
         e.Mode(GridEditMode.Popup)
-        //.Popup(p => p
-        //    .Title("Transaction Info")
-        //    .ShowTitle(true)
-        //    .Width(700)
-        //    .Height(525)
-        //)
+        .Popup(p => p
+            .Width(700)
+            .Height(750)
+        )
         .AllowUpdating(true)
         .Form(f => f.Items(items =>
         {
@@ -100,9 +86,8 @@
                 .Caption("Transaction")
                 .Items(gItem =>
                 {
-                    gItem.AddSimpleFor(m => m.VendorFullname).Editor(e => e.TextBox().ReadOnly(true)).ColSpan(1).IsRequired(true);
-
-                    gItem.AddSimpleFor(m => m.BookDate).Editor(e => e.DateBox().ReadOnly(true).Type(DateBoxType.DateTime)).ColSpan(1).IsRequired(true);
+                    gItem.AddSimpleFor(m => m.VendorFullname).Editor(e => e.TextBox().ReadOnly(true)).ColSpan(1);
+                    gItem.AddSimpleFor(m => m.BookDate).Editor(e => e.DateBox().ReadOnly(true).Type(DateBoxType.DateTime)).ColSpan(1);
                 });
 
             items.AddGroup()
@@ -110,23 +95,16 @@
                 .ColSpan(2)
                 .Caption("Kilos")
                 .Items(gItem => {
-
                     gItem.AddSimpleFor(m => m.PorkNum).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
                     gItem.AddSimpleFor(m => m.Pork).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
-
                     gItem.AddSimpleFor(m => m.BeefNum).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
                     gItem.AddSimpleFor(m => m.Beef).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
-
                     gItem.AddSimpleFor(m => m.ChickenNum).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
                     gItem.AddSimpleFor(m => m.Chicken).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
-
                     gItem.AddSimpleFor(m => m.GoatNum).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
                     gItem.AddSimpleFor(m => m.Goat).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
-
                     gItem.AddSimpleFor(m => m.Carabao).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
                     gItem.AddSimpleFor(m => m.Carabao).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
-
-
                 });
 
             items.AddGroup()
@@ -134,8 +112,8 @@
                 .ColSpan(2)
                 .Caption("Payment")
                 .Items(gItem => {
-                    gItem.AddSimpleFor(m => m.PaymentType).ColSpan(1).IsRequired(true).Editor(e => e.SelectBox().ReadOnly(true).Placeholder("Select Status").DataSource(new JS("PaymentType")).DisplayExpr("Name").ValueExpr("Name"));
-                    gItem.AddSimpleFor(m => m.Amount).ColSpan(1).IsRequired(true).Editor(e => e.NumberBox());
+                    gItem.AddSimpleFor(m => m.PaymentType).ColSpan(1).Editor(e => e.SelectBox().ReadOnly(true).Placeholder("Select Status").DataSource(new JS("PaymentType")).DisplayExpr("Name").ValueExpr("Name"));
+                    gItem.AddSimpleFor(m => m.Amount).ColSpan(1).Editor(e => e.NumberBox());
                     gItem.AddSimpleFor(m => m.Status).ColSpan(1).IsRequired(true).Editor(e => e.SelectBox().ReadOnly(false).Placeholder("Select Status").DataSource(new JS("Status")).DisplayExpr("Name").ValueExpr("Name"));
                 });
 

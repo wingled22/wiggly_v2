@@ -5,8 +5,278 @@
 @*@model Wiggly.Entities.Schedules;*@
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Calendar";
     Layout = "_LayoutAdminLTEFarmer";
 }
 
 <h1>@ViewData["Title"]</h1>
+<br />
+@(Html.DevExtreme().SelectBox()
+    .DataSource(ds => ds.Mvc()
+        .Controller("Schedule")
+        .LoadAction("GetVendors")
+    )
+    .ItemTemplate(new JS("ItemTemplate"))
+    .DisplayExpr(new JS("DispExpr"))
+    .Placeholder("Select account to view it's calendar")
+    .ValueExpr("Id")
+    .SearchEnabled(true)
+    .OnValueChanged("selectBox_valueChanged")
+    .OnInitialized("searchSelectBoxInit")
+)
+
+@(Html.DevExtreme().Scheduler()
+    .ID("scheduler")
+    .DataSource(d => d.Mvc()
+        .Controller("Schedule")
+        .Key("SchedId")
+        .LoadAction("GetSched")
+        .LoadParams(new { userId = new JS("getUserId") }))
+    .Views(new[] {
+        SchedulerViewType.Day,
+        SchedulerViewType.Month
+    })
+    .CurrentView(SchedulerViewType.Month)
+    .StartDateExpr("BookingStartDate")
+    .EndDateExpr("BookingEndDate")
+    .TextExpr("Notes")
+    .StartDayHour(1)
+    .EndDayHour(24)
+    .Height(500)
+    //init for scheduler
+    .OnInitialized("onInit")
+    //cancel the opening of default form
+    .OnAppointmentFormOpening("onAppointmentFormOpening")
+    //event for to show the custom popup
+    .OnAppointmentDblClick("OnAppointmentDblClick")
+    //.OnCellClick("OnCellClick")
+)
+@*custom popup*@
+@(Html.DevExtreme().Popup()
+    .ID("popupDetails")
+    .Title("Appointment info")
+    .Width(700)
+    .Height(450)
+    .ContentTemplate(new TemplateName("customPopupContentTemplate"))
+    .ToolbarItems(items =>
+    {
+        //items.Add()
+        //    .Widget(editor => editor.Button()
+        //        .Text("Confirm")
+        //        .Type(ButtonType.Success)
+        //        .OnClick("onConfirmClick")
+        //    )
+        //    .Location(ToolbarItemLocation.After)
+        //    .Toolbar(Toolbar.Bottom);
+        items.Add()
+            .Widget(editor => editor.Button()
+                .Text("Cancel")
+                .Type(ButtonType.Success)
+                .OnClick("onCancelClick")
+            )
+            .Location(ToolbarItemLocation.After)
+            .Toolbar(Toolbar.Bottom);
+
+    })
+    .DragEnabled(true)
+    .CloseOnOutsideClick(true)
+    .ShowCloseButton(true)
+    .OnInitialized("onPopupInitialized")
+
+)
+@*custom template inside is form*@
+@using (Html.DevExtreme().NamedTemplate("customPopupContentTemplate"))
+{
+    @(Html.DevExtreme().Form<Wiggly.Areas.Farmer.Models.FarmerAppointmentViewModel>()
+        .ID("formDetails")
+        .ColCount(2)
+        .ActiveStateEnabled(false)
+        .LabelLocation(FormLabelLocation.Left)
+        .MinColWidth(300)
+        .ShowValidationSummary(true)
+        .ReadOnly(false)
+        .ActiveStateEnabled(false)
+        .Items(items =>
+        {
+            items.AddGroup().ColCount(2).ColSpan(2).Items(gItem =>
+            {
+                gItem.AddSimpleFor(m => m.BookingStartDate).Editor(e => e.DateBox().ReadOnly(true).Type(DateBoxType.DateTime)).ColSpan(1).IsRequired(true);
+                gItem.AddSimpleFor(m => m.BookingEndDate).Editor(e => e.DateBox().ReadOnly(true).Type(DateBoxType.DateTime)).ColSpan(1).IsRequired(true);
+                gItem.AddSimpleFor(m => m.Vendor).ColSpan(1).IsRequired(true)
+                    .Editor(e => e.SelectBox().ReadOnly(true)
+                        .Placeholder("Select Farmer")
+                        .DataSource(new JS("vendors"))
+                        .ItemTemplate(new JS("ItemTemplate"))
+                        .DisplayExpr(new JS("DispExpr"))
+                        .ValueExpr("Id")
+                        .SearchEnabled(true)
+                      );
+                gItem.AddSimpleFor(m => m.Status).ColSpan(1).IsRequired(true).Editor(e => e.SelectBox().ReadOnly(true).Placeholder("Select Status").DataSource(new JS("Status")).DisplayExpr("Name").ValueExpr("Name"));
+                gItem.AddSimpleFor(m => m.Notes).IsRequired(true).Editor(e => e.TextArea().ReadOnly(true).Placeholder("Enter Notes").Height(200)).ColSpan(2);
+            });
+        })
+        .ShowColonAfterLabel(true).Visible(true).OnInitialized("onFormInitialized")
+    )
+}
+
+
+<script>
+    var vendors, scheduler, selectedSched, userId = null;
+    let schedules;
+    var searchSelectBox;
+
+    $.ajax("../Schedule/getSched").done(function (data) {
+        schedules = data;
+    });
+
+    $.ajax("../Schedule/getvendors").done(function (data) {
+        vendors = data;
+    });
+
+
+    let rowData = {}, mode;
+    let form;
+    let popup;
+    var Status = [{
+                "Name": "Pending"
+            },
+            {
+                "Name": "Done"
+            },
+            {
+                "Name": "Cancelled"
+            }
+        ];
+
+    //Search mode for selectBox
+    var searchModes = "contains";
+    //var searchExpressions = {
+    //    name: "'Name'",
+    //    value: "Name"
+    //};
+
+    function onInit(e) {
+        scheduler = e.component;
+        //console.log(scheduler);
+    }
+
+    //custom form initialization
+    function onFormInitialized(e) {
+        form = e.component;
+    }
+
+    //Custom popUpInitialization
+    function onPopupInitialized(e) {
+        popup = e.component;
+    }
+
+    //cancel the default form popup
+    function onAppointmentFormOpening(data) {
+        data.cancel = true;
+    }
+
+    //if a date on calendar was clicked
+    function OnAppointmentDblClick(e) {
+        selectedSched = e.appointmentData;
+        showPopup("Edit", e.appointmentData);
+    }
+
+    function searchSelectBoxInit(e) {
+        searchSelectBox = e.component;
+        console.log("searchselectbox init")
+        searchSelectBox.option("searchMode", searchModes);
+        //searchSelectBox.option("searchExpr", searchExpressions);
+    }
+
+
+    function ItemTemplate(data) {
+        return data.Firstname + " " + data.LastName;
+    }
+
+
+    var DispExpr = (item) => function () {
+        if (item) {
+            //console.log(item);
+            return item.Firstname + " " + item.LastName;
+        } else {
+        }
+    }
+
+    //show the custom popup
+    function showPopup(popupMode, data) {
+        mode = popupMode;
+        //console.log(form);
+        popup.option({
+            title: popupMode,
+            visible: true
+        })
+
+        if (form) {
+            //form.option('key', data.SchedId);
+            form.option('formData', data);
+
+            //console.log(data);
+        }
+        else
+            rowData = { ...data };
+
+    }
+
+    //cancel event on the custom popup
+    function onCancelClick() {
+        popup.hide();
+    }
+
+    //confirm event on the custom popup
+    function onConfirmClick() {
+        let data = form.option("formData");
+        let schedSrc = scheduler.getDataSource();
+        let schedStr = schedSrc.store();
+
+        var validationResult = form.validate();
+        if (validationResult != null && !validationResult.isValid) {
+            //alert('Please fix invalid fields');
+            return false;
+        } else {
+            if (mode == "Add") {
+                var res = scheduler.addAppointment(data);
+                schedSrc.reload();
+                popup.hide();
+            } else if (mode == "Edit") {
+                scheduler.updateAppointment(selectedSched, data);
+                schedSrc.reload();
+                popup.hide();
+            }
+        }
+    }
+
+    function getUserId() {
+        return userId;
+    }
+
+    function reloadScheduler() {
+        //console.log(scheduler);
+        userId = 8;
+        let schedSrc = scheduler.getDataSource();
+
+        console.log(schedSrc);
+        //schedSrc.loadOptions("userId", userId );
+        schedSrc.reload("userId", userId);
+    }
+
+    //select box value change
+    function selectBox_valueChanged(data) {
+        //$(".current-value > span").text(data.value);
+        //console.log(data.value);
+        userId = data.value;
+        let schedSrc = scheduler.getDataSource();
+
+        console.log(schedSrc);
+        //schedSrc.loadOptions("userId", userId );
+        schedSrc.reload("userId", userId);
+    }
+
+    
+
+    
+</script>

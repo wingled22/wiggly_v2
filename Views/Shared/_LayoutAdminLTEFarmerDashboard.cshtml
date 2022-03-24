@@ -23,6 +23,7 @@
 
 
     <link href="~/css/site.css" rel="stylesheet" />
+    <link href="~/css/Site.css" rel="stylesheet" />
 </head>
 <body class="hold-transition sidebar-mini">
     <!-- Site wrapper -->
@@ -42,7 +43,6 @@
                 </li>*@
             </ul>
 
-           
         </nav>
         <!-- /.navbar -->
         <!-- Main Sidebar Container -->
@@ -50,7 +50,7 @@
             <!-- Brand Logo -->
             <a href="#" class="brand-link">
                 <img src="~/dist/img/AdminLTELogo.png" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
-                <span class="brand-text font-weight-light">Meat Dealer</span>
+                <span class="brand-text font-weight-light">Farmer</span>
             </a>
 
             <!-- Sidebar -->
@@ -68,8 +68,6 @@
                 <!-- Sidebar Menu -->
                 <nav class="mt-2">
                     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-                        <!-- Add icons to the links using the .nav-icon class with font-awesome or any other icon font library -->
-
                         <li class="nav-item">
                             <a class="nav-link">
                                 <i class="nav-icon fas fa-tachometer-alt"></i>
@@ -80,30 +78,22 @@
                         </li>
 
                         <li class="nav-item">
-                            <a asp-area="Vendor" asp-controller="Page" asp-action="Transaction" class="nav-link">
+                            <a asp-area="Farmer" asp-controller="Page" asp-action="Transaction" class="nav-link">
                                 <i class="nav-icon fas fa-file-invoice-dollar"></i>
                                 @*<i class="fa-solid fa-file-invoice-dollar"></i>*@
                                 <p>Transactions</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a asp-area="Vendor" asp-controller="Page" asp-action="Schedule" class="nav-link">
+                            <a asp-area="Farmer" asp-controller="Page" asp-action="Calendar" class="nav-link">
                                 <i class="nav-icon fas fa-calendar-day"></i>
                                 @*<i class="fa-solid fa-file-invoice-dollar"></i>*@
                                 <p>Calendar</p>
                             </a>
                         </li>
 
-                        <!--<li class="nav-item">
-                            <a asp-area="Admin" asp-controller="Page" asp-action="Book" class="nav-link">
-                                <i class="nav-icon fas fa-comments"></i>-->
-                                            @*<i class="fa-solid fa-file-invoice-dollar"></i>*@
-                                            <!--<p>Chat</p>
-                            </a>
-                        </li>-->
-
                         <li class="nav-item">
-                            <a asp-area="Vendor" asp-controller="Account" asp-action="Logout" class="nav-link">
+                            <a asp-area="Farmer" asp-controller="Account" asp-action="Logout" class="nav-link">
                                 @*<i class="nav-icon fas fa=log"></i>*@
                                 <i class="nav-icon fas fa-arrow-right"></i>
                                 @*<i class="fa-solid fa-file-invoice-dollar"></i>*@
@@ -111,13 +101,9 @@
                             </a>
                         </li>
 
-
-
                     </ul>
                 </nav>
-                <!-- /.sidebar-menu -->
             </div>
-            <!-- /.sidebar -->
         </aside>
 
 
@@ -131,15 +117,6 @@
             <section class="content-header">
                 <div class="container-fluid">
                     <div class="row mb-2">
-                        <!--<div class="col-sm-6">-->
-                            @*<h1>@ViewData["Title"]</h1>*@
-                        <!--</div>-->
-                        @*<div class="col-sm-6">
-                                <ol class="breadcrumb float-sm-right">
-                                    <li class="breadcrumb-item"><a href="#">Home</a></li>
-                                    <li class="breadcrumb-item active">Blank Page</li>
-                                </ol>
-                            </div>*@
                     </div>
                 </div><!-- /.container-fluid -->
             </section>
@@ -150,27 +127,16 @@
                 <div class="container-fluid">
                     <div class="row">
                         <div class="col-12">
-                            @*<div class="callout callout-info">
-                                    <h5><i class="fas fa-info"></i> Note:</h5>
-                                    This page has been enhanced for printing. Click the print button at the bottom of the invoice to test.
-                                </div>*@
-
-
                             <!-- Main content -->
-                            <div class="invoice p-3 mb-3">
-                                <!-- title row -->
-                                <div class="row">
-                                    <div class="col-12">
-                                        @*<h4>
-                                                <i class="fas fa-globe"></i> AdminLTE, Inc.
-                                                <small class="float-right">Date: 2/10/2014</small>
-                                            </h4>*@
-                                        @RenderBody()
-                                    </div>
-                                    <!-- /.col -->
+                            <!-- title row -->
+                            <div class="row">
+                                <div class="col-12">
+                                      
+                                    @RenderBody()
                                 </div>
+                                <!-- /.col -->
                             </div>
-                        </div>
+                    </div>
                     </div>
                 </div>
 
@@ -209,7 +175,7 @@
     <script src="~/dist/js/adminlte.min.js"></script>
     <!-- AdminLTE for demo purposes -->
     @*<script src="/dist/js/demo.js"></script>*@
-    @*<script src="~/js/site.js" asp-append-version="true"></script>*@
+    <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

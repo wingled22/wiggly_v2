@@ -6,7 +6,171 @@
 
 @{
     ViewData["Title"] = "Index";
-    Layout = "_LayoutAdminLTEFarmer";
+    Layout = "_LayoutAdminLTEFarmerDashboard";
 }
 
-<h1>Index</h1>
+<h3>Index</h3>
+
+<!== modals below ==>
+@(Html.DevExtreme().Popup()
+    .ID("popupDetails")
+    .Title("Appointment info")
+    .Width(700)
+    .Height(450)
+    .ContentTemplate(new TemplateName("customPopupContentTemplate"))
+    .ToolbarItems(items =>
+    {
+        //items.Add()
+        //    .Widget(editor => editor.Button()
+        //        .Text("Confirm")
+        //        .Type(ButtonType.Success)
+        //        .OnClick("onConfirmClick")
+        //    )
+        //    .Location(ToolbarItemLocation.After)
+        //    .Toolbar(Toolbar.Bottom);
+        items.Add()
+            .Widget(editor => editor.Button()
+                .Text("Cancel")
+                .Type(ButtonType.Success)
+                .OnClick("onCancelClick")
+            )
+            .Location(ToolbarItemLocation.After)
+            .Toolbar(Toolbar.Bottom);
+
+    })
+    .DragEnabled(true)
+    .CloseOnOutsideClick(true)
+    .ShowCloseButton(true)
+    .OnInitialized("onPopupInitialized")
+
+)
+@*custom template inside is form*@
+@using (Html.DevExtreme().NamedTemplate("customPopupContentTemplate"))
+{
+    @(Html.DevExtreme().Form<Wiggly.Areas.Farmer.Models.FarmerAppointmentViewModel>()
+        .ID("formDetails")
+        .ColCount(2)
+        .ActiveStateEnabled(false)
+        .LabelLocation(FormLabelLocation.Left)
+        .MinColWidth(300)
+        .ShowValidationSummary(true)
+        .ReadOnly(false)
+        .ActiveStateEnabled(false)
+        .Items(items =>
+        {
+            items.AddGroup().ColCount(2).ColSpan(2).Items(gItem =>
+            {
+                gItem.AddSimpleFor(m => m.BookingStartDate).Editor(e => e.DateBox().ReadOnly(true).Type(DateBoxType.DateTime)).ColSpan(1).IsRequired(true);
+                gItem.AddSimpleFor(m => m.BookingEndDate).Editor(e => e.DateBox().ReadOnly(true).Type(DateBoxType.DateTime)).ColSpan(1).IsRequired(true);
+                gItem.AddSimpleFor(m => m.Vendor).ColSpan(1).IsRequired(true)
+                    .Editor(e => e.SelectBox().ReadOnly(true)
+                        .Placeholder("Select Farmer")
+                        .DataSource(new JS("vendors"))
+                        .ItemTemplate(new JS("ItemTemplate"))
+                        .DisplayExpr(new JS("DispExpr"))
+                        .ValueExpr("Id")
+                        .SearchEnabled(true)
+                      );
+                gItem.AddSimpleFor(m => m.Status).ColSpan(1).IsRequired(true).Editor(e => e.SelectBox().ReadOnly(true).Placeholder("Select Status").DataSource(new JS("Status")).DisplayExpr("Name").ValueExpr("Name"));
+                gItem.AddSimpleFor(m => m.Notes).IsRequired(true).Editor(e => e.TextArea().ReadOnly(true).Placeholder("Enter Notes").Height(200)).ColSpan(2);
+            });
+        })
+        .ShowColonAfterLabel(true).Visible(true).OnInitialized("onFormInitialized")
+    )
+}
+
+<!== post template  ==>
+
+
+
+<template id="postTemplate">
+    <!-- Post -->
+    <div class="post">
+        <div class="user-block">
+            <img class="img-circle img-bordered-sm" src="../../dist/img/user1-128x128.jpg" alt="user image">
+            <span class="username">
+                <a href="#">Jonathan Burke Jr.</a>
+                @*<a href="#" class="float-right btn-tool"><i class="fas fa-times"></i></a>*@
+            </span>
+            <span class="description">Shared publicly - 7:30 PM today</span>
+        </div>
+        <!-- /.user-block -->
+        <p>
+            Lorem ipsum represents a long-held tradition for designers,
+            typographers and the like. Some people hate it and argue for
+            its demise, but others ignore the hate as they create awesome
+            tools to help create filler text for everyone from bacon lovers
+            to Charlie Sheen fans.
+        </p>
+
+        <p>
+            <a href="#" class="link-black text-sm"><i class="far fa-heart mr-1"></i> Like</a>
+            <span class="float-right">
+                <a href="#" class="link-black text-sm">
+                    <i class="far fa-comments mr-1"></i> Comments (5)
+                </a>
+            </span>
+        </p>
+
+    </div>
+    <!-- /.post -->
+</template>
+
+<!== post list here  ==>
+
+<div class="row">
+
+    <section class="col-lg-9 connectedSortable">
+        <!-- Custom tabs (Charts with tabs)-->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-inbox mr-1"></i>
+                    Post
+                </h3>
+                <button type="button" class="btn btn-primary float-right" onclick="">Create Post</button>
+
+            </div><!-- /.card-header -->
+            <div class="card-body">
+                <div class="tab-content p-0 post-container">
+
+
+
+
+                </div>
+            </div><!-- /.card-body -->
+        </div>
+        <!-- /.card -->
+    </section>
+
+    <section class="col-lg-3 connectedSortable">
+        <!-- Custom tabs (Charts with tabs)-->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-calendar-alt mr-1"></i>
+                    Timeline
+                </h3>
+            </div><!-- /.card-header -->
+            <div class="card-body">
+                <div class="tab-content p-0">
+                    <!-- Morris chart - Sales -->
+                    <div class="chart tab-pane active" id="revenue-chart"
+                         style="position: relative; height: 300px;">
+                        <canvas id="revenue-chart-canvas" height="300" style="height: 300px;"></canvas>
+                    </div>
+                    <div class="chart tab-pane" id="sales-chart" style="position: relative; height: 300px;">
+                        <canvas id="sales-chart-canvas" height="300" style="height: 300px;"></canvas>
+                    </div>
+                </div>
+            </div><!-- /.card-body -->
+        </div>
+        <!-- /.card -->
+    </section>
+</div>
+
+
+@*
+
+    //todo: use the adminLTE dashboard v1
+*@

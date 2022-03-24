@@ -10,6 +10,8 @@ using Newtonsoft.Json;
 using Wiggly.Areas.Vendor.Models;
 using Microsoft.AspNetCore.Identity;
 using Wiggly.Identity;
+using AutoMapper;
+using Wiggly.ViewModels;
 
 namespace Wiggly.Areas.Vendor.Controllers
 {
@@ -21,12 +23,14 @@ namespace Wiggly.Areas.Vendor.Controllers
         private UserManager<AppUser> _usrMngr;
         private SignInManager<AppUser> _signInMngr;
         private readonly WigglyContext _context;
+        private readonly IMapper _mapper;
 
-        public TransactionController(WigglyContext context, UserManager<AppUser> usrMngr, SignInManager<AppUser> signInMngr)
+        public TransactionController(WigglyContext context, UserManager<AppUser> usrMngr, SignInManager<AppUser> signInMngr, IMapper mapper)
         {
             _context = context;
             _usrMngr = usrMngr;
             _signInMngr = signInMngr;
+            _mapper = mapper;
         }
 
         // GET: api/Transaction
@@ -265,6 +269,18 @@ namespace Wiggly.Areas.Vendor.Controllers
             if (res == null)
                 NoContent();
             return Ok(res);
+        }
+
+        [HttpGet]
+        public ActionResult GetFarmersWithFullname()
+        {
+            var res = _context.AspNetUsers.Where(q => q.UserType == "Farmer").ToList();
+            if (res == null)
+                NoContent();
+
+            //var result = _mapper.Map<List<AspNetUsers>, List<UsersWithFullname>>(res);
+            var result = _mapper.Map<List<UsersWithFullname>>(res);
+            return Ok(result);
         }
 
         private bool TransactionExists(int id)
