@@ -60,6 +60,12 @@ namespace Wiggly
                 options.SerializerSettings.ContractResolver = new DefaultContractResolver();
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
             });
+            services.AddCors();
+            services.AddDistributedMemoryCache();
+            services.AddSession(options => {
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+            });
 
         }
 
@@ -78,7 +84,8 @@ namespace Wiggly
             }
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-
+            app.UseCors();
+            app.UseSession();
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();

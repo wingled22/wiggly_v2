@@ -55,6 +55,7 @@
     <ItemGroup>
       <Folder Include="Areas\Farmer\Data\" />
       <Folder Include="Areas\Vendor\Data\" />
+      <Folder Include="wwwroot\upload\post\" />
     </ItemGroup>
 
     <ProjectExtensions><VisualStudio><UserProperties TemplateFeatures="NETCORE" /></VisualStudio></ProjectExtensions>

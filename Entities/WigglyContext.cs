@@ -24,9 +24,13 @@ namespace Wiggly.Entities
         public virtual DbSet<AspNetUsers> AspNetUsers { get; set; }
         public virtual DbSet<Kilos> Kilos { get; set; }
         public virtual DbSet<Payment> Payment { get; set; }
+        public virtual DbSet<Post> Post { get; set; }
+        public virtual DbSet<PostComment> PostComment { get; set; }
+        public virtual DbSet<PostPhoto> PostPhoto { get; set; }
         public virtual DbSet<Profiles> Profiles { get; set; }
         public virtual DbSet<Schedules> Schedules { get; set; }
         public virtual DbSet<Transaction> Transaction { get; set; }
+        public virtual DbSet<UserLikedPost> UserLikedPost { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -140,6 +144,33 @@ namespace Wiggly.Entities
                     .IsUnicode(false);
             });
 
+            modelBuilder.Entity<Post>(entity =>
+            {
+                entity.Property(e => e.Id).ValueGeneratedNever();
+
+                entity.Property(e => e.DateCreated).HasColumnType("datetime");
+
+                entity.Property(e => e.Text).HasColumnType("text");
+            });
+
+            modelBuilder.Entity<PostComment>(entity =>
+            {
+                entity.Property(e => e.Id).ValueGeneratedNever();
+
+                entity.Property(e => e.Comment).HasColumnType("text");
+
+                entity.Property(e => e.DateCreated).HasColumnType("datetime");
+            });
+
+            modelBuilder.Entity<PostPhoto>(entity =>
+            {
+                entity.Property(e => e.Id).ValueGeneratedNever();
+
+                entity.Property(e => e.Filename).IsUnicode(false);
+
+                entity.Property(e => e.Path).IsUnicode(false);
+            });
+
             modelBuilder.Entity<Profiles>(entity =>
             {
                 entity.Property(e => e.Id).ValueGeneratedNever();
@@ -180,6 +211,11 @@ namespace Wiggly.Entities
                 entity.Property(e => e.Status)
                     .HasMaxLength(50)
                     .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<UserLikedPost>(entity =>
+            {
+                entity.Property(e => e.Id).ValueGeneratedNever();
             });
 
             OnModelCreatingPartial(modelBuilder);
