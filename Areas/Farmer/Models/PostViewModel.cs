@@ -15,6 +15,8 @@ namespace Wiggly.Areas.Farmer.Models
         public int UserId { get; set; }
         public string UserFullname { get; set; }
         public DateTime DateCreated { get; set; }
+        public bool Liked { get; set; }
+        public int LikeCounts { get; set; }
 
         public List<Images> ImageList { get; set; }
     }

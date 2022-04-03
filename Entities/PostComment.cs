@@ -10,6 +10,5 @@ namespace Wiggly.Entities
         public string Comment { get; set; }
         public Guid? PostId { get; set; }
         public DateTime? DateCreated { get; set; }
-
     }
 }
