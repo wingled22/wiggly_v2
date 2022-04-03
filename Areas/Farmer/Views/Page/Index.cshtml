@@ -56,7 +56,7 @@
     .modal {
         display: none; /* Hidden by default */
         position: fixed; /* Stay in place */
-        z-index: 1040; /* Sit on top */
+        /*z-index: 1040;*/ /* Sit on top */
         padding-top: 40px; /* Location of the box */
         left: 0;
         top: 0;
@@ -74,6 +74,10 @@
         width: 80%;
         height: 80%;
         max-width: 700px;
+    }
+
+    .liked {
+        color: #e83e8c;
     }
 </style>
 
@@ -211,7 +215,7 @@
         </div>
 
         <p>
-            <a href="#" class="link-black text-sm"><i class="far fa-heart mr-1"></i> Like</a>
+            <a href="#" class="link-black text-sm like-post .liked"><i class="far fa-heart mr-1"></i> Like</a>
             <span class="float-right" id="comment">
                 <a href="#" class="link-black text-sm">
                     <i class="far fa-comments mr-1"></i> Comments
@@ -309,7 +313,7 @@
 
 
 <!-- modal popup-->
-<div class="modal fade" id="commentModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+<div class="modal fade comment-modal" id="commentModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
         <div class="modal-content">
             <!-- modal header-->
@@ -335,6 +339,10 @@
                         country, in which roasted parts of sentences fly into
                         your mouth.
                     </p>
+                    <div class="image-container">
+                        <ul>
+                        </ul>
+                    </div>
                 </div>
 
                 <div class="card-footer card-comments">
@@ -471,14 +479,24 @@
                 let postBody = clone.querySelector(".post .post-body");
                 postBody.innerHTML = item.PostBody;
 
+                let like = clone.querySelector(".post p a.like-post");
+                like.setAttribute("data-value", item.Id);
+                //Todo: make the heart pink if the post is already liked
+                if (item.Liked) {
+                    like.innerHTML = "<i class=\"fas fa-heart mr-1 liked\"></i> Liked";
+                    like.setAttribute("data-value", item.Id);
+
+                    //let heart = clone.querySelector(".post p a.like-post i");
+                    //heart.classList.remove("far");
+                    //heart.classList.add("fas");
+                    //heart.classList.add("liked");
+                }
+
                 let comment = clone.querySelector(".post p span#comment");
-                comment.setAttribute("data-value", item.Id) ;
+                comment.setAttribute("data-value", item.Id);
 
                 let postImagesParent = clone.querySelector(".post .image-container ul");
 
-
-
-                postParentContainer.appendChild(clone);
 
                 //console.table(item.ImageList);
                 $.each(item.ImageList, function (i, image) {
@@ -491,6 +509,9 @@
                     a.setAttribute("href", image.ImagePath);
                     postImagesParent.append(imageClone);
                 });
+
+                postParentContainer.appendChild(clone);
+
 
             });
 
@@ -527,6 +548,8 @@
                     let postBody = clone.querySelector(".card-comment div p");
                     postBody.innerHTML = item.CommentBody;
 
+
+                  
                     parent.appendChild(clone);
 
                 });
@@ -552,7 +575,7 @@
          and load the post and it's comment
          */
         $(".post-container").on("click","#comment",function () {
-            console.log($(this).data("value"));
+            //console.log($(this).data("value"));
 
             postId = $(this).data("value");
             pId = postId;
@@ -564,16 +587,36 @@
             .done(function (data) {
                 console.table(data);
 
+                let postImagesTemplate = document.querySelector('template#postImagesTemplate');
+
+
                 let commentModal = document.querySelector("#commentModalCenter div .modal-content");
                 commentModal.querySelector(".modal-header div .username").innerText = data.UserFullname;
                 commentModal.querySelector(".modal-header div .description").innerText = data.DateCreated;
                 commentModal.querySelector(".modal-body .card-body p").innerText = data.PostBody;
 
+                let postImagesParent = document.querySelector("#commentModalCenter div .modal-content .modal-body .card-body  .image-container ul");
+
+                $("#commentModalCenter div .modal-content .modal-body .card-body  .image-container ul").empty();
+                $.each(data.ImageList, function (i, image) {
+                    let imageClone = postImagesTemplate.content.cloneNode(true);
+
+                    let img = imageClone.querySelector("li article a figure img");
+                    let a = imageClone.querySelector("li article a");
+
+                    img.setAttribute("src", image.ImagePath);
+                    a.setAttribute("href", image.ImagePath);
+                    postImagesParent.append(imageClone);
+                });
+
+
+
                 //after loading post show comments
                 loadComments();
 
                 //after loading comments show modal
-                $(".modal").modal("show");
+                $(".comment-modal").modal("show");
+
 
             })
             .fail(function (data) {
@@ -628,7 +671,7 @@
         //dx-fileuploader-files-container
         var domModificationCounter = 0;
         $("body").on('DOMSubtreeModified', '.dx-fileuploader-file-status-message', function () {
-            
+
             if ($(".dx-fileuploader-file-status-message").text() == "Uploaded") {
 
                 afterUpload();
@@ -651,9 +694,27 @@
             //captionText.innerHTML = this.alt;
         });
 
-        $("#imageModal .close").on("click", function () {
+        $(".close").on("click", function () {
             var modal = document.getElementById("imageModal");
             modal.style.display = "none";
+        });
+
+        //todo: add a like functionality to the posts
+        $("body").on('click', '.like-post',function (e) {
+            e.preventDefault();
+            //console.log("like was clicked");
+            let postId = $(this).attr("data-value");
+            let dataToSend = {
+                post : postId
+            };
+
+            $.ajax({
+                url: "@Url.Action("LikeUnlikePost", "PostAPI",new { area = "Farmer"})",
+                data: dataToSend
+            }).done(function (data) {
+                loadPosts();
+            });
+
         });
     });
 
