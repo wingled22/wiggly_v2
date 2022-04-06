@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Wiggly.Areas.Farmer.Models;
@@ -50,7 +51,8 @@ namespace Wiggly.Areas.Farmer.Controllers
                              ImageList = _context.PostPhoto.Where(p => post.Id == p.Post)
                                                 .Select(p => new Images { ImagePath = p.Path })
                                                 .ToList(),
-                             Liked = _context.UserLikedPost.Any(q => q.Post == post.Id && q.User == loggedInUser.Id)
+                             Liked = _context.UserLikedPost.Any(q => q.Post == post.Id && q.User == loggedInUser.Id),
+                             IsEditable = loggedInUser.Id == user.Id ? true : false
                          }).FirstOrDefault();
 
             return Ok(posts);
@@ -78,7 +80,9 @@ namespace Wiggly.Areas.Farmer.Controllers
                              ImageList = _context.PostPhoto.Where(p => post.Id == p.Post)
                                                 .Select(p => new Images { ImagePath = p.Path })
                                                 .ToList(),
-                             Liked = _context.UserLikedPost.Any(q => q.Post == post.Id && q.User == loggedInUser.Id)
+                             Liked = _context.UserLikedPost.Any(q => q.Post == post.Id && q.User == loggedInUser.Id),
+                             IsEditable = loggedInUser.Id == user.Id ? true : false
+
                          }).ToList();
 
             return Ok(posts);
@@ -97,7 +101,6 @@ namespace Wiggly.Areas.Farmer.Controllers
             if (!TryValidateModel(val))
                 return BadRequest("values sent error");
 
-            
             //saving post
             var newPost = new Post()
             {
@@ -112,8 +115,6 @@ namespace Wiggly.Areas.Farmer.Controllers
 
             _context.Post.Add(newPost);
             _context.SaveChanges();
-
-
 
             //saving post photo
             var listOfImages = new List<Images>();
@@ -147,6 +148,63 @@ namespace Wiggly.Areas.Farmer.Controllers
 
             return Ok();
         }
+
+
+        public ActionResult UpdatePost(Guid key, string values, string postImages) {
+            var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
+
+            //update post
+            var post = _context.Post.Where(q => q.Id == key).FirstOrDefault();
+            if (post == null || string.IsNullOrEmpty(values))
+                return BadRequest("Post not found");
+
+            JsonConvert.PopulateObject(values, post);
+            _context.Post.Update(post);
+            _context.SaveChanges();
+
+            //updateimages
+            //delete the images not on the postimages
+            var listOfImagesToDelete = new List<Images>();
+            var listOfImagesFromSent = new List<Images>();
+            var listOfImagesFromDB = _context.PostPhoto.Where(q => q.Post == key)
+                .Select(q => new Images
+                {
+                    ImagePath = q.Path
+                }).ToList() ;
+            JsonConvert.PopulateObject(postImages, listOfImagesFromSent);
+
+            //listOfImagesToAdd = listOfImagesFromDB.Except(listOfImagesFromSent,new ImagePathComparer()).ToList();
+            var listOfImagesToAdd = listOfImagesFromSent.Select(q => q.ImagePath).Except(listOfImagesFromDB.Select(y => y.ImagePath)).ToList();
+
+            if (listOfImagesToAdd.Count > 0)
+            {
+                List<PostPhoto> postPhotos = new List<PostPhoto>();
+                foreach (var image in listOfImagesToAdd)
+                {
+                    //split the string to differentiate the filename
+                    string path = image;
+                    string[] subs = path.Split('/');
+
+                    var temp = new PostPhoto()
+                    {
+                        Id = Guid.NewGuid(),
+                        Path = image,
+                        Filename = subs[3],
+                        User = loggedInUser.Id,
+                        Post = key
+
+                    };
+
+                    postPhotos.Add(temp);
+
+                }
+                _context.PostPhoto.AddRange(postPhotos);
+                _context.SaveChanges();
+            }
+
+            return Ok();
+        }
+
 
         public ActionResult LikeUnlikePost(Guid post) {
             var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
@@ -185,4 +243,6 @@ namespace Wiggly.Areas.Farmer.Controllers
             return ret;
         }
     }
+
+ 
 }

@@ -17,8 +17,9 @@ namespace Wiggly.Areas.Farmer.Models
         public DateTime DateCreated { get; set; }
         public bool Liked { get; set; }
         public int LikeCounts { get; set; }
-
         public List<Images> ImageList { get; set; }
+        public bool IsEditable { get; set; }
+
     }
 
     public class Images

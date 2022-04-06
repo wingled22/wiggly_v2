@@ -13,10 +13,12 @@
     .image-container {
         overflow: auto;
     }
+
     ul {
         text-align: left;
         display: flex;
     }
+
     li {
         list-style: none;
         display: inline-block; /*pour limiter l'espace occupé   par l'image li*/
@@ -56,7 +58,7 @@
     .modal {
         display: none; /* Hidden by default */
         position: fixed; /* Stay in place */
-        /*z-index: 1040;*/ /* Sit on top */
+        z-index: 2147483648; /* Sit on top */
         padding-top: 40px; /* Location of the box */
         left: 0;
         top: 0;
@@ -82,9 +84,11 @@
 </style>
 
 @*<img src="~/upload/post/f43ede42-5685-4865-8eb8-5813a71292da40352204.jpg" alt="Alternate Text" />*@
+
 <!== modals below ==>
+@* addpost popupmodal and other components *@
 @(Html.DevExtreme().Popup()
-    .ID("popupDetails")
+    .ID("addPostPopup")
     .Title("Appointment info")
     .Width(700)
     .Height(500)
@@ -110,7 +114,7 @@
 
     })
     .DragEnabled(true)
-    .CloseOnOutsideClick(true)
+    .CloseOnOutsideClick(false)
     .ShowCloseButton(true)
     .OnInitialized("onPopupInitialized")
 
@@ -159,18 +163,15 @@
                                 .OnValueChanged("fileUploader_valueChanged")
                             )
                                 <div class="content" id="selected-files">
-                                    
+
                                 </div>
                             </div>
                         </text>);
                     });
 
-
-
         })
         .ShowColonAfterLabel(true).Visible(true).OnInitialized("onFormInitialized")
     )
-
 }
 
 @using (Html.DevExtreme().NamedTemplate("FileUploadTemplate"))
@@ -183,9 +184,10 @@
             .UploadMode(FileUploadMode.Instantly)
             .UploadUrl("/Farmer/FileUploader/UploadImageFromPost")
             .OnValueChanged("fileUploader_valueChanged")
-            
+
         )
 }
+
 
 
 
@@ -196,8 +198,8 @@
         <div class="user-block">
             <img class="img-circle img-bordered-sm" src="../../dist/img/user1-128x128.jpg" alt="user image">
             <span class="username">
-                <a href="#">Jonathan Burke Jr.</a>
-                @*<a href="#" class="float-right btn-tool"><i class="fas fa-times"></i></a>*@
+                <span class="post-author" href="#">Jonathan Burke Jr.</span>
+                <a class="float-right btn-tool edit" role="button"><i class="fas fa-pen"></i></a>
             </span>
             <span class="description">Shared publicly - 7:30 PM today</span>
         </div>
@@ -279,7 +281,7 @@
 
 
                 </div>
-                
+
             </div><!-- /.card-body -->
         </div>
         <!-- /.card -->
@@ -325,6 +327,8 @@
                 </div>
                 <!-- /.user-block -->
                 <div class="card-tools">
+                    <a href="#" class="float-right btn-tool"><i class="fa-solid fa-comment-pen"></i></a>
+
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -371,8 +375,11 @@
 
 
 <script>
-    var popup, form,fileUploader;
+    var popup, form, fileUploader;
+    // true if edit false if add
+    var isPostEdit = false;
 
+    //for uploading post images
     var pId;
     var postImage;
     var postImages=[];
@@ -393,11 +400,7 @@
         popup = e.component;
     }
 
-    //
-    //function onFileUploaderInit(e) {
-    //    fileUploader = e.component;
-    //    console.log(fileUploader);
-    //}
+
 
     //popup open
     function openPostPopup() {
@@ -415,11 +418,7 @@
 
     //save button click
     function onConfirmClick() {
-        console.log("clicked save button");
         let data = form.option("formData");
-        //console.log(data.PostBody);
-        //console.log(JSON.stringify(data));
-        //let serializeData =
 
         let dataToPost = {
             PostBody: data.PostBody
@@ -434,21 +433,43 @@
             //alert('Please fix invalid fields');
             return false;
         } else {
-            $.ajax({
-                url: "@Url.Action("SavePost", "PostAPI",new { area = "Farmer"})",
-                data: {
-                    values: JSON.stringify(dataToPost),
-                    postImages: JSON.stringify(postImages)
-                }
-            }).done(function () {
-                //console.log("postSaved");
-                loadPosts();
-                popup.hide();
+            if (isPostEdit) {
+                $.ajax({
+                    url: "@Url.Action("SavePost", "PostAPI",new { area = "Farmer"})",
+                    data: {
+                        values: JSON.stringify(dataToPost),
+                        postImages: JSON.stringify(postImages)
+                    }
+                }).done(function () {
+                    //console.log("postSaved");
+                    loadPosts();
+                    popup.hide();
 
-            }).fail(function (data) {
-                console.log("error");
+                }).fail(function (data) {
+                    console.log("error");
+                    console.log(data);
+                });
+            } else {
+
+                $.ajax({
+                    url: "@Url.Action("UpdatePost", "PostAPI",new { area = "Farmer"})",
+                    data: {
+                        key : pId,
+                        values: JSON.stringify(dataToPost),
+                        postImages: JSON.stringify(postImages)
+                    }
+                }).done(function () {
+                    //console.log("postSaved");
+                    loadPosts();
+                    popup.hide();
+
+                }).fail(function (data) {
+                    console.log("error");
+                    console.log(data);
+                });
+
                 console.log(data);
-            });
+            }
         }
 
     }
@@ -470,8 +491,16 @@
             $.each(data, function (i, item) {
                 let clone = postTemplate.content.cloneNode(true);
 
-                let username = clone.querySelector(".post .user-block .username");
+                let username = clone.querySelector(".post .user-block .username .post-author");
                 username.innerHTML = item.UserFullname;
+
+                if (!item.IsEditable) {
+                    clone.querySelector(".post .user-block .username .edit").innerHTML = "";
+
+                } else {
+                    clone.querySelector(".post .user-block .username .edit").setAttribute("data-value", item.Id);
+                }
+
 
                 let time = clone.querySelector(".post .user-block .description");
                 time.innerHTML = item.DateCreated;
@@ -548,8 +577,6 @@
                     let postBody = clone.querySelector(".card-comment div p");
                     postBody.innerHTML = item.CommentBody;
 
-
-                  
                     parent.appendChild(clone);
 
                 });
@@ -565,6 +592,29 @@
         });
     }
 
+    /*
+    * function responsible on loading imagelist when the pop up to edit the post was shown
+    */
+    function loadImageListToPopup() {
+        let parent = document.querySelector("#selected-files.content");
+        let postImagesTemplate = document.querySelector('template#postImagesTemplate');
+        parent.innerHTML = "";
+
+        if (postImages.length > 0) {
+            $.each(postImages, function (i, image) {
+                let imageClone = postImagesTemplate.content.cloneNode(true);
+
+                let img = imageClone.querySelector("li article a figure img");
+                let a = imageClone.querySelector("li article a");
+
+                img.setAttribute("src", image.ImagePath);
+                a.setAttribute("href", image.ImagePath);
+                parent.append(imageClone);
+            });
+        }
+
+    }
+
     $(document).ready(function () {
         let postId;
         //function LoadPost
@@ -575,8 +625,6 @@
          and load the post and it's comment
          */
         $(".post-container").on("click","#comment",function () {
-            //console.log($(this).data("value"));
-
             postId = $(this).data("value");
             pId = postId;
 
@@ -609,8 +657,6 @@
                     postImagesParent.append(imageClone);
                 });
 
-
-
                 //after loading post show comments
                 loadComments();
 
@@ -625,6 +671,7 @@
             });
 
         });
+
 
         /*
          * event for the keypress
@@ -673,7 +720,6 @@
         $("body").on('DOMSubtreeModified', '.dx-fileuploader-file-status-message', function () {
 
             if ($(".dx-fileuploader-file-status-message").text() == "Uploaded") {
-
                 afterUpload();
                 console.log(postImages);
             } else {
@@ -690,8 +736,7 @@
 
             $("#imageModal img").attr("src", $(this).attr("href"));
 
-            //modalImg.src = imgSrc ;
-            //captionText.innerHTML = this.alt;
+
         });
 
         $(".close").on("click", function () {
@@ -699,23 +744,50 @@
             modal.style.display = "none";
         });
 
-        //todo: add a like functionality to the posts
+        //like functionality to the posts
         $("body").on('click', '.like-post',function (e) {
             e.preventDefault();
-            //console.log("like was clicked");
             let postId = $(this).attr("data-value");
             let dataToSend = {
                 post : postId
             };
-
             $.ajax({
                 url: "@Url.Action("LikeUnlikePost", "PostAPI",new { area = "Farmer"})",
                 data: dataToSend
             }).done(function (data) {
                 loadPosts();
             });
-
         });
+
+
+        //edit functionality for post
+        $(".post-container").on("click", "a.edit", function (e) {
+            e.preventDefault();
+            //console.log($(this).attr("data-value"));
+            pId = $(this).attr("data-value");
+
+            //get data out of the postID
+            $.ajax({
+                url: "@Url.Action("GetPost", "PostAPI",new { area = "Farmer"})",
+                data: {
+                    postId: pId
+                }
+            })
+            .done(function (data) {
+
+                popup.option("visible", true);
+                form.option('formData', data);
+
+                postEdit = true;
+
+                postImages = data.ImageList;
+                console.log(postImages);
+                loadImageListToPopup();
+            });
+            //separate the images from the data
+            //populate the data to the images list
+        });
+
     });
 
     //if file upload data values was changed
@@ -742,6 +814,7 @@
                 //console.log(data);
                 postImage = { ImagePath: data};
                 postImages.push(postImage);
+                loadImageListToPopup();
             });
     }
 
