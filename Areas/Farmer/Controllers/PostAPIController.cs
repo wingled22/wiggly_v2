@@ -49,7 +49,7 @@ namespace Wiggly.Areas.Farmer.Controllers
                              PostBody = post.Text,
                              DateCreated = (DateTime)post.DateCreated,
                              ImageList = _context.PostPhoto.Where(p => post.Id == p.Post)
-                                                .Select(p => new Images { ImagePath = p.Path })
+                                                .Select(p => new Images { ImageId = p.Id,ImagePath = p.Path })
                                                 .ToList(),
                              Liked = _context.UserLikedPost.Any(q => q.Post == post.Id && q.User == loggedInUser.Id),
                              IsEditable = loggedInUser.Id == user.Id ? true : false
@@ -78,7 +78,7 @@ namespace Wiggly.Areas.Farmer.Controllers
                              PostBody = post.Text,
                              DateCreated = (DateTime)post.DateCreated,
                              ImageList = _context.PostPhoto.Where(p => post.Id == p.Post)
-                                                .Select(p => new Images { ImagePath = p.Path })
+                                                .Select(p => new Images { ImageId = p.Id, ImagePath = p.Path })
                                                 .ToList(),
                              Liked = _context.UserLikedPost.Any(q => q.Post == post.Id && q.User == loggedInUser.Id),
                              IsEditable = loggedInUser.Id == user.Id ? true : false
@@ -242,6 +242,22 @@ namespace Wiggly.Areas.Farmer.Controllers
             bool ret = _context.UserLikedPost.Any(q => q.User == loggedInUser.Id && q.Post == post);
             return ret;
         }
+
+        public IActionResult DeletePostPhoto(Guid image)
+        {
+            _logger.LogInformation(image.ToString());
+
+            if (image == null)
+                return BadRequest("Image id don't recognize");
+
+            var postPhoto = _context.PostPhoto.Where(q => q.Id == image).FirstOrDefault();
+            _context.PostPhoto.Remove(postPhoto);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+
     }
 
  

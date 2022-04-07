@@ -24,6 +24,16 @@
         display: inline-block; /*pour limiter l'espace occupé   par l'image li*/
     }
 
+    article {
+        position: relative;
+    }
+
+    article button{
+        position: absolute;
+        right: 20px;
+        top: 5px;
+    }
+
     img {
         width: 150px;
         height: 150px;
@@ -43,10 +53,10 @@
         text-decoration: none;
     }
 
-        a:hover {
-            text-decoration: none;
-            color: pink;
-        }
+    a:hover {
+        text-decoration: none;
+        color: pink;
+    }
 
     span.description {
         padding: 10px;
@@ -232,8 +242,11 @@
 <template id="postImagesTemplate">
     <li>
         <article>
+         
             <a href="">
+
                 <figure>
+
                     <img src="http://www.awwwards.com/awards/images/2013/07/bootstrap-resources-cover2.jpg" alt="">
                 </figure>
             </a>
@@ -241,6 +254,23 @@
     </li>
 </template>
 
+
+<template id="postFormImagesTemplate">
+    <li>
+        <article>
+            <button type="button" class="close image-delete" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <a href="">
+
+                <figure>
+
+                    <img src="http://www.awwwards.com/awards/images/2013/07/bootstrap-resources-cover2.jpg" alt="">
+                </figure>
+            </a>
+        </article>
+    </li>
+</template>
 <!-- Comment Template -->
 <template id="commentTemplate">
     <div class="card-comment">
@@ -404,6 +434,7 @@
 
     //popup open
     function openPostPopup() {
+        isPostEdit = false;
         popup.option("visible", true);
         if (form) {
             //form.option('key', data.SchedId);
@@ -444,6 +475,7 @@
                     //console.log("postSaved");
                     loadPosts();
                     popup.hide();
+                    //isPostEdit = false;
 
                 }).fail(function (data) {
                     console.log("error");
@@ -597,7 +629,7 @@
     */
     function loadImageListToPopup() {
         let parent = document.querySelector("#selected-files.content");
-        let postImagesTemplate = document.querySelector('template#postImagesTemplate');
+        let postImagesTemplate = document.querySelector('template#postFormImagesTemplate');
         parent.innerHTML = "";
 
         if (postImages.length > 0) {
@@ -606,9 +638,11 @@
 
                 let img = imageClone.querySelector("li article a figure img");
                 let a = imageClone.querySelector("li article a");
+                let button = imageClone.querySelector("li article button");
 
                 img.setAttribute("src", image.ImagePath);
                 a.setAttribute("href", image.ImagePath);
+                button.setAttribute("data-value", image.ImageId)
                 parent.append(imageClone);
             });
         }
@@ -787,6 +821,36 @@
             //separate the images from the data
             //populate the data to the images list
         });
+
+        $('body').on('click', ".image-delete", function (e) {
+            //TODO: delete image here
+            //console.log($(this).next("a").attr("href"));
+            //console.log($(this).attr("data-value"));
+            var imageId = $(this).attr("data-value");
+            $.ajax({
+                url : "@Url.Action("DeletePostPhoto", "PostAPI",new { area = "Farmer"})",
+                data: {
+                    image: imageId
+                }
+                
+            }).done(function () {
+                //loadImageListToPopup();
+                //get data out of the postID
+                $.ajax({
+                    url: "@Url.Action("GetPost", "PostAPI",new { area = "Farmer"})",
+                    data: {
+                        postId: pId
+                    }
+                })
+                .done(function (data) {
+                    postImages = data.ImageList;
+                    console.log(postImages);
+                    loadImageListToPopup();
+                });
+            });
+
+        });
+
 
     });
 

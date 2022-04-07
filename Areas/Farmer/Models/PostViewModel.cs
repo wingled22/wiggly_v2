@@ -24,6 +24,7 @@ namespace Wiggly.Areas.Farmer.Models
 
     public class Images
     {
+        public Guid ImageId { get; set; }
         public string ImagePath { get; set; }
 
     }
