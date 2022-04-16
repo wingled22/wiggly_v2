@@ -1,12 +1,935 @@
+@using Wiggly
+@namespace Wiggly.Models
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using DevExtreme.AspNet.Mvc
+@model Wiggly.Entities.Schedules;
+
 @{
     ViewData["Title"] = "Index";
-    Layout = "_LayoutAdminLTEVendor";
+    Layout = "_LayoutAdminLTEFarmerDashboard";
 }
 
+
+<style>
+    .image-container {
+        overflow: auto;
+    }
+
+    ul {
+        text-align: left;
+        display: flex;
+    }
+
+    li {
+        list-style: none;
+        display: inline-block; /*pour limiter l'espace occupé   par l'image li*/
+    }
+
+    article {
+        position: relative;
+    }
+
+        article button {
+            position: absolute;
+            right: 20px;
+            top: 5px;
+        }
+
+    img {
+        width: 150px;
+        height: 150px;
+        display: block;
+        object-fit: cover;
+    }
+
+    figure {
+        /*background: #7D5976;*/
+        text-align: center;
+        padding: 10px;
+        margin: 10px;
+    }
+
+    a {
+        color: white;
+        text-decoration: none;
+    }
+
+        a:hover {
+            text-decoration: none;
+            color: pink;
+        }
+
+    span.description {
+        padding: 10px;
+        display: block;
+    }
+
+
+    /* The Modal (background) */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 2147483648; /* Sit on top */
+        padding-top: 40px; /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
+    }
+
+    /* Modal Content (Image) */
+    .modal-content {
+        margin: auto;
+        display: block;
+        width: 80%;
+        height: 80%;
+        max-width: 700px;
+    }
+
+    .liked {
+        color: #e83e8c;
+    }
+
+
+    .timeline-parent {
+        color: #666;
+    }
+
+    .timeline-row {
+        margin: 10px;
+        padding: .5rem;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #666;
+    }
+
+        .timeline-row:last-child {
+            border-bottom: none;
+        }
+
+        .timeline-row:hover {
+            background: #bfbfbf;
+        }
+</style>
 
 <h1>Index</h1>
 
 <p>
     <a asp-action="Index">Page Vendor</a>
 </p>
+
+
+<!== modals below ==>
+@* addpost popupmodal and other components *@
+@(Html.DevExtreme().Popup()
+    .ID("addPostPopup")
+    .Title("Appointment info")
+    .Width(700)
+    .Height(500)
+    .ContentTemplate(new TemplateName("customPopupContentTemplate"))
+    .ToolbarItems(items =>
+    {
+        items.Add()
+            .Widget(editor => editor.Button()
+                .Text("Confirm")
+                .Type(ButtonType.Success)
+                .OnClick("onConfirmClick")
+            )
+            .Location(ToolbarItemLocation.After)
+            .Toolbar(Toolbar.Bottom);
+        items.Add()
+            .Widget(editor => editor.Button()
+                .Text("Cancel")
+                .Type(ButtonType.Success)
+                .OnClick("onCancelClick")
+            )
+            .Location(ToolbarItemLocation.After)
+            .Toolbar(Toolbar.Bottom);
+
+    })
+    .DragEnabled(true)
+    .CloseOnOutsideClick(false)
+    .ShowCloseButton(true)
+    .OnInitialized("onPopupInitialized")
+
+)
+@*custom template inside is form*@
+@using (Html.DevExtreme().NamedTemplate("customPopupContentTemplate"))
+{
+    @(Html.DevExtreme().Form<Wiggly.Areas.Farmer.Models.PostViewModel>()
+        .ID("formDetails")
+        .ColCount(2)
+        .ActiveStateEnabled(false)
+        .LabelLocation(FormLabelLocation.Top)
+        .MinColWidth(300)
+        .ShowValidationSummary(true)
+        .ReadOnly(false)
+        .ScrollingEnabled(true)
+        .ActiveStateEnabled(false)
+        .Items(items =>
+        {
+            items.AddGroup().ColCount(2).ColSpan(2).Items(gItem =>
+            {
+                gItem.AddSimpleFor(m => m.PostBody).Editor(e => e.TextArea().Height(130)).ColSpan(2).IsRequired(true);
+
+            });
+            items.AddGroup()
+                    //.Caption("Photos")
+                    .ColCount(2)
+                    .ColSpan(2)
+                    .Items(groupItems =>
+                    {
+                        //groupItems.AddSimple().Name("Image").DataField("Image").ColSpan(2).Template(new TemplateName("FileUploadTemplate"));
+                        groupItems.AddSimple()
+                        .Name("Image")
+                        .DataField("Image")
+                        .ColSpan(2)
+                        .Template(@<text>
+
+                            <div class="widget-container">
+                            @(Html.DevExtreme().FileUploader()
+                                .ID("file-uploader")
+                                .Name("myFile")
+                                .Multiple(false)
+                                .Accept("*")
+                                .UploadMode(FileUploadMode.Instantly)
+                                .UploadUrl(Url.Action("Upload", "FileUploader", new {area = "Farmer" }))
+                                .OnValueChanged("fileUploader_valueChanged")
+                            )
+                                <div class="content" id="selected-files">
+
+                                </div>
+                            </div>
+                        </text>);
+                    });
+
+        })
+        .ShowColonAfterLabel(true).Visible(true).OnInitialized("onFormInitialized")
+    )
+}
+
+@using (Html.DevExtreme().NamedTemplate("FileUploadTemplate"))
+{
+    @(Html.DevExtreme().FileUploader()
+            .ID("file-uploader")
+            .Name("myFile")
+            .Multiple(true)
+            .Accept("images/")
+            .UploadMode(FileUploadMode.Instantly)
+            .UploadUrl("/Farmer/FileUploader/UploadImageFromPost")
+            .OnValueChanged("fileUploader_valueChanged")
+
+        )
+}
+
+
+
+
+<!-- Post Template -->
+<template id="postTemplate">
+    <!-- Post -->
+    <div class="post">
+        <div class="user-block">
+            <img class="img-circle img-bordered-sm" src="../../dist/img/user1-128x128.jpg" alt="user image">
+            <span class="username">
+                <span class="post-author" href="#">Jonathan Burke Jr.</span>
+                <a class="float-right btn-tool edit" role="button"><i class="fas fa-pen"></i></a>
+            </span>
+            <span class="description">Shared publicly - 7:30 PM today</span>
+        </div>
+        <!-- /.user-block -->
+        <p class="post-body">
+            Lorem ipsum represents a long-held tradition for designers,
+            typographers and the like. Some people hate it and argue for
+            its demise, but others ignore the hate as they create awesome
+            tools to help create filler text for everyone from bacon lovers
+            to Charlie Sheen fans.
+        </p>
+        <div class="image-container">
+            <ul>
+            </ul>
+        </div>
+
+        <p>
+            <a href="#" class="link-black text-sm like-post .liked"><i class="far fa-heart mr-1"></i> Like</a>
+            <span class="float-right" id="comment">
+                <a href="#" class="link-black text-sm">
+                    <i class="far fa-comments mr-1"></i> Comments
+                </a>
+            </span>
+        </p>
+
+    </div>
+    <!-- /.post -->
+</template>
+
+<template id="postImagesTemplate">
+    <li>
+        <article>
+
+            <a href="">
+
+                <figure>
+
+                    <img src="http://www.awwwards.com/awards/images/2013/07/bootstrap-resources-cover2.jpg" alt="">
+                </figure>
+            </a>
+        </article>
+    </li>
+</template>
+
+<template id="postFormImagesTemplate">
+    <li>
+        <article>
+            <button type="button" class="close image-delete" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <a href="">
+
+                <figure>
+
+                    <img src="http://www.awwwards.com/awards/images/2013/07/bootstrap-resources-cover2.jpg" alt="">
+                </figure>
+            </a>
+        </article>
+    </li>
+</template>
+<!-- Comment Template -->
+<template id="commentTemplate">
+    <div class="card-comment">
+        <!-- User image -->
+        @*<img class="img-circle img-sm" src="../dist/img/user5-128x128.jpg" alt="User Image">*@
+        <div class="comment-text">
+            <span class="username">
+                Nora Havisham
+            </span><!-- /.username -->
+            <span class="text-muted float-left date">8:03 PM Today</span><br />
+            <p>
+                The point of using Lorem Ipsum is that it hrs a morer-less
+                normal distribution of letters, as opposed to using
+                'Content here, content here', making it look like readable English.
+            </p>
+        </div>
+        <!-- /.comment-text -->
+    </div>
+</template>
+
+
+<template id="timelineRowTemplate">
+    <div class="timeline-row">
+        <b class="sched-date">Today, November 1,2021</b>
+        <p class="sched-agenda">Live cow delivery Live cow delivery Live cow delivery Live cow delivery Live cow delivery Live cow delivery</p>
+    </div>
+</template>
+
+<!== post list here  ==>
+
+<div class="row">
+
+    <section class="col-lg-9 connectedSortable">
+        <!-- Custom tabs (Charts with tabs)-->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-inbox mr-1"></i>
+                    Post
+                </h3>
+                <button type="button" class="btn btn-primary float-right" onclick="openPostPopup()">Create Post</button>
+
+            </div><!-- /.card-header -->
+            <div class="card-body">
+                <div class=" post-container">
+
+
+                </div>
+
+            </div><!-- /.card-body -->
+        </div>
+        <!-- /.card -->
+    </section>
+
+    <section class="col-lg-3 connectedSortable">
+        <!-- Custom tabs (Charts with tabs)-->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-calendar-alt mr-1"></i>
+                    Timeline
+                </h3>
+            </div><!-- /.card-header -->
+            <div class="card-body timeline-parent">
+
+            </div><!-- /.card-body -->
+        </div>
+        <!-- /.card -->
+    </section>
+</div>
+
+
+<!-- modal popup-->
+<div class="modal fade comment-modal" id="commentModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <!-- modal header-->
+            <div class="modal-header">
+                <div class="user-block">
+                    <img class="img-circle" src="../dist/img/user1-128x128.jpg" alt="User Image">
+                    <span class="username"><a href="#">Jonathan Burke Jr.</a></span>
+                    <span class="description">Shared publicly - 7:30 PM Today</span>
+                </div>
+                <!-- /.user-block -->
+                <div class="card-tools">
+                    <a href="#" class="float-right btn-tool"><i class="fa-solid fa-comment-pen"></i></a>
+
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="card-body">
+                    <p>
+                        the coast of the Semantics, a large language ocean.
+                        A small river named Duden flows by their place and supplies
+                        it with the necessary regelialia. It is a paradisematic
+                        country, in which roasted parts of sentences fly into
+                        your mouth.
+                    </p>
+                    <div class="image-container">
+                        <ul>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card-footer card-comments">
+
+                </div>
+            </div>
+            <div class="modal-footer" style="display:block">
+                @*<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>*@
+                @*<button type="button" class="btn btn-primary">Save changes</button>*@
+                <input type="text" name="Comment" class="form-control" id="comment-field" placeholder="Press enter to post comment">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="imageModal" class="modal">
+
+    <span class="close">&times;</span>
+
+    <img class="modal-content">
+
+</div>
+
+
+
+<script>
+    var popup, form, fileUploader;
+    // true if edit false if add
+    var isPostEdit = false;
+
+    //for uploading post images
+    var pId;
+    var postImage;
+    var postImages=[];
+
+    function OnUploadStarted(e,t,d) {
+        console.log(e);
+        console.log(t);
+        console.log(d);
+    }
+
+    //custom form initialization
+    function onFormInitialized(e) {
+        form = e.component;
+    }
+
+    //Custom popUpInitialization
+    function onPopupInitialized(e) {
+        popup = e.component;
+    }
+
+
+
+    //popup open
+    function openPostPopup() {
+        isPostEdit = false;
+        popup.option("visible", true);
+        if (form) {
+            //form.option('key', data.SchedId);
+            //console.log(data);
+        }
+    }
+
+    //popup close
+    function onCancelClick() {
+        popup.hide();
+    }
+
+    //save button click
+    function onConfirmClick() {
+        let data = form.option("formData");
+
+        let dataToPost = {
+            PostBody: data.PostBody
+        };
+
+        let imageDataToPost = {
+            postImages
+        };
+
+        var validationResult = form.validate();
+        if (validationResult != null && !validationResult.isValid) {
+            //alert('Please fix invalid fields');
+            return false;
+        } else {
+            if (isPostEdit) {
+                $.ajax({
+                    url: "@Url.Action("SavePost", "PostAPI",new { area = "Farmer"})",
+                    data: {
+                        values: JSON.stringify(dataToPost),
+                        postImages: JSON.stringify(postImages)
+                    }
+                }).done(function () {
+                    //console.log("postSaved");
+                    loadPosts();
+                    popup.hide();
+                    //isPostEdit = false;
+
+                }).fail(function (data) {
+                    console.log("error");
+                    console.log(data);
+                });
+            } else {
+
+                $.ajax({
+                    url: "@Url.Action("UpdatePost", "PostAPI",new { area = "Farmer"})",
+                    data: {
+                        key : pId,
+                        values: JSON.stringify(dataToPost),
+                        postImages: JSON.stringify(postImages)
+                    }
+                }).done(function () {
+                    //console.log("postSaved");
+                    loadPosts();
+                    popup.hide();
+
+                }).fail(function (data) {
+                    console.log("error");
+                    console.log(data);
+                });
+
+                console.log(data);
+            }
+        }
+
+    }
+
+    /*
+     * function responsible for loading post
+     */
+    function loadPosts() {
+        //ajax to get the list of post
+        $.ajax({
+            url: "@Url.Action("GetPosts", "PostAPI",new { area = "Farmer"})"
+        }).done(function (data) {
+            //console.table(data);
+            let postTemplate = document.querySelector('template#postTemplate');
+            var postParentContainer = document.querySelector('.card-body .post-container');
+            let postImagesTemplate = document.querySelector('template#postImagesTemplate');
+
+            $('.card-body .post-container').empty();
+            $.each(data, function (i, item) {
+                let clone = postTemplate.content.cloneNode(true);
+
+                let username = clone.querySelector(".post .user-block .username .post-author");
+                username.innerHTML = item.UserFullname;
+
+                if (!item.IsEditable) {
+                    clone.querySelector(".post .user-block .username .edit").innerHTML = "";
+
+                } else {
+                    clone.querySelector(".post .user-block .username .edit").setAttribute("data-value", item.Id);
+                }
+
+
+                let time = clone.querySelector(".post .user-block .description");
+                time.innerHTML = item.DateCreated;
+
+                let postBody = clone.querySelector(".post .post-body");
+                postBody.innerHTML = item.PostBody;
+
+                let like = clone.querySelector(".post p a.like-post");
+                like.setAttribute("data-value", item.Id);
+                //Todo: make the heart pink if the post is already liked
+                if (item.Liked) {
+                    like.innerHTML = "<i class=\"fas fa-heart mr-1 liked\"></i> Liked";
+                    like.setAttribute("data-value", item.Id);
+
+                    //let heart = clone.querySelector(".post p a.like-post i");
+                    //heart.classList.remove("far");
+                    //heart.classList.add("fas");
+                    //heart.classList.add("liked");
+                }
+
+                let comment = clone.querySelector(".post p span#comment");
+                comment.setAttribute("data-value", item.Id);
+
+                let postImagesParent = clone.querySelector(".post .image-container ul");
+
+
+                //console.table(item.ImageList);
+                $.each(item.ImageList, function (i, image) {
+                    let imageClone = postImagesTemplate.content.cloneNode(true);
+
+                    let img = imageClone.querySelector("li article a figure img");
+                    let a = imageClone.querySelector("li article a");
+
+                    img.setAttribute("src", image.ImagePath);
+                    a.setAttribute("href", image.ImagePath);
+                    postImagesParent.append(imageClone);
+                });
+
+                postParentContainer.appendChild(clone);
+
+
+            });
+
+        }).fail(function (data) {
+            console.log("error");
+            console.log(data);
+        });
+    }
+
+    function loadTimeline() {
+        var timelineData;
+        $.ajax({
+            url: "@Url.Action("GetFarmerTimelineData", "TimelineAPI",new { area = "Farmer"})"
+        }).done(function (data) {
+            let template = document.querySelector('template#timelineRowTemplate');
+            var parent = document.querySelector('.card-body.timeline-parent');
+            $('.card-body.timeline-parent').empty();
+
+            $.each(data, function (i, item) {
+                let clone = template.content.cloneNode(true);
+                clone.querySelector("b.sched-date").innerText = item.Date;
+                clone.querySelector("p.sched-agenda").innerText = item.Agenda;
+                parent.appendChild(clone);
+
+            })
+        });
+    }
+
+    /*
+     * function responsible on loading comment when the pop up was shown
+     */
+    function loadComments() {
+        //ajax to get the list of post
+        $.ajax({
+            url: "@Url.Action("GetCommentsFromPost", "CommentAPI",new { area = "Farmer"})" + "?postId=" + pId
+        }).done(function (data) {
+            console.table(data);
+
+            let template = document.querySelector('template#commentTemplate');
+            var parent = document.querySelector('.card-footer.card-comments');
+
+            if (data.length > 0) {
+                $('.card-footer.card-comments').empty();
+                $.each(data, function (i, item) {
+                    let clone = template.content.cloneNode(true);
+
+                    let username = clone.querySelector(".card-comment div .username");
+                    username.innerText = item.UserFullname;
+
+                    let commentposted = clone.querySelector(".card-comment div  .date");
+                    commentposted.innerText = item.DateCreated;
+
+                    let postBody = clone.querySelector(".card-comment div p");
+                    postBody.innerHTML = item.CommentBody;
+
+                    parent.appendChild(clone);
+
+                });
+            } else {
+                console.log("no comment");
+                parent.innerHTML = "<p>This post has no comments yet.</p>";
+            }
+
+        }).fail(function (data) {
+
+            console.log("error");
+            console.log(data);
+        });
+    }
+
+    /*
+    * function responsible on loading imagelist when the pop up to edit the post was shown
+    */
+    function loadImageListToPopup() {
+        let parent = document.querySelector("#selected-files.content");
+        let postImagesTemplate = document.querySelector('template#postFormImagesTemplate');
+        parent.innerHTML = "";
+
+        if (postImages.length > 0) {
+            $.each(postImages, function (i, image) {
+                let imageClone = postImagesTemplate.content.cloneNode(true);
+
+                let img = imageClone.querySelector("li article a figure img");
+                let a = imageClone.querySelector("li article a");
+                let button = imageClone.querySelector("li article button");
+
+                img.setAttribute("src", image.ImagePath);
+                a.setAttribute("href", image.ImagePath);
+                button.setAttribute("data-value", image.ImageId)
+                parent.append(imageClone);
+            });
+        }
+
+    }
+
+    $(document).ready(function () {
+        let postId;
+        //function LoadPost
+
+        loadPosts();
+        loadTimeline();
+
+        /*
+         when click comment will open popup
+         and load the post and it's comment
+         */
+        $(".post-container").on("click","#comment",function () {
+            postId = $(this).data("value");
+            pId = postId;
+
+            //load post
+            $.ajax({
+                url: "@Url.Action("GetPost", "PostAPI",new { area = "Farmer"})" +"?postId=" + postId
+            })
+            .done(function (data) {
+                console.table(data);
+
+                let postImagesTemplate = document.querySelector('template#postImagesTemplate');
+
+
+                let commentModal = document.querySelector("#commentModalCenter div .modal-content");
+                commentModal.querySelector(".modal-header div .username").innerText = data.UserFullname;
+                commentModal.querySelector(".modal-header div .description").innerText = data.DateCreated;
+                commentModal.querySelector(".modal-body .card-body p").innerText = data.PostBody;
+
+                let postImagesParent = document.querySelector("#commentModalCenter div .modal-content .modal-body .card-body  .image-container ul");
+
+                $("#commentModalCenter div .modal-content .modal-body .card-body  .image-container ul").empty();
+                $.each(data.ImageList, function (i, image) {
+                    let imageClone = postImagesTemplate.content.cloneNode(true);
+
+                    let img = imageClone.querySelector("li article a figure img");
+                    let a = imageClone.querySelector("li article a");
+
+                    img.setAttribute("src", image.ImagePath);
+                    a.setAttribute("href", image.ImagePath);
+                    postImagesParent.append(imageClone);
+                });
+
+                //after loading post show comments
+                loadComments();
+
+                //after loading comments show modal
+                $(".comment-modal").modal("show");
+
+
+            })
+            .fail(function (data) {
+                console.log("error");
+                console.log(data);
+            });
+
+        });
+
+
+        /*
+         * event for the keypress
+         * when the user press enter key on the comment input field
+         */
+        $("#comment-field").keypress(function (e) {
+            //listen to the keypress if the user press Enter key
+            // Enter key = keyCode : 13
+            if (e.keyCode == 13) {
+                //send to comment to the server
+
+                var comment = $("#comment-field").val();
+
+                //check if comment field is empty
+                // empty ? dont send : send
+                if (comment.length > 0) {
+                    console.log(comment);
+                    let data = {
+                        PostId: pId,
+                        Comment: comment,
+                    };
+
+
+                    $.ajax({
+                        url: "@Url.Action("PostComment", "CommentAPI",new { area = "Farmer"})" +"?postId="+pId+"&userComment="+comment
+
+                    }).done(function () {
+                        //done update the comment list on the modal
+                        $("#comment-field").val("")
+                        loadComments();
+
+
+                    }).fail(function (data) {
+
+                        console.log("error");
+                        console.log(data);
+
+                    });
+                }
+
+            }
+        });
+
+        //dx-fileuploader-files-container
+        var domModificationCounter = 0;
+        $("body").on('DOMSubtreeModified', '.dx-fileuploader-file-status-message', function () {
+
+            if ($(".dx-fileuploader-file-status-message").text() == "Uploaded") {
+                afterUpload();
+                console.log(postImages);
+            } else {
+            }
+        });
+
+
+        //image is clicked on the post row
+        $('body').on('click', "li article a", function (e) {
+            e.preventDefault();
+            var modal = document.getElementById("imageModal");
+            modal.style.display = "block";
+            let imgSrc = $(this).attr("href");
+
+            $("#imageModal img").attr("src", $(this).attr("href"));
+
+
+        });
+
+        $(".close").on("click", function () {
+            var modal = document.getElementById("imageModal");
+            modal.style.display = "none";
+        });
+
+        //like functionality to the posts
+        $("body").on('click', '.like-post',function (e) {
+            e.preventDefault();
+            let postId = $(this).attr("data-value");
+            let dataToSend = {
+                post : postId
+            };
+            $.ajax({
+                url: "@Url.Action("LikeUnlikePost", "PostAPI",new { area = "Farmer"})",
+                data: dataToSend
+            }).done(function (data) {
+                loadPosts();
+            });
+        });
+
+
+        //edit functionality for post
+        $(".post-container").on("click", "a.edit", function (e) {
+            e.preventDefault();
+            //console.log($(this).attr("data-value"));
+            pId = $(this).attr("data-value");
+
+            //get data out of the postID
+            $.ajax({
+                url: "@Url.Action("GetPost", "PostAPI",new { area = "Farmer"})",
+                data: {
+                    postId: pId
+                }
+            })
+            .done(function (data) {
+
+                popup.option("visible", true);
+                form.option('formData', data);
+
+                postEdit = true;
+
+                postImages = data.ImageList;
+                console.log(postImages);
+                loadImageListToPopup();
+            });
+            //separate the images from the data
+            //populate the data to the images list
+        });
+
+        $('body').on('click', ".image-delete", function (e) {
+            //TODO: delete image here
+            //console.log($(this).next("a").attr("href"));
+            //console.log($(this).attr("data-value"));
+            var imageId = $(this).attr("data-value");
+            $.ajax({
+                url : "@Url.Action("DeletePostPhoto", "PostAPI",new { area = "Farmer"})",
+                data: {
+                    image: imageId
+                }
+
+            }).done(function () {
+                //loadImageListToPopup();
+                //get data out of the postID
+                $.ajax({
+                    url: "@Url.Action("GetPost", "PostAPI",new { area = "Farmer"})",
+                    data: {
+                        postId: pId
+                    }
+                })
+                .done(function (data) {
+                    postImages = data.ImageList;
+                    console.log(postImages);
+                    loadImageListToPopup();
+                });
+            });
+
+        });
+
+
+    });
+
+    //if file upload data values was changed
+    function fileUploader_valueChanged(e,t,d) {
+        var files = e.value;
+        e.component.option("onUploaded", "onUploaded");
+        var result = e.component.option("uploadUrl", "/Farmer/FileUploader/UploadImageFromPost");
+
+        if (files.length > 0) {
+            $("#selected-files .selected-item").remove();
+
+            //TODO: show the uploaded images
+
+        }
+        else
+            $("#selected-files").hide();
+    }
+
+
+    function afterUpload() {
+            $.ajax({
+                url: "@Url.Action("GetUploadedImageFromPost", "FileUploader",new { area = "Farmer"})"
+            }).done(function (data) {
+                //console.log(data);
+                postImage = { ImagePath: data};
+                postImages.push(postImage);
+                loadImageListToPopup();
+            });
+    }
+
+
+    //TODO: add edit post functionality
+    //TODO: add uploaded image list when adding post
+    //TODO: add edit images to post / delete uploaded photos
+
+
+
+</script>
