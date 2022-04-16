@@ -161,7 +161,10 @@ namespace Wiggly.Areas.Vendor.Controllers
             if (post == null || string.IsNullOrEmpty(values))
                 return BadRequest("Post not found");
 
-            JsonConvert.PopulateObject(values, post);
+            var edited = new PostViewModel();
+            JsonConvert.PopulateObject(values, edited);
+            post.Text = edited.PostBody;
+
             _context.Post.Update(post);
             _context.SaveChanges();
 

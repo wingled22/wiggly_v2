@@ -28,7 +28,7 @@ namespace Wiggly.Areas.Vendor.Controllers
             _logger = logger;
         }
 
-        public IActionResult GetFarmerTimelineData()
+        public IActionResult GetVendorTimelineData()
         {
             var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
 

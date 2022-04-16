@@ -481,7 +481,7 @@
             //alert('Please fix invalid fields');
             return false;
         } else {
-            if (isPostEdit) {
+            if (!isPostEdit) {
                 $.ajax({
                     url: "@Url.Action("SavePost", "PostAPI",new { area = "Farmer"})",
                     data: {
@@ -850,7 +850,7 @@
                 popup.option("visible", true);
                 form.option('formData', data);
 
-                postEdit = true;
+                isPostEdit = true;
 
                 postImages = data.ImageList;
                 console.log(postImages);

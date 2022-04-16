@@ -158,7 +158,7 @@
 @*custom template inside is form*@
 @using (Html.DevExtreme().NamedTemplate("customPopupContentTemplate"))
 {
-    @(Html.DevExtreme().Form<Wiggly.Areas.Farmer.Models.PostViewModel>()
+    @(Html.DevExtreme().Form<Wiggly.Areas.Vendor.Models.PostViewModel>()
         .ID("formDetails")
         .ColCount(2)
         .ActiveStateEnabled(false)
@@ -195,7 +195,7 @@
                                 .Multiple(false)
                                 .Accept("*")
                                 .UploadMode(FileUploadMode.Instantly)
-                                .UploadUrl(Url.Action("Upload", "FileUploader", new {area = "Farmer" }))
+                                .UploadUrl(Url.Action("Upload", "FileUploader", new {area = "Vendor" }))
                                 .OnValueChanged("fileUploader_valueChanged")
                             )
                                 <div class="content" id="selected-files">
@@ -218,7 +218,7 @@
             .Multiple(true)
             .Accept("images/")
             .UploadMode(FileUploadMode.Instantly)
-            .UploadUrl("/Farmer/FileUploader/UploadImageFromPost")
+            .UploadUrl("/Vendor/FileUploader/UploadImageFromPost")
             .OnValueChanged("fileUploader_valueChanged")
 
         )
@@ -486,9 +486,9 @@
             //alert('Please fix invalid fields');
             return false;
         } else {
-            if (isPostEdit) {
+            if (!isPostEdit) {
                 $.ajax({
-                    url: "@Url.Action("SavePost", "PostAPI",new { area = "Farmer"})",
+                    url: "@Url.Action("SavePost", "PostAPI",new { area = "Vendor"})",
                     data: {
                         values: JSON.stringify(dataToPost),
                         postImages: JSON.stringify(postImages)
@@ -506,7 +506,7 @@
             } else {
 
                 $.ajax({
-                    url: "@Url.Action("UpdatePost", "PostAPI",new { area = "Farmer"})",
+                    url: "@Url.Action("UpdatePost", "PostAPI",new { area = "Vendor" })",
                     data: {
                         key : pId,
                         values: JSON.stringify(dataToPost),
@@ -534,7 +534,7 @@
     function loadPosts() {
         //ajax to get the list of post
         $.ajax({
-            url: "@Url.Action("GetPosts", "PostAPI",new { area = "Farmer"})"
+            url: "@Url.Action("GetPosts", "PostAPI",new { area = "Vendor" })"
         }).done(function (data) {
             //console.table(data);
             let postTemplate = document.querySelector('template#postTemplate');
@@ -607,7 +607,7 @@
     function loadTimeline() {
         var timelineData;
         $.ajax({
-            url: "@Url.Action("GetFarmerTimelineData", "TimelineAPI",new { area = "Farmer"})"
+            url: "@Url.Action("GetVendorTimelineData", "TimelineAPI",new { area = "Vendor" })"
         }).done(function (data) {
             let template = document.querySelector('template#timelineRowTemplate');
             var parent = document.querySelector('.card-body.timeline-parent');
@@ -629,7 +629,7 @@
     function loadComments() {
         //ajax to get the list of post
         $.ajax({
-            url: "@Url.Action("GetCommentsFromPost", "CommentAPI",new { area = "Farmer"})" + "?postId=" + pId
+            url: "@Url.Action("GetCommentsFromPost", "CommentAPI",new { area = "Vendor" })" + "?postId=" + pId
         }).done(function (data) {
             console.table(data);
 
@@ -707,7 +707,7 @@
 
             //load post
             $.ajax({
-                url: "@Url.Action("GetPost", "PostAPI",new { area = "Farmer"})" +"?postId=" + postId
+                url: "@Url.Action("GetPost", "PostAPI",new { area = "Vendor" })" +"?postId=" + postId
             })
             .done(function (data) {
                 console.table(data);
@@ -773,7 +773,7 @@
 
 
                     $.ajax({
-                        url: "@Url.Action("PostComment", "CommentAPI",new { area = "Farmer"})" +"?postId="+pId+"&userComment="+comment
+                        url: "@Url.Action("PostComment", "CommentAPI",new { area = "Vendor" })" +"?postId="+pId+"&userComment="+comment
 
                     }).done(function () {
                         //done update the comment list on the modal
@@ -829,7 +829,7 @@
                 post : postId
             };
             $.ajax({
-                url: "@Url.Action("LikeUnlikePost", "PostAPI",new { area = "Farmer"})",
+                url: "@Url.Action("LikeUnlikePost", "PostAPI",new { area = "Vendor" })",
                 data: dataToSend
             }).done(function (data) {
                 loadPosts();
@@ -842,10 +842,10 @@
             e.preventDefault();
             //console.log($(this).attr("data-value"));
             pId = $(this).attr("data-value");
-
+            //isPostEdit = true;
             //get data out of the postID
             $.ajax({
-                url: "@Url.Action("GetPost", "PostAPI",new { area = "Farmer"})",
+                url: "@Url.Action("GetPost", "PostAPI",new { area = "Vendor" })",
                 data: {
                     postId: pId
                 }
@@ -855,7 +855,7 @@
                 popup.option("visible", true);
                 form.option('formData', data);
 
-                postEdit = true;
+                isPostEdit = true;
 
                 postImages = data.ImageList;
                 console.log(postImages);
@@ -871,7 +871,7 @@
             //console.log($(this).attr("data-value"));
             var imageId = $(this).attr("data-value");
             $.ajax({
-                url : "@Url.Action("DeletePostPhoto", "PostAPI",new { area = "Farmer"})",
+                url : "@Url.Action("DeletePostPhoto", "PostAPI",new { area = "Vendor" })",
                 data: {
                     image: imageId
                 }
@@ -880,7 +880,7 @@
                 //loadImageListToPopup();
                 //get data out of the postID
                 $.ajax({
-                    url: "@Url.Action("GetPost", "PostAPI",new { area = "Farmer"})",
+                    url: "@Url.Action("GetPost", "PostAPI",new { area = "Vendor" })",
                     data: {
                         postId: pId
                     }
@@ -901,7 +901,7 @@
     function fileUploader_valueChanged(e,t,d) {
         var files = e.value;
         e.component.option("onUploaded", "onUploaded");
-        var result = e.component.option("uploadUrl", "/Farmer/FileUploader/UploadImageFromPost");
+        var result = e.component.option("uploadUrl", "/Vendor/FileUploader/UploadImageFromPost");
 
         if (files.length > 0) {
             $("#selected-files .selected-item").remove();
@@ -916,7 +916,7 @@
 
     function afterUpload() {
             $.ajax({
-                url: "@Url.Action("GetUploadedImageFromPost", "FileUploader",new { area = "Farmer"})"
+                url: "@Url.Action("GetUploadedImageFromPost", "FileUploader",new { area = "Vendor" })"
             }).done(function (data) {
                 //console.log(data);
                 postImage = { ImagePath: data};
