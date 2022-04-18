@@ -1,0 +1,233 @@
+﻿@using Wiggly
+@namespace Wiggly.Models
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using DevExtreme.AspNet.Mvc
+@model Wiggly.Entities.Schedules;
+
+@{
+    ViewData["Title"] = "Marketplace";
+    Layout = "_LayoutAdminLTEVendor";
+}
+
+
+<style>
+    .marketplace-parent-container {
+        margin: 0 auto;
+        padding: 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        max-height: 650px;
+        overflow: auto;
+    }
+
+    .item-card {
+        position: relative;
+        width: 210px;
+        height: 270px;
+        background: #fefefe;
+        padding: 5px;
+        margin: 5px;
+        border: solid 1px #ccc;
+    }
+
+        .item-card .image-container img {
+            width: 197px;
+            height: 200px;
+            display: block;
+            object-fit: cover;
+        }
+
+        .item-card .item-caption {
+            margin: 6px 0;
+        }
+
+            .item-card .item-caption p {
+                width: 200px;
+                height: 20px;
+                margin: 0;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+    .date-posted {
+        position: absolute;
+        padding: 4px;
+        right: 10px;
+        top: 15px;
+        background: rgb(81, 81, 81, .5);
+        color: #fefefe;
+    }
+
+    .item-type {
+        position: absolute;
+        padding: 4px;
+        right: 10px;
+        top: 45px;
+        background: rgb(81, 81, 81, .5);
+        color: #fefefe;
+    }
+</style>
+
+<h3>Marketplace</h3>
+
+@* devexpress template *@
+@(Html.DevExtreme().Popup()
+    .ID("addPostPopup")
+    .Title("Appointment info")
+    .Width(700)
+    .Height(500)
+    .ContentTemplate(new TemplateName("customPopupContentTemplate"))
+    .ToolbarItems(items =>
+    {
+        items.Add()
+            .Widget(editor => editor.Button()
+                .Text("Confirm")
+                .Type(ButtonType.Success)
+            //.OnClick("onConfirmClick")
+            )
+            .Location(ToolbarItemLocation.After)
+            .Toolbar(Toolbar.Bottom);
+        items.Add()
+            .Widget(editor => editor.Button()
+                .Text("Cancel")
+                .Type(ButtonType.Success)
+            .OnClick("onCancelClick")
+            )
+            .Location(ToolbarItemLocation.After)
+            .Toolbar(Toolbar.Bottom);
+
+    })
+    .DragEnabled(true)
+    .CloseOnOutsideClick(false)
+    .ShowCloseButton(true)
+    .OnInitialized("onPopupInitialized")
+
+)
+@*custom template inside is form*@
+@using (Html.DevExtreme().NamedTemplate("customPopupContentTemplate"))
+{
+    @(Html.DevExtreme().Form<Wiggly.Models.MarketPlaceViewModel>()
+        .ID("formDetails")
+        .ColCount(2)
+        .ActiveStateEnabled(false)
+        .LabelLocation(FormLabelLocation.Top)
+        .MinColWidth(300)
+        .ShowValidationSummary(true)
+        .ReadOnly(false)
+        .ScrollingEnabled(true)
+        .ActiveStateEnabled(false)
+        .Items(items =>
+        {
+            items.AddGroup().ColCount(2).ColSpan(2).Items(gItem =>
+            {
+                gItem.AddSimpleFor(m => m.Caption).Editor(e => e.TextArea().Height(100)).ColSpan(2).IsRequired(true);
+                gItem.AddSimpleFor(m => m.BuyOrSell).Editor(e => e.SelectBox().DataSource(new JS("buyOrSell")).ValueExpr("Name").DisplayExpr("Name")).ColSpan(2).IsRequired(true);
+                gItem.AddSimpleFor(m => m.Category).Editor(e => e.SelectBox().DataSource(new JS("category")).ValueExpr("Name").DisplayExpr("Name")).ColSpan(2).IsRequired(true);
+
+            });
+
+        })
+        .ShowColonAfterLabel(true).Visible(true).OnInitialized("onFormInitialized")
+    )
+}
+
+@* Templates *@
+<template id="marketplace-card-item">
+    <div class="item-card">
+        <div class="date-posted"> august 22, 1997</div>
+        <div class="item-type">Selling</div>
+        <div class="image-container">
+            <img src="https://cdn.pixabay.com/photo/2019/03/01/16/07/pigs-4028140_960_720.jpg" alt="item pic">
+        </div>
+        <div class="item-caption">
+            <p>lorem ipsuasdfkj sdlkfjs asdf sdfsdf </p>
+            <p><i>address is here </i></p>
+        </div>
+    </div>
+</template>
+
+<div class="row">
+    <section class="col-lg-3 connectedSortable">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-screwdriver mr-1"></i>
+                    Options
+                </h3>
+            </div>
+            <div class="card-body timeline-parent">
+
+            </div>
+        </div>
+    </section>
+
+    <section class="col-lg-9 connectedSortable">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-inbox mr-1"></i>
+                    Post
+                </h3>
+                <button type="button" class="btn btn-primary float-right" onclick="openPostPopup()">Buy Or Sell</button>
+
+            </div>
+            <div class="card-body">
+                <div class="marketplace-parent-container">
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+
+<script>
+    //TODO: save a item with image
+    //TODO: display a cards of item
+    //TODO: edit a item
+    //TODO: filtering
+    var popup, form, fileUploader;
+    // true if edit false if add
+    var isPostEdit = false;
+
+    //for uploading post images
+    var pId;
+    var postImage;
+    var postImages = [];
+
+    //
+    const buyOrSell = [{ Name: "Buying" }, { Name: "Selling" }];
+    const category = [{ Name: "Pig" }, { Name: "Cow" }, { Name: "Chicken" }, { Name: "Goat" }, { Name: "Carabao" }];
+
+    function OnUploadStarted(e, t, d) {
+        console.log(e);
+        console.log(t);
+        console.log(d);
+    }
+
+    //custom form initialization
+    function onFormInitialized(e) {
+        form = e.component;
+    }
+
+    //Custom popUpInitialization
+    function onPopupInitialized(e) {
+        popup = e.component;
+    }
+
+    //popup open
+    function openPostPopup() {
+        isPostEdit = false;
+        popup.option("visible", true);
+        if (form) {
+            //form.option('key', data.SchedId);
+            //console.log(data);
+        }
+    }
+
+    //popup close
+    function onCancelClick() {
+        popup.hide();
+    }
+
+</script>

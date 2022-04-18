@@ -23,6 +23,7 @@ namespace Wiggly.Entities
         public virtual DbSet<AspNetUserTokens> AspNetUserTokens { get; set; }
         public virtual DbSet<AspNetUsers> AspNetUsers { get; set; }
         public virtual DbSet<Kilos> Kilos { get; set; }
+        public virtual DbSet<MarketPlace> MarketPlace { get; set; }
         public virtual DbSet<Payment> Payment { get; set; }
         public virtual DbSet<Post> Post { get; set; }
         public virtual DbSet<PostComment> PostComment { get; set; }
@@ -125,6 +126,21 @@ namespace Wiggly.Entities
                 entity.Property(e => e.NormalizedUserName).HasMaxLength(256);
 
                 entity.Property(e => e.UserName).HasMaxLength(256);
+            });
+
+            modelBuilder.Entity<MarketPlace>(entity =>
+            {
+                entity.HasNoKey();
+
+                entity.Property(e => e.BuyOrSell)
+                    .HasMaxLength(10)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Caption).HasColumnType("text");
+
+                entity.Property(e => e.Category)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
             });
 
             modelBuilder.Entity<Payment>(entity =>

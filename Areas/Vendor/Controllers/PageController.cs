@@ -25,5 +25,12 @@ namespace Wiggly.Areas.Vendor.Controllers
         {
             return View();
         }
+
+        public IActionResult Marketplace()
+        {
+            return View();
+        }
+
+
     }
 }
