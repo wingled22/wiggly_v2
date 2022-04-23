@@ -130,7 +130,7 @@ namespace Wiggly.Entities
 
             modelBuilder.Entity<MarketPlace>(entity =>
             {
-                entity.HasNoKey();
+                entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.BuyOrSell)
                     .HasMaxLength(10)
@@ -141,6 +141,8 @@ namespace Wiggly.Entities
                 entity.Property(e => e.Category)
                     .HasMaxLength(50)
                     .IsUnicode(false);
+
+                entity.Property(e => e.DateCreated).HasColumnType("datetime");
             });
 
             modelBuilder.Entity<Payment>(entity =>

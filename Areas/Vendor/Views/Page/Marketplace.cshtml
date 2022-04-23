@@ -6,7 +6,7 @@
 
 @{
     ViewData["Title"] = "Marketplace";
-    Layout = "_LayoutAdminLTEVendor";
+    Layout = "_LayoutAdminLTEVendorDashboard";
 }
 
 
@@ -53,19 +53,106 @@
     .date-posted {
         position: absolute;
         padding: 4px;
-        right: 10px;
+        left: 10px;
         top: 15px;
         background: rgb(81, 81, 81, .5);
         color: #fefefe;
     }
 
-    .item-type {
+    .item-edit {
         position: absolute;
         padding: 4px;
         right: 10px;
+        top: 15px;
+        color: rgb(81, 81, 81);
+    }
+
+    .item-type {
+        position: absolute;
+        padding: 4px;
+        left: 10px;
         top: 45px;
         background: rgb(81, 81, 81, .5);
         color: #fefefe;
+    }
+
+    /*this is to  the images in side the add item popup form*/
+    .image-container {
+        overflow: auto;
+    }
+
+    ul {
+        text-align: left;
+        display: flex;
+    }
+
+    li {
+        list-style: none;
+        display: inline-block; /*pour limiter l'espace occupé   par l'image li*/
+    }
+
+    article {
+        position: relative;
+    }
+
+        article button {
+            position: absolute;
+            right: 20px;
+            top: 5px;
+        }
+
+    img {
+        width: 150px;
+        height: 150px;
+        display: block;
+        object-fit: cover;
+    }
+
+    figure {
+        /*background: #7D5976;*/
+        text-align: center;
+        padding: 10px;
+        margin: 10px;
+    }
+
+    a {
+        color: white;
+        text-decoration: none;
+    }
+
+        a:hover {
+            text-decoration: none;
+            color: pink;
+        }
+
+    span.description {
+        padding: 10px;
+        display: block;
+    }
+
+
+    /* The Modal (background) */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 2147483648; /* Sit on top */
+        padding-top: 40px; /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
+    }
+
+    /* Modal Content (Image) */
+    .modal-content {
+        margin: auto;
+        display: block;
+        width: 80%;
+        height: 80%;
+        max-width: 700px;
     }
 </style>
 
@@ -76,7 +163,7 @@
     .ID("addPostPopup")
     .Title("Appointment info")
     .Width(700)
-    .Height(500)
+    .Height(600)
     .ContentTemplate(new TemplateName("customPopupContentTemplate"))
     .ToolbarItems(items =>
     {
@@ -84,7 +171,7 @@
             .Widget(editor => editor.Button()
                 .Text("Confirm")
                 .Type(ButtonType.Success)
-            //.OnClick("onConfirmClick")
+            .OnClick("onConfirmClick")
             )
             .Location(ToolbarItemLocation.After)
             .Toolbar(Toolbar.Bottom);
@@ -127,6 +214,36 @@
 
             });
 
+             items.AddGroup()
+                    //.Caption("Photos")
+                    .ColCount(2)
+                    .ColSpan(2)
+                    .Items(groupItems =>
+                    {
+                        //groupItems.AddSimple().Name("Image").DataField("Image").ColSpan(2).Template(new TemplateName("FileUploadTemplate"));
+                        groupItems.AddSimple()
+                        .Name("Image")
+                        .DataField("Image")
+                        .ColSpan(2)
+                        .Template(@<text>
+
+                            <div class="widget-container">
+                            @(Html.DevExtreme().FileUploader()
+                                .ID("file-uploader")
+                                .Name("myFile")
+                                .Multiple(false)
+                                .Accept("*")
+                                .UploadMode(FileUploadMode.Instantly)
+                                .UploadUrl(Url.Action("Upload", "FileUploader", new {area = "Vendor" }))
+                                .OnValueChanged("fileUploader_valueChanged")
+                            )
+                                <div class="content" id="selected-files">
+
+                                </div>
+                            </div>
+                        </text>);
+                    });
+
         })
         .ShowColonAfterLabel(true).Visible(true).OnInitialized("onFormInitialized")
     )
@@ -137,8 +254,9 @@
     <div class="item-card">
         <div class="date-posted"> august 22, 1997</div>
         <div class="item-type">Selling</div>
+        <div class="item-edit" role="button"><i class="fas fa-pen"></i></div>
         <div class="image-container">
-            <img src="https://cdn.pixabay.com/photo/2019/03/01/16/07/pigs-4028140_960_720.jpg" alt="item pic">
+            <img src="https://via.placeholder.com/200x200?text=No+image+available" alt="item pic">
         </div>
         <div class="item-caption">
             <p>lorem ipsuasdfkj sdlkfjs asdf sdfsdf </p>
@@ -146,6 +264,40 @@
         </div>
     </div>
 </template>
+
+<template id="postImagesTemplate">
+    <li>
+        <article>
+
+            <a href="">
+
+                <figure>
+
+                    <img src="http://www.awwwards.com/awards/images/2013/07/bootstrap-resources-cover2.jpg" alt="">
+                </figure>
+            </a>
+        </article>
+    </li>
+</template>
+
+<template id="postFormImagesTemplate">
+    <li>
+        <article>
+            <button type="button" class="close image-delete" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <a href="">
+
+                <figure>
+
+                    <img src="https://via.placeholder.com/468x60?text=No+image+available" alt="">
+                </figure>
+            </a>
+        </article>
+    </li>
+</template>
+
+
 
 <div class="row">
     <section class="col-lg-3 connectedSortable">
@@ -182,8 +334,6 @@
 
 
 <script>
-    //TODO: save a item with image
-    //TODO: display a cards of item
     //TODO: edit a item
     //TODO: filtering
     var popup, form, fileUploader;
@@ -230,4 +380,338 @@
         popup.hide();
     }
 
+    //save button click
+    function onConfirmClick() {
+        let data = form.option("formData");
+
+        //let dataToPost = {
+        //    PostBody: data.PostBody
+        //};
+
+        let imageDataToPost = {
+            postImages
+        };
+
+        var validationResult = form.validate();
+        if (validationResult != null && !validationResult.isValid) {
+            //alert('Please fix invalid fields');
+            return false;
+        } else {
+            if (!isPostEdit) {
+                $.ajax({
+                    method: "POST",
+                    url: "../../marketplaceapi/saveitem",
+                    data: {
+                        values: JSON.stringify(data),
+                        postImages: JSON.stringify(postImages)
+                    }
+                }).done(function () {
+                    //console.log("postSaved");
+                    //loadPosts();
+                    popup.hide();
+                    //isPostEdit = false;
+
+                }).fail(function (data) {
+                    console.log("error");
+                    console.log(data);
+                });
+            }
+            @*else {
+
+                $.ajax({
+                    url: "@Url.Action("UpdatePost", "PostAPI",new { area = "Vendor" })",
+                    data: {
+                        key : pId,
+                        values: JSON.stringify(dataToPost),
+                        postImages: JSON.stringify(postImages)
+                    }
+                }).done(function () {
+                    //console.log("postSaved");
+                    loadPosts();
+                    popup.hide();
+
+                }).fail(function (data) {
+                    console.log("error");
+                    console.log(data);
+                });
+
+                console.log(data);
+            }*@
+        }
+
+    }
+
+
+    //if file upload data values was changed
+    function fileUploader_valueChanged(e,t,d) {
+        var files = e.value;
+        e.component.option("onUploaded", "onUploaded");
+        var result = e.component.option("uploadUrl", "../../MarketplaceFileUpload/UploadItemImage");
+
+        if (files.length > 0) {
+            $("#selected-files .selected-item").remove();
+
+            //TODO: show the uploaded images
+
+        }
+        else
+            $("#selected-files").hide();
+    }
+
+
+    function afterUpload() {
+            $.ajax({
+                url: "../../MarketplaceFileUpload/GetUploadedItemImage"
+            }).done(function (data) {
+                postImage = { ImagePath: data};
+                postImages.push(postImage);
+                loadImageListToPopup();
+            });
+    }
+
+    /*
+    * function responsible on loading imagelist when the pop up to edit the post was shown
+    */
+    function loadImageListToPopup() {
+        let parent = document.querySelector("#selected-files.content");
+        let postImagesTemplate = document.querySelector('template#postFormImagesTemplate');
+        parent.innerHTML = "";
+
+        if (postImages.length > 0) {
+            $.each(postImages, function (i, image) {
+                let imageClone = postImagesTemplate.content.cloneNode(true);
+
+                let img = imageClone.querySelector("li article a figure img");
+                let a = imageClone.querySelector("li article a");
+                let button = imageClone.querySelector("li article button");
+
+                img.setAttribute("src", image.ImagePath);
+                a.setAttribute("href", image.ImagePath);
+                button.setAttribute("data-value", image.ImageId)
+                parent.append(imageClone);
+            });
+        }
+
+    }
+
+
+        /*
+     * function responsible for loading post
+     */
+    function loadItems() {
+        //ajax to get the list of post
+        $.ajax({
+            url: "../../marketplaceapi/getitems"
+        }).done(function (data) {
+            console.table(data);
+            let itemTemplate = document.querySelector('template#marketplace-card-item');
+            var itemParentContainer = document.querySelector('.marketplace-parent-container');
+            let postImagesTemplate = document.querySelector('template#postImagesTemplate');
+
+            $('.card-body .post-container').empty();
+
+            $.each(data, function (i, item) {
+                let clone = itemTemplate.content.cloneNode(true);
+                clone.querySelector(".item-card").setAttribute("data-value", item.ItemID);
+                clone.querySelector(".item-edit ").setAttribute("data-value", item.ItemID);
+                clone.querySelector(".item-type").innerHTML = item.BuyOrSell;
+                clone.querySelector(".item-caption p").innerHTML = item.Caption;
+
+                if (item.ImageList.length > 0) {
+                    clone.querySelector(".image-container img").setAttribute("src",item.ImageList[0].ImagePath);
+                }
+                if (!item.IsEditable) {
+                    clone.querySelector(".item-edit ").innerHTML = "";
+                }
+                //} else {
+                //    clone.querySelector(".post .user-block .username .edit").setAttribute("data-value", item.Id);
+                //}
+
+
+                //let time = clone.querySelector(".post .user-block .description");
+                //time.innerHTML = item.DateCreated;
+
+                //let postBody = clone.querySelector(".post .post-body");
+                //postBody.innerHTML = item.PostBody;
+
+                //let like = clone.querySelector(".post p a.like-post");
+                //like.setAttribute("data-value", item.Id);
+
+                ////Todo: make the heart pink if the post is already liked
+                //if (item.Liked) {
+                //    like.innerHTML = "<i class=\"fas fa-heart mr-1 liked\"></i> Liked";
+                //    like.setAttribute("data-value", item.Id);
+
+                //}
+
+
+                itemParentContainer.appendChild(clone);
+
+
+            });
+
+        }).fail(function (data) {
+            console.log("error");
+            console.log(data);
+        });
+    }
+
+
+
+    $(document).ready(function () {
+        loadItems();
+
+        //fire when upload is done
+        $("body").on('DOMSubtreeModified', '.dx-fileuploader-file-status-message', function () {
+            if ($(".dx-fileuploader-file-status-message").text() == "Uploaded") {
+                afterUpload();
+                console.log(postImages);
+            } else {
+            }
+        });
+
+
+
+        $("body").on("click", ".item-edit", function (event) {
+            event.stopPropagation();
+            pId = $(this).attr("data-value");
+            console.log(pId);
+
+            $.ajax({
+                url: "../../marketplaceapi/getitem",
+                data: {
+                    postId: pId
+                }
+            })
+            .done(function (data) {
+
+                popup.option("visible", true);
+                form.option('formData', data);
+
+                isPostEdit = true;
+
+                postImages = data.ImageList;
+                console.log(postImages);
+                loadImageListToPopup();
+            });
+        });
+
+
+
+        $(".close").on("click", function () {
+            var modal = document.getElementById("itemModal");
+            modal.style.display = "none";
+        });
+
+        $("body").on("click", ".product-image-thumb", function () {
+            console.log($(this).attr("src"));
+            $(".product-image").attr("src", $(this).find("img").attr("src"));
+        });
+
+
+        $("body").on("click", ".item-card", function () {
+            var modal = document.getElementById("itemModal");
+            var itemId = $(this).attr("data-value");
+            const loadItemData = new Promise(function (resolve, reject) {
+                $.ajax({
+                    method: "GET",
+                    url: "../../marketplaceApi/GetItem/?itemId=" + itemId,
+                    success: function (data) {
+                        resolve(data)
+                    },
+                    error: function (data) {
+                        reject(data)
+                    }
+                });
+            });
+
+            loadItemData.then((res) => {
+                var itemModalInfos = document.querySelector("#itemModal div div div .item-infos");
+                itemModalInfos.querySelector(".modal-item-caption").innerHTML = res.Caption;
+                itemModalInfos.querySelector(".modal-item-description").innerHTML = res.Caption;
+                itemModalInfos.querySelector("div label h5").innerHTML = res.UserFullname;
+
+                if (res.ImageList.length > 0) {
+                    var itemModalImages = document.querySelector("#itemModal div div div .item-images");
+                    itemModalImages.querySelector("#itemModal div div div .item-images .image-large img").setAttribute("src", res.ImageList[0].ImagePath);
+                    itemModalImages.querySelector("#itemModal div div div .item-images .product-image-thumbs").innerHTML = "";
+
+                    var thumbnailsParent = itemModalImages.querySelector("#itemModal div div div .item-images .product-image-thumbs");
+                    let itemTemplate = document.querySelector('template#itemModalThumbnailTemplate');
+                    $.each(res.ImageList, function (i, item) {
+                        let clone = itemTemplate.content.cloneNode(true);
+                        clone.querySelector("div img").setAttribute("src", item.ImagePath);
+                        thumbnailsParent.appendChild(clone);
+                    });
+                } else {
+                    var itemModalImages = document.querySelector("#itemModal div div div .item-images");
+                    itemModalImages.querySelector("#itemModal div div div .item-images .image-large img").setAttribute("src", "https://via.placeholder.com/200x200?text=No+image+available");
+                    itemModalImages.querySelector("#itemModal div div div .item-images .product-image-thumbs").innerHTML = "";
+                }
+
+                modal.style.display = "block";
+
+            }).catch(function (error) {
+            });
+
+
+
+        });
+
+
+    });
+
+
+
+
 </script>
+
+<template id="itemModalThumbnailTemplate">
+    <div class="product-image-thumb"><img src="../../dist/img/prod-5.jpg" alt="Product Image"></div>
+
+</template>
+<div id="itemModal" class="modal">
+    <div class="card card-solid col-8 clearfix" style="margin: 0 auto">
+        <span class="close" style="position: absolute;right: 15px;top: 5px;">&times;</span>
+        <div class="card-body">
+            <div class="row">
+
+                <div class="col-8 col-sm-8 item-images">
+                    <div class="col-12 image-large">
+                        <img img src="https://via.placeholder.com/200x200?text=No+image+available" class="product-image" alt="Product Image" style="height: 490px;width: 490px;object-fit: contain;">
+                    </div>
+                    <div class="col-12 product-image-thumbs">
+                        <div class="product-image-thumb active"><img src="../../dist/img/prod-1.jpg" alt="Product Image"></div>
+                        <div class="product-image-thumb"><img src="../../dist/img/prod-2.jpg" alt="Product Image"></div>
+                        <div class="product-image-thumb"><img src="../../dist/img/prod-3.jpg" alt="Product Image"></div>
+                        <div class="product-image-thumb"><img src="../../dist/img/prod-4.jpg" alt="Product Image"></div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-4 item-infos">
+                    <h3 class="my-3 modal-item-caption">LOWA Men’s Renegade GTX Mid Hiking Boots Review</h3>
+                    <p class="modal-item-description">Raw denim you probably haven't heard of them jean shorts Austin. Nesciunt tofu stumptown aliqua butcher retro keffiyeh dreamcatcher synth. Cosby sweater eu banh mi, qui irure terr.</p>
+
+                    <hr>
+                    <h4>Seller info</h4>
+                    <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                        <label class="btn btn-default text-center active">
+                            <h5 class="modal-item-username">Fullname</h5>
+                            <h6><i class="modal-item-address">address</i></h6>
+                        </label>
+
+                    </div>
+                    <div class="mt-4">
+                        <div class="btn btn-primary btn-lg btn-flat chat-button">
+                            <i class="fas fa-cart-plus fa-lg mr-2"></i>
+                            Chat seller now
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+

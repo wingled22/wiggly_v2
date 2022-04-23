@@ -9,12 +9,14 @@ namespace Wiggly.Models
     {
         public Guid ItemID { get; set; }
         public string Caption { get; set; }
-        public int BuyOrSell { get; set; }
+        public string BuyOrSell { get; set; }
         public string Category { get; set; }
         public int UserId{ get; set; }
-        public int UserFullname{ get; set; }
+        public string UserFullname{ get; set; }
+        public string DateCreated{ get; set; }
         public string Image { get; set; }
         public bool IsEditable { get; set; }
+        public List<MarketPlaceImage> ImageList { get; set; }
 
 
     }

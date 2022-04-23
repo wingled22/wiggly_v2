@@ -10,5 +10,6 @@ namespace Wiggly.Entities
         public string BuyOrSell { get; set; }
         public string Category { get; set; }
         public int? User { get; set; }
+        public DateTime? DateCreated { get; set; }
     }
 }
