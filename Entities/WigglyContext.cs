@@ -38,7 +38,7 @@ namespace Wiggly.Entities
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
-                optionsBuilder.UseSqlServer("Server=DESKTOP-E4OKK0E\\SQLEXPRESS;Database=Wiggly;Trusted_Connection=True;");
+                optionsBuilder.UseSqlServer("Server=localhost\\SQLEXPRESS;Database=Wiggly;Trusted_Connection=True;");
             }
         }
 
@@ -132,6 +132,8 @@ namespace Wiggly.Entities
             {
                 entity.Property(e => e.Id).ValueGeneratedNever();
 
+                entity.Property(e => e.Address).HasColumnType("text");
+
                 entity.Property(e => e.BuyOrSell)
                     .HasMaxLength(10)
                     .IsUnicode(false);
@@ -143,6 +145,12 @@ namespace Wiggly.Entities
                     .IsUnicode(false);
 
                 entity.Property(e => e.DateCreated).HasColumnType("datetime");
+
+                entity.Property(e => e.Description).HasColumnType("text");
+
+                entity.Property(e => e.Status)
+                    .HasMaxLength(10)
+                    .IsUnicode(false);
             });
 
             modelBuilder.Entity<Payment>(entity =>

@@ -208,7 +208,8 @@
         {
             items.AddGroup().ColCount(2).ColSpan(2).Items(gItem =>
             {
-                gItem.AddSimpleFor(m => m.Caption).Editor(e => e.TextArea().Height(100)).ColSpan(2).IsRequired(true);
+                gItem.AddSimpleFor(m => m.Caption).Editor(e => e.TextArea().Height(30)).ColSpan(2).IsRequired(true);
+                gItem.AddSimpleFor(m => m.Caption).Editor(e => e.TextArea().Height(60)).ColSpan(2).IsRequired(true);
                 gItem.AddSimpleFor(m => m.BuyOrSell).Editor(e => e.SelectBox().DataSource(new JS("buyOrSell")).ValueExpr("Name").DisplayExpr("Name")).ColSpan(2).IsRequired(true);
                 gItem.AddSimpleFor(m => m.Category).Editor(e => e.SelectBox().DataSource(new JS("category")).ValueExpr("Name").DisplayExpr("Name")).ColSpan(2).IsRequired(true);
 

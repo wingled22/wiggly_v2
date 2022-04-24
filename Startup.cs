@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Serialization;
 using Wiggly.Entities;
+using Wiggly.Hubs;
 using Wiggly.Identity;
 
 namespace Wiggly
@@ -67,6 +68,8 @@ namespace Wiggly
                 options.Cookie.IsEssential = true;
             });
 
+            services.AddSignalR();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -106,7 +109,10 @@ namespace Wiggly
                        name: "default",
                        pattern: "{controller=Home}/{action=Index}/{id?}"
                 );
+
+                endpoints.MapHub<ChatHub>("/chatHub");
             });
+
         }
     }
 }
@@ -114,4 +120,4 @@ namespace Wiggly
 //todo: feed of post of farmers on meat dealer side and farmer side
 //todo: Chat support
 
-//TODO: marketplace, profiles, notif
+//TODO: profiles, notif
