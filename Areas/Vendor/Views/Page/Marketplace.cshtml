@@ -310,7 +310,7 @@
                 </h3>
             </div>
             <div class="card-body timeline-parent">
-
+                filter menu here
             </div>
         </div>
     </section>
@@ -334,6 +334,7 @@
 </div>
 
 
+<script src="~/lib/signalr/dist/browser/signalr.js"></script>
 <script>
     //TODO: edit a item
     //TODO: filtering
@@ -504,7 +505,6 @@
         $.ajax({
             url: "../../marketplaceapi/getitems"
         }).done(function (data) {
-            console.table(data);
             let itemTemplate = document.querySelector('template#marketplace-card-item');
             var itemParentContainer = document.querySelector('.marketplace-parent-container');
             let postImagesTemplate = document.querySelector('template#postImagesTemplate');
@@ -524,26 +524,7 @@
                 if (!item.IsEditable) {
                     clone.querySelector(".item-edit ").innerHTML = "";
                 }
-                //} else {
-                //    clone.querySelector(".post .user-block .username .edit").setAttribute("data-value", item.Id);
-                //}
-
-
-                //let time = clone.querySelector(".post .user-block .description");
-                //time.innerHTML = item.DateCreated;
-
-                //let postBody = clone.querySelector(".post .post-body");
-                //postBody.innerHTML = item.PostBody;
-
-                //let like = clone.querySelector(".post p a.like-post");
-                //like.setAttribute("data-value", item.Id);
-
-                ////Todo: make the heart pink if the post is already liked
-                //if (item.Liked) {
-                //    like.innerHTML = "<i class=\"fas fa-heart mr-1 liked\"></i> Liked";
-                //    like.setAttribute("data-value", item.Id);
-
-                //}
+               
 
 
                 itemParentContainer.appendChild(clone);
@@ -558,6 +539,10 @@
     }
 
 
+    var openedItem;
+    var roomInfo;
+    var roomId;
+    var roomMessages = [];
 
     $(document).ready(function () {
         loadItems();
@@ -602,6 +587,8 @@
         $(".close").on("click", function () {
             var modal = document.getElementById("itemModal");
             modal.style.display = "none";
+
+            document.getElementById("itemMessageModal").style.display = "none";
         });
 
         $("body").on("click", ".product-image-thumb", function () {
@@ -627,10 +614,20 @@
             });
 
             loadItemData.then((res) => {
+                console.log(res);
                 var itemModalInfos = document.querySelector("#itemModal div div div .item-infos");
                 itemModalInfos.querySelector(".modal-item-caption").innerHTML = res.Caption;
                 itemModalInfos.querySelector(".modal-item-description").innerHTML = res.Caption;
                 itemModalInfos.querySelector("div label h5").innerHTML = res.UserFullname;
+
+                if (!res.IsEditable) {
+                    itemModalInfos.querySelector(".mt-4 div").style.display = "block";
+                    itemModalInfos.querySelector(".mt-4 div").setAttribute("data-value", res.ItemID);
+                }
+                else {
+                    itemModalInfos.querySelector(".mt-4 div").style.display = "none";
+
+                }
 
                 if (res.ImageList.length > 0) {
                     var itemModalImages = document.querySelector("#itemModal div div div .item-images");
@@ -659,11 +656,154 @@
 
         });
 
+        let connection, createRoom, doNothing;
+        //var modal = document.getElementById("itemModal");
+        //modal.style.display = "block";
 
+        connection = new signalR.HubConnectionBuilder().withUrl("/chatHub").build();
+
+        connection.start().then(function () {
+        }).catch(function (err) {
+            return console.error(err.toString());
+        });
+
+
+        connection.on("onConnected", function (message) {
+            console.log("is now connected");
+            console.log(message);
+
+            getLoggedInUser();
+            getAllConnections();
+        });
+
+
+        connection.on("onError", function (message) {
+            viewModel.serverInfoMessage(message);
+            $("#errorAlert").removeClass("d-none").show().delay(5000).fadeOut(500);
+        });
+
+
+        doNothing = function () {
+            connection.on("doNothing", function (e) { console.log("do nothing"); });
+        }
+
+        function getLoggedInUser() {
+            connection.invoke("getLoggedInUser").then(function (data) {
+                console.log(data);
+            }).catch(function (err) {
+                console.log(err);
+            });
+        }
+
+        function getAllConnections() {
+            connection.invoke("getAllConnections").then(function (data) {
+                console.log("List of connections");
+                console.table(data);
+            }).catch(function (err) {
+                console.log(err);
+            });
+        }
+
+        $("body").on("click", ".mt-4 .chat-button", function () {
+            console.log($(this).attr("data-value"));
+            connection.invoke("CreateRoom", $(this).attr("data-value")).then(function (data) {
+                console.log(data);
+
+                roomId = data;
+
+                openRoom(data);
+
+
+            }).catch(function (err) {
+                console.log(err);
+            });;
+        });
+
+        function openRoom(roomid) {
+
+            var messageModal = document.querySelector("#itemMessageModal");
+
+
+            //get room info
+            connection.invoke("GetRoomInfo", roomid).then(function (data) {
+                console.log(data);
+                roomInfo = data;
+                if (roomInfo != null) {
+                    messageModal.querySelector("div div .card-title").innerHTML = roomInfo.roomName;
+                }
+            }).catch(function (err) {
+                console.log(err);
+            });
+            //get room messages
+            connection.invoke("GetRoomMessages", roomid).then(function (data) {
+                console.log(data);
+                roomMessages = data;
+                loadMessagesToChatPopup();
+
+            }).catch(function (err) {
+                console.log(err);
+            });
+            //populat room info to modal
+            //populate messages to the modal
+
+            //open the message card
+            var modal = document.getElementById("itemMessageModal");
+            modal.style.display = "block";
+        }
+
+
+
+        $("body").on("click", "button.send-message", function () {
+            var msg = $(this).closest(".input-group").find("input").val();
+            if (msg.trim().length > 0) {
+                //code here if not 
+                $(this).closest(".input-group").find("input").val("");
+                console.log(msg);
+                //send to the messages - save to db and refresh other client side
+                connection.invoke("SendMessage", roomId, msg).then(function (data) {
+                    if (data) {
+                        console.log("message sent")
+                        connection.invoke("GetRoomMessages", roomId).then(function (data) {
+                            console.log(data);
+                            roomMessages = data;
+                            loadMessagesToChatPopup();
+                        }).catch(function (err) {
+                            console.log(err);
+                        });
+                    } else {
+                        console.log("message not sent")
+
+                    }
+                }).catch(function (err) {
+                    console.log(err);
+                });
+                //refresh screen
+            }
+        });
+
+            
+
+        
     });
 
+    function loadMessagesToChatPopup() {
+        if (roomMessages.length > 0) {
+            var chatTemplate = document.querySelector("template#rightMessageBubble");
+            var chatParent = document.querySelector("#itemMessageModal div .card-body .direct-chat-messages");
+            chatParent.innerHTML = "";
 
-
+            $.each(roomMessages, function (i, item) {
+                if (item.isSender) {
+                    let clone = chatTemplate.content.cloneNode(true);
+                    clone.querySelector("div div span").innerHTML = item.senderFullname;
+                    clone.querySelector("div .direct-chat-text").innerHTML = item.messageText;
+                    //console.log(item);
+                    chatParent.append(clone);
+                }
+            });
+            document.querySelector("#itemMessageModal div .card-body .direct-chat-messages .direct-chat-msg:last-child").scrollIntoView();
+        }
+    }
 
 </script>
 
@@ -714,5 +854,91 @@
 
 
     </div>
+</div>
 
+<template id="leftMessageBubble">
+    <div class="direct-chat-msg">
+        <div class="direct-chat-infos clearfix">
+            <span class="direct-chat-name float-left">Alexander Pierce</span>
+            @*<span class="direct-chat-timestamp float-right">23 Jan 2:00 pm</span>*@
+        </div>
+        <div class="direct-chat-text">
+            Is this template really for free? That's unbelievable!
+        </div>
+    </div>
+</template>
+<!--<div id="rightMessageBubble">
+    <div class="direct-chat-msg right">
+        <div class="direct-chat-infos clearfix">
+            <span class="direct-chat-name float-right">Sarah Bullock</span>-->
+            @*<span class="direct-chat-timestamp float-left">23 Jan 2:05 pm</span>*@
+        <!--</div>
+
+        <div class="direct-chat-text">
+            You better believe it!
+        </div>
+    </div>
+</div>-->
+
+<template id="rightMessageBubble">
+    <div class="direct-chat-msg right">
+        <div class="direct-chat-infos clearfix">
+            <span class="direct-chat-name float-right">Sarah Bullock</span>
+            @*<span class="direct-chat-timestamp float-left">23 Jan 2:05 pm</span>*@
+        </div>
+
+        <div class="direct-chat-text">
+            You better believe it!
+        </div>
+    </div>
+</template>
+
+<div id="itemMessageModal" class="modal">
+    <div class="card card-primary card-outline direct-chat direct-chat-primary" style="width:400px; margin-left:auto;margin-right:auto;">
+        <div class="card-header">
+            <h3 class="card-title">Room name</h3>
+            <div class="card-tools">
+                @*<button type="button" class="btn btn-tool" data-card-widget="remove">
+                    <i class="fas fa-times"></i>
+                </button>*@
+                <span class="close" style="position: absolute;right: 15px;top: 5px;">&times;</span>
+
+            </div>
+        </div>
+        <!-- /.card-header -->
+        <div class="card-body">
+            <div class="direct-chat-messages">
+                @*<div class="direct-chat-msg">
+                    <div class="direct-chat-infos clearfix">
+                        <span class="direct-chat-name float-left">Alexander Pierce</span>
+                        <span class="direct-chat-timestamp float-right">23 Jan 2:00 pm</span>
+                    </div>
+                    <div class="direct-chat-text">
+                        Is this template really for free? That's unbelievable!
+                    </div>
+                </div>
+
+                <div class="direct-chat-msg right">
+                    <div class="direct-chat-infos clearfix">
+                        <span class="direct-chat-name float-right">Sarah Bullock</span>
+                        <span class="direct-chat-timestamp float-left">23 Jan 2:05 pm</span>
+                    </div>
+
+                    <div class="direct-chat-text">
+                        You better believe it!
+                    </div>
+                </div>*@
+            </div>
+        </div>
+        <div class="card-footer">
+            <div class="input-group">
+                <input type="text" name="message" placeholder="Type Message ..." class="form-control">
+                <span class="input-group-append">
+                    <button type="submit" class="btn btn-primary send-message">Send</button>
+                </span>
+            </div>
+        </div>
+    </div>
+
+</div>
 

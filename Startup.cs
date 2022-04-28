@@ -112,7 +112,7 @@ namespace Wiggly
 
                 endpoints.MapHub<ChatHub>("/chatHub");
             });
-
+            
         }
     }
 }

@@ -111,5 +111,19 @@ namespace Wiggly.Areas.Vendor.Controllers
 
             return NoContent();
         }
+
+
+        [HttpGet]
+        public ActionResult GetUsers()
+        {
+            var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
+            var ret = new List<AspNetUsers>();
+            var res = _context.AspNetUsers.Where(q => q.Id != loggedInUser.Id).ToList();
+            if (res == null)
+                BadRequest("No Vendor ");
+
+            ret.AddRange(res);
+            return Ok(ret);
+        }
     }
 }

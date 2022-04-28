@@ -24,11 +24,14 @@ namespace Wiggly.Entities
         public virtual DbSet<AspNetUsers> AspNetUsers { get; set; }
         public virtual DbSet<Kilos> Kilos { get; set; }
         public virtual DbSet<MarketPlace> MarketPlace { get; set; }
+        public virtual DbSet<Message> Message { get; set; }
         public virtual DbSet<Payment> Payment { get; set; }
         public virtual DbSet<Post> Post { get; set; }
         public virtual DbSet<PostComment> PostComment { get; set; }
         public virtual DbSet<PostPhoto> PostPhoto { get; set; }
         public virtual DbSet<Profiles> Profiles { get; set; }
+        public virtual DbSet<Room> Room { get; set; }
+        public virtual DbSet<RoomMember> RoomMember { get; set; }
         public virtual DbSet<Schedules> Schedules { get; set; }
         public virtual DbSet<Transaction> Transaction { get; set; }
         public virtual DbSet<UserLikedPost> UserLikedPost { get; set; }
@@ -38,7 +41,7 @@ namespace Wiggly.Entities
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
-                optionsBuilder.UseSqlServer("Server=localhost\\SQLEXPRESS;Database=Wiggly;Trusted_Connection=True;");
+                optionsBuilder.UseSqlServer("Server=DESKTOP-E4OKK0E\\SQLEXPRESS;Database=Wiggly;Trusted_Connection=True;");
             }
         }
 
@@ -153,6 +156,15 @@ namespace Wiggly.Entities
                     .IsUnicode(false);
             });
 
+            modelBuilder.Entity<Message>(entity =>
+            {
+                entity.Property(e => e.Id).ValueGeneratedNever();
+
+                entity.Property(e => e.DatetimeCreate).HasColumnType("datetime");
+
+                entity.Property(e => e.MessageText).HasColumnType("text");
+            });
+
             modelBuilder.Entity<Payment>(entity =>
             {
                 entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
@@ -208,6 +220,13 @@ namespace Wiggly.Entities
                 entity.Property(e => e.Title).HasColumnType("text");
 
                 entity.Property(e => e.UserId).HasColumnName("UserID");
+            });
+
+            modelBuilder.Entity<Room>(entity =>
+            {
+                entity.Property(e => e.RoomName)
+                    .HasMaxLength(250)
+                    .IsUnicode(false);
             });
 
             modelBuilder.Entity<Schedules>(entity =>
