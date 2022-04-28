@@ -48,5 +48,10 @@ namespace Wiggly.Areas.Farmer.Controllers
             return View();
         }
 
+
+        public IActionResult Marketplace()
+        {
+            return View();
+        }
     }
 }

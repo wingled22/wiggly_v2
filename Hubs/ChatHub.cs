@@ -126,38 +126,76 @@ namespace Wiggly.Hubs
             var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == Context.User.Identity.Name).FirstOrDefault();
             _logger.LogInformation(string.Format("type of userId: {0}", userId.GetType()));
 
-            //check if there is a room for this item and user
-            var isRoomExist = (from member in _context.RoomMember
-                                join room in _context.Room on member.RoomId equals room.Id
-                                join me in _context.RoomMember on member.RoomId equals me.RoomId
 
-                               where member.UserId == userId && me.UserId == loggedInUser.Id && room.RoomName == null
-                               select room.Id
-                               ).FirstOrDefault();
-            _logger.LogInformation(isRoomExist.ToString());
 
-            if(isRoomExist == 0)
+            var isUserHasAnyRoom = _context.RoomMember.ToList().Any(q => q.UserId == loggedInUser.Id);
+            _logger.LogInformation(string.Format("isUserHasAnyRoom: {0}", isUserHasAnyRoom));
+            if (!isUserHasAnyRoom)
             {
+
                 var newRoom = new Room();
                 _context.Room.Add(newRoom);
                 _context.SaveChanges();
 
-                var newMembers = new List<RoomMember>();
-                newMembers.Add(new RoomMember
+                var newMembers = new List<RoomMember>
                 {
-                    UserId = loggedInUser.Id,
-                    RoomId = newRoom.Id
-                });
+                    new RoomMember
+                    {
+                        UserId = loggedInUser.Id,
+                        RoomId = newRoom.Id
+                    },
 
-                newMembers.Add(new RoomMember
-                {
-                    UserId = userId,
-                    RoomId = newRoom.Id
-                });
+                    new RoomMember
+                    {
+                        UserId = userId,
+                        RoomId = newRoom.Id
+                    }
+                };
+                _context.RoomMember.AddRange(newMembers);
+                _context.SaveChanges();
+
                 return newRoom.Id;
             }
+            else
+            {
+                //check if there is a room for this item and user
+                var isRoomExist = (from member in _context.RoomMember
+                                   join room in _context.Room on member.RoomId equals room.Id
+                                   join me in _context.RoomMember on member.RoomId equals me.RoomId
 
-            return isRoomExist;
+                                   where member.UserId == userId && member.ItemId == null && me.UserId == loggedInUser.Id && me.ItemId == null && room.RoomName == null
+                                   select room.Id
+                                   ).FirstOrDefault();
+                _logger.LogInformation(isRoomExist.ToString());
+
+                if (isRoomExist == 0)
+                {
+                    var newRoom = new Room();
+                    _context.Room.Add(newRoom);
+                    _context.SaveChanges();
+
+                    var newMembers = new List<RoomMember>();
+                    newMembers.Add(new RoomMember
+                    {
+                        UserId = loggedInUser.Id,
+                        RoomId = newRoom.Id
+                    });
+
+                    newMembers.Add(new RoomMember
+                    {
+                        UserId = userId,
+                        RoomId = newRoom.Id
+                    });
+
+                    _context.RoomMember.AddRange(newMembers);
+                    _context.SaveChanges();
+                    return newRoom.Id;
+                }
+
+                return isRoomExist;
+            }
+
+            
         }
 
         public RoomInfo GetRoomInfo(int roomId)
@@ -253,11 +291,14 @@ namespace Wiggly.Hubs
             return distincted;
         }
 
-        public  bool SendMessage(int roomId, string message)
+        public bool SendMessageFromMarketPlace(int roomId, string message)
         {
+            var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == Context.User.Identity.Name).FirstOrDefault();
+            //TODO: get the connection ID of the other end to refresh it's page 
+            var recipient = _context.RoomMember.Where(q => q.RoomId == roomId && q.UserId != loggedInUser.Id).FirstOrDefault();
+            var recipientConnId = _ConnectionsMap.Where(q => q.userId == recipient.UserId).FirstOrDefault();
             try
             {
-                var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == Context.User.Identity.Name).FirstOrDefault();
 
                 var newMessage = new Message()
                 {
@@ -271,11 +312,6 @@ namespace Wiggly.Hubs
                 _context.Message.Add(newMessage);
                 _context.SaveChanges();
 
-                //TODO: get the connection ID of the other end to refresh it's page 
-                var recipient = _context.RoomMember.Where(q => q.RoomId == roomId && q.UserId != loggedInUser.Id).FirstOrDefault();
-                var recipientConnId = _ConnectionsMap.Where(q => q.userId == recipient.UserId).FirstOrDefault();
-                 Clients.Client(recipientConnId.connectionID).SendAsync("refreshMe", "");
-                //Clients.
                 return true;
             }
             catch
@@ -283,6 +319,47 @@ namespace Wiggly.Hubs
                 return false;
             }
         }
+
+        public async Task  SendMessage(int roomId, string message)
+        {
+            var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == Context.User.Identity.Name).FirstOrDefault();
+            //TODO: get the connection ID of the other end to refresh it's page 
+            var recipient = _context.RoomMember.Where(q => q.RoomId == roomId && q.UserId != loggedInUser.Id).FirstOrDefault();
+            var recipientConnId = _ConnectionsMap.Where(q => q.userId == recipient.UserId).FirstOrDefault();
+            try
+            {
+                
+                var newMessage = new Message()
+                {
+                    Id = Guid.NewGuid(),
+                    Room = roomId,
+                    UserId = loggedInUser.Id,
+                    MessageText = message,
+                    DatetimeCreate = DateTime.Now
+                };
+
+                _context.Message.Add(newMessage);
+                _context.SaveChanges();
+
+                
+                if(recipientConnId == null)
+                {
+                    await Clients.Caller.SendAsync("refreshMe");
+
+                }
+                {
+                    await Clients.Client(recipientConnId.connectionID).SendAsync("refreshMe");
+                }
+                //Clients.
+            }
+            catch
+            {
+                await Clients.Caller.SendAsync("refreshMe");
+
+            }
+        }
+
+
     }
     public class ConnectionMap
     {

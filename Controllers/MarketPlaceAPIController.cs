@@ -102,6 +102,7 @@ namespace Wiggly.Controllers
             {
                 Id = Guid.NewGuid(),
                 Caption = val.Caption,
+                Description = val.Description,
                 User = loggedInUser.Id,
                 DateCreated = DateTime.Now,
                 BuyOrSell = val.BuyOrSell,

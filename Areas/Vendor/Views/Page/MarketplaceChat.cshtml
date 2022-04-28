@@ -5,7 +5,7 @@
 @model Wiggly.Entities.Schedules;
 
 @{
-    ViewData["Title"] = "Marketplace";
+    ViewData["Title"] = "Chat";
     Layout = "_LayoutAdminLTEVendorDashboard";
 }
 <style>
@@ -382,8 +382,9 @@
 
 
         connection.on("onError", function (message) {
-            viewModel.serverInfoMessage(message);
-            $("#errorAlert").removeClass("d-none").show().delay(5000).fadeOut(500);
+            //viewModel.serverInfoMessage(message);
+            console.log(message)
+            //$("#errorAlert").removeClass("d-none").show().delay(5000).fadeOut(500);
         });
 
 
@@ -396,9 +397,8 @@
             console.log("my chatmate want to refresh me");
             firstLoadOrRefresh();
         });
-        //refreshMe = function () {
-        //    connection.on()
-        //}
+
+
 
         getCreateOrGetRoom = function () {
             connection.invoke("CreatePersonalRoom", userId).then(function (data) {
@@ -498,24 +498,11 @@
             $(this).siblings("input").val('');
 
             if (msg.length > 0) {
-                connection.invoke("SendMessage", roomId, msg).then(function (data) {
-                    if (data) {
-                        console.log("message sent")
-                        //connection.invoke("GetRoomMessages", roomId).then(function (data) {
-                        //    console.log(data);
-                        //    roomMessages = data;
-                        //    loadMessagesToChat();
-                        //}).catch(function (err) {
-                        //    console.log(err);
-                        //});
-                        firstLoadOrRefresh();
-                    } else {
-                        console.log("message not sent")
-
-                    }
-                }).catch(function (err) {
+                connection.invoke("SendMessage", roomId, msg)
+               .catch(function (err) {
                     console.log(err);
-                });
+                })
+                    ;
             }
 
         });
@@ -527,7 +514,7 @@
             $(this).siblings("input").val('');
 
             if (msg.length > 0) {
-                connection.invoke("SendMessage", popupRoomId, msg).then(function (data) {
+                connection.invoke("SendMessageFromMarketPlace", popupRoomId, msg).then(function (data) {
                     if (data) {
                         console.log("message sent")
                         connection.invoke("GetRoomMessages", popupRoomId).then(function (data) {
@@ -538,6 +525,8 @@
                         }).catch(function (err) {
                             console.log(err);
                         });
+
+                        firstLoadOrRefresh();
                     } else {
                         console.log("message not sent")
 
@@ -594,7 +583,8 @@
                     chatParent.append(clone);
                 }
             });
-            document.querySelector(".chat-messages .chat-msg-text:last-child").scrollIntoView();
+            /*document.querySelector(".chat-messages .chat-msg:last-child()").scrollIntoView();*/
+            document.querySelector(".chat-messages .chat-msg:last-child").scrollIntoView()
         }
     }
 
@@ -622,7 +612,7 @@
                     chatParent.append(clone);
                 }
             });
-            document.querySelector(".popup.chat-messages .chat-msg-text:last-child").scrollIntoView();
+            document.querySelector(".popup.chat-messages .chat-msg:last-child").scrollIntoView();
         }
     }
 

@@ -9,6 +9,7 @@ namespace Wiggly.Models
     {
         public Guid ItemID { get; set; }
         public string Caption { get; set; }
+        public string Description { get; set; }
         public string BuyOrSell { get; set; }
         public string Category { get; set; }
         public int UserId{ get; set; }

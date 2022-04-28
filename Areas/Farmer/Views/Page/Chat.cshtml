@@ -6,7 +6,621 @@
 
 @{
     ViewData["Title"] = "Index";
-    Layout = "_LayoutAdminLTEFarmer";
+    Layout = "_LayoutAdminLTEFarmerDashboard";
 }
 
-<h1>@ViewData["Title"]</h1>
+@*<h1>@ViewData["Title"]</h1>*@
+
+
+<style>
+
+
+    * {
+        padding: 0;
+        margin: 0;
+    }
+
+    .content-wrapper {
+        height: calc(100vh - 48px);
+    }
+
+    .parent-wrapper {
+        font-family: Verdana,sans-serif;
+        background: #f8f8f8;
+        color: #212121;
+        display: flex;
+        height: calc(100vh-330px);
+    }
+
+    .chat-sidebar {
+        width: 320px;
+        /* border-right: 1px solid gray; */
+    }
+
+        .chat-sidebar .chat-search {
+            padding-top: 2rem;
+        }
+
+            .chat-sidebar .chat-search .content {
+                padding: 10px;
+                margin-left: 2rem;
+                margin-right: 2rem;
+                display: flex;
+            }
+
+                .chat-sidebar .chat-search .content input {
+                    width: 100%;
+                    font-size: 1.2em;
+                    border-radius: 20px;
+                    padding: .5rem;
+                    background: #e6e6e6;
+                    border: none;
+                }
+
+                .chat-sidebar .chat-search .content span {
+                    background: #00b0ff;
+                    border: none;
+                    padding: 1em;
+                    border-radius: 10px;
+                    margin-left: 10px
+                }
+
+    div.chat-rooms {
+        padding-bottom: 2rem;
+    }
+
+
+    .chat-rooms div .content {
+        display: flex;
+        padding: 10px;
+        margin-left: 2rem;
+        margin-right: 2rem;
+        border-bottom: 1px solid gray;
+    }
+
+
+    .chat-rooms .chat-room .content img {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+
+    .chat-rooms .chat-room .content p {
+        padding-top: 15px;
+        margin-left: 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .selected {
+        background: #00b0ff;
+    }
+
+    .chat-container {
+        width: 100%;
+    }
+
+        .chat-container .room-info {
+            height: 50px;
+            padding: 0 2rem;
+            border-bottom: solid 1px gray;
+        }
+
+            .chat-container .room-info p {
+                text-align: center;
+                height: 20px;
+                padding-top: 10px;
+                padding-bottom: 10px;
+                font-weight: bold;
+            }
+
+        .chat-container .chat-messages {
+            padding-top: 1em;
+            padding-left: 1em;
+            padding-right: 1em;
+            height: calc(100vh - 250px);
+            overflow-y: scroll;
+        }
+
+        .chat-container .chat-messages {
+            display: flex;
+            flex-direction: column;
+        }
+
+    .chat-msg {
+        width: fit-content;
+        word-wrap: break-word;
+        padding: 1rem;
+        margin-bottom: .5rem;
+        background: #e6e6e6;
+    }
+
+        .chat-msg .chat-msg-info {
+            font-family: "Source Sans Pro", sans-serif;
+            font-weight: bold;
+        }
+
+        .chat-msg.right {
+            align-self: flex-end;
+            background: #00b0ff;
+            margin-right: 1rem
+        }
+
+    .chat-input {
+        /*   height:100px; */
+        border-top: solid 1px gray;
+        background: #f8f8f8;
+    }
+
+        .chat-input .content {
+            display: flex;
+            flex-direction: row;
+            padding: 1em;
+        }
+
+            .chat-input .content input {
+                width: 100%;
+                font-size: 1em;
+                border-radius: 20px;
+                padding: .5em;
+                background: #e6e6e6;
+                border: none;
+            }
+
+
+            .chat-input .content span {
+                background: #00b0ff;
+                padding: 1em;
+                border-radius: 10px;
+                margin-left: 10px
+            }
+
+    .chat-container .popup.chat-messages {
+        padding-top: 1em;
+        padding-left: 1em;
+        padding-right: 1em;
+        height: calc(60vh - 155px);
+        overflow-y: scroll;
+    }
+</style>
+
+<template id="chat-room-item">
+    <div class="chat-room">
+        <div class="content">
+            <img class="room-img" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/382994/thomas.jpg" alt="">
+            <p class="room-name">long Room nameeeeeeeeeeee</p>
+        </div>
+    </div>
+</template>
+
+<template id="reciever-message-bubble">
+    <div class="chat-msg">
+        <div class="chat-msg-info">
+            <span>Sender</span>
+        </div>
+        <div class="chat-msg-text">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc eget enim nec magna condimentum blandit vitae eget leo. Vestibulum mollis iaculis mi quis vehicula. Aenean laoreet, arcu sed interdum tincidunt, ipsum ex venenatis arcu, a lacinia nisi turpis volutpat sem. Nunc tincidunt, dui ut imperdiet blandit, orci orci sodales tellus, ac porttitor turpis magna eu tortor. Praesent id magna vel ex porttitor rutrum vel eu sem. Phasellus scelerisque, diam at accumsan scelerisque, mi odio convallis massa, nec commodo elit arcu at tortor. Nulla scelerisque purus sit amet dui dictum, in auctor velit viverra. Praesent vel eros et ipsum aliquam vehicula. Proin ornare eget metus quis tempor. Quisque urna elit, convallis at feugiat et, ullamcorper quis metus. Nam pellentesque dictum lacinia. Aenean facilisis, est ac bibendum posuere, elit ligula maximus enim, sit amet efficitur nisl neque a neque. Sed dui sem, aliquet sit amet metus sed, maximus porttitor orci.
+        </div>
+    </div>
+
+</template>
+
+<template id="your-message-bubble">
+    <div class="chat-msg right">
+        <div class="chat-msg-info">
+            <span>Sender</span>
+        </div>
+        <div class="chat-msg-text">
+            elskdje Helo wwwwwwwwwwwwwwwwwwwwwwwww
+        </div>
+    </div>
+</template>
+
+
+
+
+<div class="parent-wrapper">
+    <div class="chat-sidebar">
+        <div class="chat-search">
+            <div class="content">
+                <input type="text">
+                <span class="new-room-button" data-toggle="modal" data-target="#exampleModalCenter">
+                    <i class="fas fa-plus"></i>
+                </span>
+            </div>
+        </div>
+        <div class="chat-rooms">
+
+        </div>
+    </div>
+
+    <div class="chat-container">
+        <div class="room-info">
+            <p>Select a chat</p>
+        </div>
+        <div class="chat-messages">
+
+        </div>
+        <div class="chat-input">
+            <div class="content">
+                <input class="chat-input-message" type="text" placeholder="/type your message here">
+                <span class="main chat-send-button">Send</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">New Chat</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="chat-container">
+                    <div class="room-info">
+                        @(Html.DevExtreme().SelectBox()
+                            .DataSource(ds => ds.Mvc()
+                                .Controller("Schedule")
+                                .LoadAction("GetUsers")
+                            )
+                            .ItemTemplate(new JS("ItemTemplate"))
+                            .DisplayExpr(new JS("DispExpr"))
+                            .Placeholder("Select account to view it's calendar")
+                            .ValueExpr("Id")
+                            .SearchEnabled(true)
+                            .OnValueChanged("selectBox_valueChanged")
+                            .OnInitialized("searchSelectBoxInit")
+                        )
+                    </div>
+                    <div class="popup chat-messages">
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="chat-input col">
+                        <div class="content">
+                            <input class="chat-input-message" type="text" placeholder="/type your message here">
+                            <span class="pop-up chat-send-button">Send</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<script src="~/lib/signalr/dist/browser/signalr.js"></script>
+<script>
+
+    var searchSelectBox;
+    var userId = null
+    var openedItem;
+    var roomInfo;
+    var roomId;
+    var popupRoomId;
+    var roomInfos = [];
+    var roomMessages = [];
+    var popupRoomMessages = [];
+
+    var searchModes = "contains";
+
+    function searchSelectBoxInit(e) {
+        searchSelectBox = e.component;
+        console.log("searchselectbox init")
+        searchSelectBox.option("searchMode", searchModes);
+        //searchSelectBox.option("searchExpr", searchExpressions);
+    }
+
+    function ItemTemplate(data) {
+        return data.Firstname + " " + data.LastName;
+    }
+
+
+    var DispExpr = (item) => function () {
+        if (item) {
+            //console.log(item);
+            return item.Firstname + " " + item.LastName;
+        } else {
+        }
+    }
+
+    //select box value change
+    function selectBox_valueChanged(data) {
+        //$(".current-value > span").text(data.value);
+        //console.log(data.value);
+        userId = parseInt(data.value);
+        getCreateOrGetRoom();
+        //let schedSrc = scheduler.getDataSource();
+
+        //console.log(schedSrc);
+        //schedSrc.loadOptions("userId", userId );
+        //schedSrc.reload("userId", userId);
+    }
+
+    var getAllConnections, populatePopupChatMessage, getRoomMessagesForPopup, getCreateOrGetRoom, firstLoadOrRefresh;
+
+    $(document).ready(function () {
+
+        let connection, createRoom, doNothing;
+
+        connection = new signalR.HubConnectionBuilder().withUrl("/chatHub").build();
+
+        connection.start().then(function () {
+
+            //connection.invoke("GetRoomsOfUser").then(function (data) {
+            //    console.table(data);
+            //    if (data != null) {
+            //        roomInfos = data;
+            //        loadRoomsToRoomsList();
+            //    }
+            //}).catch(function (err) {
+            //    console.log(err);
+            //});
+
+            firstLoadOrRefresh();
+
+        }).catch(function (err) {
+            return console.error(err.toString());
+        });
+
+
+        connection.on("onConnected", function (message) {
+            console.log("is now connected");
+            console.log(message);
+
+            getLoggedInUser();
+            getAllConnections();
+        });
+
+
+        connection.on("onError", function (message) {
+            //viewModel.serverInfoMessage(message);
+            console.log(message)
+            //$("#errorAlert").removeClass("d-none").show().delay(5000).fadeOut(500);
+        });
+
+
+        doNothing = function () {
+            connection.on("doNothing", function (e) { console.log("do nothing"); });
+        }
+
+
+        connection.on("refreshMe", function (data) {
+            console.log("my chatmate want to refresh me");
+            firstLoadOrRefresh();
+        });
+
+
+
+        getCreateOrGetRoom = function () {
+            connection.invoke("CreatePersonalRoom", userId).then(function (data) {
+                console.table(data);
+
+                if (data != null || data != 0) {
+                    popupRoomId = data;
+                    connection.invoke("GetRoomMessages", data).then(function (data) {
+                        console.log(data);
+                        roomMessages = data;
+                        loadMessagesToChatPopup();
+                    }).catch(function (err) {
+                        console.log(err);
+                    });
+                }
+
+            }).catch(function (err) {
+                console.log(err);
+            });;
+        }
+
+        firstLoadOrRefresh = function () {
+            //getroomslist
+            console.table("refreshing data");
+
+            connection.invoke("GetRoomsOfUser").then(function (data) {
+                console.table(data);
+                if (data != null) {
+                    roomInfos = data;
+                    if (roomInfos.length > 0) {
+                        loadRoomsToRoomsList();
+                        roomId = roomInfos[roomInfos.length - 1].roomId;
+                        connection.invoke("GetRoomMessages", roomId).then(function (data) {
+                            console.log(data);
+                            roomMessages = data;
+                            loadMessagesToChat();
+                        }).catch(function (err) {
+                            console.log(err);
+                        });
+                    }
+
+
+                }
+            }).catch(function (err) {
+                console.log(err);
+            });
+            //get the last item of room
+            //then populate the content with chat from room
+        }
+
+        function getLoggedInUser() {
+            connection.invoke("getLoggedInUser").then(function (data) {
+                console.log(data);
+            }).catch(function (err) {
+                console.log(err);
+            });
+        }
+
+        getAllConnections = function () {
+            connection.invoke("getAllConnections").then(function (data) {
+                console.log("List of connections");
+                console.table(data);
+            }).catch(function (err) {
+                console.log(err);
+            });
+        }
+
+        $("body").on("click", ".chat-room", function () {
+            //console.log($(this).attr("data-value"));
+            $(".chat-rooms .selected").removeClass("selected");
+            $(this).addClass("selected");
+
+            roomId = parseInt($(this).attr("data-value"));
+
+            connection.invoke("GetRoomInfo", roomId).then(function (data) {
+                console.table(data);
+                roomInfo = data;
+                if (roomInfo != null) {
+                    document.querySelector(".room-info p").innerHTML = roomInfo.roomName;
+                }
+            }).catch(function (err) {
+                console.log(err);
+            });
+
+            connection.invoke("GetRoomMessages", roomId).then(function (data) {
+                console.log(data);
+                roomMessages = data;
+                loadMessagesToChat();
+            }).catch(function (err) {
+                console.log(err);
+            });
+
+        });
+
+        $("body").on("click", ".main.chat-send-button", function () {
+            console.log("send button clicked");
+            //console.log();
+            let msg = $(this).siblings("input").val();
+            $(this).siblings("input").val('');
+
+            if (msg.length > 0) {
+                connection.invoke("SendMessage", roomId, msg)
+               .catch(function (err) {
+                    console.log(err);
+                })
+                    ;
+            }
+
+        });
+
+        $("body").on("click", ".pop-up.chat-send-button", function () {
+            console.log("popup send button clicked");
+            //console.log();
+            let msg = $(this).siblings("input").val();
+            $(this).siblings("input").val('');
+
+            if (msg.length > 0) {
+                connection.invoke("SendMessageFromMarketPlace", popupRoomId, msg).then(function (data) {
+                    if (data) {
+                        console.log("message sent")
+                        connection.invoke("GetRoomMessages", popupRoomId).then(function (data) {
+                            console.log(data);
+                            roomMessages = data;
+                            loadMessagesToChatPopup();
+
+                        }).catch(function (err) {
+                            console.log(err);
+                        });
+
+                        firstLoadOrRefresh();
+                    } else {
+                        console.log("message not sent")
+
+                    }
+                }).catch(function (err) {
+                    console.log(err);
+                });
+            }
+
+        });
+
+    });
+
+
+    function loadRoomsToRoomsList() {
+        if (roomInfos.length > 0) {
+            var roomsParent = document.querySelector(".chat-rooms");
+            roomsParent.innerHTML = "";
+
+            var chatRoomItem = document.querySelector("#chat-room-item");
+
+            $.each(roomInfos, function (i, item) {
+                if (item.messageCount != 0) {
+                    let clone = chatRoomItem.content.cloneNode(true);
+                    clone.querySelector("div").setAttribute("data-value", item.roomId);
+                    clone.querySelector("div div p").innerHTML = item.roomName;
+
+                    roomsParent.prepend(clone);
+                }
+            });
+        }
+    }
+
+    function loadMessagesToChat() {
+        if (roomMessages.length > 0) {
+            var chatTemplate = document.querySelector("template#rightMessageBubble");
+            var chatParent = document.querySelector(".chat-messages");
+            chatParent.innerHTML = "";
+
+            var leftMessageBubble = document.querySelector("template#reciever-message-bubble");
+            var rightMessageBubble = document.querySelector("template#your-message-bubble");
+
+
+            $.each(roomMessages, function (i, item) {
+                if (item.isSender) {
+                    let clone = rightMessageBubble.content.cloneNode(true);
+                    clone.querySelector("div div span").innerHTML = item.senderFullname;
+                    clone.querySelector("div .chat-msg-text").innerHTML = item.messageText;
+                    chatParent.append(clone);
+                } else {
+                    let clone = leftMessageBubble.content.cloneNode(true);
+                    clone.querySelector("div div span").innerHTML = item.senderFullname;
+                    clone.querySelector("div .chat-msg-text").innerHTML = item.messageText;
+                    chatParent.append(clone);
+                }
+            });
+            /*document.querySelector(".chat-messages .chat-msg:last-child()").scrollIntoView();*/
+            document.querySelector(".chat-messages .chat-msg:last-child").scrollIntoView()
+        }
+    }
+
+
+    function loadMessagesToChatPopup() {
+        if (roomMessages.length > 0) {
+            var chatTemplate = document.querySelector("template#rightMessageBubble");
+            var chatParent = document.querySelector(".popup.chat-messages");
+            chatParent.innerHTML = "";
+
+            var leftMessageBubble = document.querySelector("template#reciever-message-bubble");
+            var rightMessageBubble = document.querySelector("template#your-message-bubble");
+
+
+            $.each(roomMessages, function (i, item) {
+                if (item.isSender) {
+                    let clone = rightMessageBubble.content.cloneNode(true);
+                    clone.querySelector("div div span").innerHTML = item.senderFullname;
+                    clone.querySelector("div .chat-msg-text").innerHTML = item.messageText;
+                    chatParent.append(clone);
+                } else {
+                    let clone = leftMessageBubble.content.cloneNode(true);
+                    clone.querySelector("div div span").innerHTML = item.senderFullname;
+                    clone.querySelector("div .chat-msg-text").innerHTML = item.messageText;
+                    chatParent.append(clone);
+                }
+            });
+            document.querySelector(".popup.chat-messages .chat-msg:last-child").scrollIntoView();
+        }
+    }
+
+
+</script>

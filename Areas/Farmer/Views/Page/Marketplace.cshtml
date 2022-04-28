@@ -6,7 +6,7 @@
 
 @{
     ViewData["Title"] = "Marketplace";
-    Layout = "_LayoutAdminLTEVendorDashboard";
+    Layout = "_LayoutAdminLTEFarmerDashboard";
 }
 
 
@@ -525,7 +525,7 @@
                 if (!item.IsEditable) {
                     clone.querySelector(".item-edit ").innerHTML = "";
                 }
-               
+
 
 
                 itemParentContainer.appendChild(clone);
@@ -757,7 +757,7 @@
         $("body").on("click", "button.send-message", function () {
             var msg = $(this).closest(".input-group").find("input").val();
             if (msg.trim().length > 0) {
-                //code here if not 
+                //code here if not
                 $(this).closest(".input-group").find("input").val("");
                 console.log(msg);
                 //send to the messages - save to db and refresh other client side
@@ -782,9 +782,9 @@
             }
         });
 
-            
 
-        
+
+
     });
 
     function loadMessagesToChatPopup() {
@@ -879,8 +879,8 @@
     <div class="direct-chat-msg right">
         <div class="direct-chat-infos clearfix">
             <span class="direct-chat-name float-right">Sarah Bullock</span>-->
-            @*<span class="direct-chat-timestamp float-left">23 Jan 2:05 pm</span>*@
-        <!--</div>
+@*<span class="direct-chat-timestamp float-left">23 Jan 2:05 pm</span>*@
+<!--</div>
 
         <div class="direct-chat-text">
             You better believe it!
@@ -907,8 +907,8 @@
             <h3 class="card-title">Room name</h3>
             <div class="card-tools">
                 @*<button type="button" class="btn btn-tool" data-card-widget="remove">
-                    <i class="fas fa-times"></i>
-                </button>*@
+                        <i class="fas fa-times"></i>
+                    </button>*@
                 <span class="close" style="position: absolute;right: 15px;top: 5px;">&times;</span>
 
             </div>
@@ -917,25 +917,25 @@
         <div class="card-body">
             <div class="direct-chat-messages">
                 @*<div class="direct-chat-msg">
-                    <div class="direct-chat-infos clearfix">
-                        <span class="direct-chat-name float-left">Alexander Pierce</span>
-                        <span class="direct-chat-timestamp float-right">23 Jan 2:00 pm</span>
-                    </div>
-                    <div class="direct-chat-text">
-                        Is this template really for free? That's unbelievable!
-                    </div>
-                </div>
-
-                <div class="direct-chat-msg right">
-                    <div class="direct-chat-infos clearfix">
-                        <span class="direct-chat-name float-right">Sarah Bullock</span>
-                        <span class="direct-chat-timestamp float-left">23 Jan 2:05 pm</span>
+                        <div class="direct-chat-infos clearfix">
+                            <span class="direct-chat-name float-left">Alexander Pierce</span>
+                            <span class="direct-chat-timestamp float-right">23 Jan 2:00 pm</span>
+                        </div>
+                        <div class="direct-chat-text">
+                            Is this template really for free? That's unbelievable!
+                        </div>
                     </div>
 
-                    <div class="direct-chat-text">
-                        You better believe it!
-                    </div>
-                </div>*@
+                    <div class="direct-chat-msg right">
+                        <div class="direct-chat-infos clearfix">
+                            <span class="direct-chat-name float-right">Sarah Bullock</span>
+                            <span class="direct-chat-timestamp float-left">23 Jan 2:05 pm</span>
+                        </div>
+
+                        <div class="direct-chat-text">
+                            You better believe it!
+                        </div>
+                    </div>*@
             </div>
         </div>
         <div class="card-footer">
