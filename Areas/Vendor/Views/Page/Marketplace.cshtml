@@ -386,9 +386,9 @@
     function onConfirmClick() {
         let data = form.option("formData");
 
-        //let dataToPost = {
-        //    PostBody: data.PostBody
-        //};
+        let dataToPost = {
+            PostBody: data.PostBody
+        };
 
         let imageDataToPost = {
             postImages
@@ -419,18 +419,19 @@
                     console.log(data);
                 });
             }
-            @*else {
+            else {
 
                 $.ajax({
-                    url: "@Url.Action("UpdatePost", "PostAPI",new { area = "Vendor" })",
+                    method: "POST",
+                    url: "../../marketplaceapi/UpdateItem",
                     data: {
-                        key : pId,
-                        values: JSON.stringify(dataToPost),
+                        key: pId,
+                        values: JSON.stringify(data),
                         postImages: JSON.stringify(postImages)
                     }
                 }).done(function () {
                     //console.log("postSaved");
-                    loadPosts();
+                    loadItems();
                     popup.hide();
 
                 }).fail(function (data) {
@@ -439,7 +440,7 @@
                 });
 
                 console.log(data);
-            }*@
+            }
         }
 
     }
@@ -567,7 +568,7 @@
             $.ajax({
                 url: "../../marketplaceapi/getitem",
                 data: {
-                    postId: pId
+                    itemId: pId
                 }
             })
             .done(function (data) {
@@ -583,7 +584,34 @@
             });
         });
 
+        $('body').on('click', ".image-delete", function (e) {
+            //TODO: delete image here
+            //console.log($(this).next("a").attr("href"));
+            //console.log($(this).attr("data-value"));
+            var imageId = $(this).attr("data-value");
+            $.ajax({
+                url: "../../marketplaceapi/DeleteItemPhoto",
+                data: {
+                    image: imageId
+                }
 
+            }).done(function () {
+                //loadImageListToPopup();
+                //get data out of the postID
+                $.ajax({
+                    url: "../../marketplaceapi/getitem",
+                    data: {
+                        itemId: pId
+                    }
+                })
+                    .done(function (data) {
+                        postImages = data.ImageList;
+                        console.log(postImages);
+                        loadImageListToPopup();
+                    });
+            });
+
+        });
 
         $(".close").on("click", function () {
             var modal = document.getElementById("itemModal");
