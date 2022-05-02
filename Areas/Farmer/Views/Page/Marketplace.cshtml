@@ -154,6 +154,55 @@
         height: 80%;
         max-width: 700px;
     }
+
+/*
+    * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+        font-family: Verdana,sans-serif;
+    }
+
+    body {
+        background-color: #dbdbdb;
+    }*/
+
+    .parent {
+        width: 300px;
+        margin: 3em auto;
+        padding: 1em;
+        background: #f2f2f2;
+    }
+
+    .filter-container > div {
+        margin-top: 5px;
+    }
+
+    .filter-container .search-filter input {
+        padding: 0.5em;
+        width: 100%;
+        border-radius: 10px;
+    }
+
+    .filter-container div fieldset {
+        padding: 5px;
+    }
+
+    fieldset div label {
+        font-size: 1em;
+    }
+
+    .clear-filter {
+        width: 100%;
+    }
+
+        .clear-filter div {
+            width: 100%;
+            background: #00b0ff;
+            border-radius: 10px;
+            padding: .5em;
+            text-align: center;
+        }
 </style>
 
 <h3>Marketplace</h3>
@@ -387,6 +436,9 @@
     // true if edit false if add
     var isPostEdit = false;
 
+    var itemsList = [];
+    var filteredList = [];
+
     //for uploading post images
     var pId;
     var postImage;
@@ -547,18 +599,15 @@
         /*
      * function responsible for loading post
      */
-    function loadItems() {
-        //ajax to get the list of post
-        $.ajax({
-            url: "../../marketplaceapi/getitems"
-        }).done(function (data) {
+    function loadItems(filteredItems) {
+        console.log(filteredItems);
+        if (filteredItems) {
             let itemTemplate = document.querySelector('template#marketplace-card-item');
             var itemParentContainer = document.querySelector('.marketplace-parent-container');
             let postImagesTemplate = document.querySelector('template#postImagesTemplate');
 
             $('.marketplace-parent-container').empty();
-
-            $.each(data, function (i, item) {
+            $.each(filteredItems, function (i, item) {
                 let clone = itemTemplate.content.cloneNode(true);
                 clone.querySelector(".item-card").setAttribute("data-value", item.ItemID);
                 clone.querySelector(".item-edit ").setAttribute("data-value", item.ItemID);
@@ -566,23 +615,51 @@
                 clone.querySelector(".item-caption p").innerHTML = item.Caption;
 
                 if (item.ImageList.length > 0) {
-                    clone.querySelector(".image-container img").setAttribute("src",item.ImageList[0].ImagePath);
+                    clone.querySelector(".image-container img").setAttribute("src", item.ImageList[0].ImagePath);
                 }
                 if (!item.IsEditable) {
                     clone.querySelector(".item-edit ").innerHTML = "";
                 }
-
-
-
                 itemParentContainer.appendChild(clone);
-
-
             });
+        } else {
+            //ajax to get the list of post
+            $.ajax({
+                url: "../../marketplaceapi/getitems"
+            }).done(function (data) {
+                let itemTemplate = document.querySelector('template#marketplace-card-item');
+                var itemParentContainer = document.querySelector('.marketplace-parent-container');
+                let postImagesTemplate = document.querySelector('template#postImagesTemplate');
+                itemsList = data;
+                $('.marketplace-parent-container').empty();
 
-        }).fail(function (data) {
-            console.log("error");
-            console.log(data);
-        });
+                $.each(data, function (i, item) {
+                    let clone = itemTemplate.content.cloneNode(true);
+                    clone.querySelector(".item-card").setAttribute("data-value", item.ItemID);
+                    clone.querySelector(".item-edit ").setAttribute("data-value", item.ItemID);
+                    clone.querySelector(".item-type").innerHTML = item.BuyOrSell;
+                    clone.querySelector(".item-caption p").innerHTML = item.Caption;
+
+                    if (item.ImageList.length > 0) {
+                        clone.querySelector(".image-container img").setAttribute("src", item.ImageList[0].ImagePath);
+                    }
+                    if (!item.IsEditable) {
+                        clone.querySelector(".item-edit ").innerHTML = "";
+                    }
+
+
+
+                    itemParentContainer.appendChild(clone);
+
+
+                });
+
+            }).fail(function (data) {
+                console.log("error");
+                console.log(data);
+            });
+        }
+        
     }
 
 
@@ -856,10 +933,75 @@
             }
         });
 
+        $("body").on("click", ".filter-container", function () {
+            console.log($("input#Sell").is(":checked"));
+
+            //filter item that are selling 
+            var sellingList = [];
+            if ($("input#Sell").is(":checked")) {
+                var f = itemsList.filter((e) => e.BuyOrSell.toString() == "Selling");
+                sellingList = f;
+            }
+
+
+            var buyingList = [];
+            if ($("input#Buy").is(":checked")) {
+                var f = itemsList.filter((e) => e.BuyOrSell.toString() == "Buying");
+                buyingList = f;
+            }
+
+            var pigList = [];
+            if ($("input#Pig").is(":checked")) {
+                var f = itemsList.filter((e) => e.Category.toString() == "Pig");
+                pigList = f;
+            }
+
+            var chickenList = [];
+            if ($("input#Chicken").is(":checked")) {
+                var f = itemsList.filter((e) => e.Category.toString() == "Chicken");
+                chickenList = f;
+            }
+
+            var cowList = [];
+            if ($("input#Cow").is(":checked")) {
+                var f = itemsList.filter((e) => e.Category.toString() == "Cow");
+                cowList = f;
+            }
+
+
+            var goatList = [];
+            if ($("input#Goat").is(":checked")) {
+                var f = itemsList.filter((e) => e.Category.toString() == "Goat");
+                goatList = f;
+            }
+
+            var collectiveRes = Array.prototype.concat(sellingList, buyingList, pigList, chickenList, cowList, goatList);
+            var resID = collectiveRes.map(({ ItemID }) => ItemID);
+            //unique / distinct
+            var distinctId = [...new Set(resID)];
+
+            finalRes = [];
+            distinctId.map(function (e) {
+                var fr = collectiveRes.find(({ ItemID }) => ItemID.toString() == e.toString());
+                if (fr) {
+                    finalRes.push(fr);
+                }
+            });
+
+            if (finalRes.length == 0) {
+                loadItems();
+            } else {
+                loadItems(finalRes);
+            }
+
+        });
 
 
 
     });
+
+
+    
 
     function loadMessagesToChatPopup() {
         if (roomMessages.length > 0) {

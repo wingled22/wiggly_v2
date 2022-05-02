@@ -42,6 +42,7 @@ namespace Wiggly.Controllers
                              Caption = item.Caption,
                              BuyOrSell = item.BuyOrSell,
                              DateCreated = item.DateCreated.ToString(),
+                             Category = item.Category,
                              ImageList = _context.PostPhoto.Where(p => item.Id == p.Post)
                                                 .Select(p => new MarketPlaceImage { ImageId = p.Id, ImagePath = p.Path })
                                                 .ToList(),

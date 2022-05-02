@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using EasyExtensions.BackgroundServiceExtensions;
+using Hangfire;
+using Hangfire.MemoryStorage;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -9,9 +12,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Serialization;
+using Wiggly.BackgroundJob;
 using Wiggly.Entities;
 using Wiggly.Hubs;
 using Wiggly.Identity;
+using Wiggly.Services;
 
 namespace Wiggly
 {
@@ -27,7 +32,14 @@ namespace Wiggly
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-             services.AddDbContext<WigglyContext>(options =>
+            services.AddHangfire(config => config.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+               .UseSimpleAssemblyNameTypeSerializer().UseDefaultTypeSerializer().UseMemoryStorage()
+            );
+            services.AddHangfireServer();
+
+            services.AddTransient<ITextJob, TextJob>();
+
+            services.AddDbContext<WigglyContext>(options =>
              options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
 
@@ -61,6 +73,9 @@ namespace Wiggly
                 options.SerializerSettings.ContractResolver = new DefaultContractResolver();
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
             });
+            //services.AddScheduledService<BackgroundTextScheduler>(Configuration);
+           
+
             services.AddCors();
             services.AddDistributedMemoryCache();
             services.AddSession(options => {
@@ -70,10 +85,14 @@ namespace Wiggly
 
             services.AddSignalR();
 
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env,
+            IBackgroundJobClient backgroundJobClient, 
+            IRecurringJobManager recurringJobManager, 
+            IServiceProvider serviceProvider)
         {
             if (env.IsDevelopment())
             {
@@ -93,9 +112,10 @@ namespace Wiggly
             app.UseAuthentication();
             app.UseAuthorization();
 
-            //app.UseMvc(route => {
-            //        route.MapRoute(name: "mvcAreaRoute", template: "{area:exists}/{controller=Home}/{action=Index}");
-            //        route.MapRoute(name: "default", template: "{controller=Home}/{action=Index}/{id?}");
+            //app.UseMvc(route =>
+            //{
+            //    route.MapRoute(name: "mvcAreaRoute", template: "{area:exists}/{controller=Home}/{action=Index}");
+            //    route.MapRoute(name: "default", template: "{controller=Home}/{action=Index}/{id?}");
             //});
 
             app.UseEndpoints(endpoints =>
@@ -112,7 +132,12 @@ namespace Wiggly
 
                 endpoints.MapHub<ChatHub>("/chatHub");
             });
-            
+
+            //TODO: do this when doing the textmessage
+            //app.UseHangfireDashboard();
+            //backgroundJobClient.Enqueue(() => Console.WriteLine("hahaha text plsss"));
+            //recurringJobManager.AddOrUpdate("run every minute", () => serviceProvider.GetService<ITextJob>().TextSchedules(), "* * * * *");
+
         }
     }
 }
