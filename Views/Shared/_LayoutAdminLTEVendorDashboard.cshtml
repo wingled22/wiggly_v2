@@ -66,7 +66,7 @@
                         <img src="~/dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
                     </div>
                     <div class="info">
-                        <a asp-area="Farmer" asp-controller="Page" asp-action="Profile" class="d-block">
+                        <a asp-area="vendor" asp-controller="Page" asp-action="Profile" class="d-block">
                             @(UserManager.GetUserAsync(User).Result.Firstname + " "
                             + UserManager.GetUserAsync(User).Result.LastName )
                         </a>

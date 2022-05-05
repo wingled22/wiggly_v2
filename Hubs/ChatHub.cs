@@ -294,7 +294,6 @@ namespace Wiggly.Hubs
         public bool SendMessageFromMarketPlace(int roomId, string message)
         {
             var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == Context.User.Identity.Name).FirstOrDefault();
-            //TODO: get the connection ID of the other end to refresh it's page 
             var recipient = _context.RoomMember.Where(q => q.RoomId == roomId && q.UserId != loggedInUser.Id).FirstOrDefault();
             var recipientConnId = _ConnectionsMap.Where(q => q.userId == recipient.UserId).FirstOrDefault();
             try
@@ -323,7 +322,6 @@ namespace Wiggly.Hubs
         public async Task  SendMessage(int roomId, string message)
         {
             var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == Context.User.Identity.Name).FirstOrDefault();
-            //TODO: get the connection ID of the other end to refresh it's page 
             var recipient = _context.RoomMember.Where(q => q.RoomId == roomId && q.UserId != loggedInUser.Id).FirstOrDefault();
             var recipientConnId = _ConnectionsMap.Where(q => q.userId == recipient.UserId).FirstOrDefault();
             try

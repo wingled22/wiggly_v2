@@ -42,7 +42,6 @@ namespace Wiggly.Areas.Farmer.Controllers
             return View();
         }
 
-        //todo: chat to users
         public IActionResult Chat()
         {
             return View();

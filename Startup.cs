@@ -142,7 +142,5 @@ namespace Wiggly
     }
 }
 
-//todo: feed of post of farmers on meat dealer side and farmer side
-//todo: Chat support
 
-//TODO: profiles, notif
+//TODO:, notif
