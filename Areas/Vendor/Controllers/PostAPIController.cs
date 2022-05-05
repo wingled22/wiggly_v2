@@ -37,8 +37,7 @@ namespace Wiggly.Areas.Vendor.Controllers
             var posts = (from post in _context.Post
                             join user in _context.AspNetUsers
                             on post.User equals user.Id
-                            join photos in _context.PostPhoto
-                            on post.Id equals photos.Post
+                            
                          orderby post.DateCreated descending
                             where post.Id == postId
                             select new PostViewModel

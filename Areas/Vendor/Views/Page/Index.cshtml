@@ -330,7 +330,8 @@
                     <i class="fas fa-inbox mr-1"></i>
                     Post
                 </h3>
-                <button type="button" class="btn btn-primary float-right" onclick="openPostPopup()">Create Post</button>
+                <button type="button" class="btn btn-primary float-right" onclick="openPostPopup()" style="">Create Post</button> &nbsp;
+                <button style="margin-right:10px;" type="button" class="btn btn-primary float-right toggle-liked-post" onclick="toggleLiked()" >Show Liked Post</button>
 
             </div><!-- /.card-header -->
             <div class="card-body">
@@ -365,7 +366,7 @@
 <!-- modal popup-->
 <div class="modal fade comment-modal" id="commentModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
-        <div class="modal-content">
+        <div class="modal-content" style="overflow: scroll;">
             <!-- modal header-->
             <div class="modal-header">
                 <div class="user-block">
@@ -428,7 +429,9 @@
     //for uploading post images
     var pId;
     var postImage;
-    var postImages=[];
+    var postImages = [];
+    var posts = [];
+    var showLiked = true;
 
     function OnUploadStarted(e,t,d) {
         console.log(e);
@@ -531,6 +534,7 @@
             url: "@Url.Action("GetPosts", "PostAPI",new { area = "Vendor" })"
         }).done(function (data) {
             //console.table(data);
+            posts = data;
             let postTemplate = document.querySelector('template#postTemplate');
             var postParentContainer = document.querySelector('.card-body .post-container');
             let postImagesTemplate = document.querySelector('template#postImagesTemplate');
@@ -597,6 +601,141 @@
             console.log(data);
         });
     }
+
+
+
+    function toggleLiked() {
+        if (showLiked) {
+            let postTemplate = document.querySelector('template#postTemplate');
+            var postParentContainer = document.querySelector('.card-body .post-container');
+            let postImagesTemplate = document.querySelector('template#postImagesTemplate');
+
+            //document.querySelector(".liked-post-toggle").setAttribute("onclick", "loadPosts(false)");
+
+            var likedPosts = posts.filter((e) => e.Liked == true);
+
+            $('.card-body .post-container').empty();
+            if (likedPosts.length > 0) {
+
+                $.each(likedPosts, function (i, item) {
+                    let clone = postTemplate.content.cloneNode(true);
+
+                    let username = clone.querySelector(".post .user-block .username .post-author");
+                    username.innerHTML = item.UserFullname;
+
+                    if (!item.IsEditable) {
+                        clone.querySelector(".post .user-block .username .edit").innerHTML = "";
+
+                    } else {
+                        clone.querySelector(".post .user-block .username .edit").setAttribute("data-value", item.Id);
+                    }
+
+                    let time = clone.querySelector(".post .user-block .description");
+                    time.innerHTML = item.DateCreated;
+
+                    let postBody = clone.querySelector(".post .post-body");
+                    postBody.innerHTML = item.PostBody;
+
+                    let like = clone.querySelector(".post p a.like-post");
+                    like.setAttribute("data-value", item.Id);
+                    //Todo: make the heart pink if the post is already liked
+                    if (item.Liked) {
+                        like.innerHTML = "<i class=\"fas fa-heart mr-1 liked\"></i> Liked";
+                        like.setAttribute("data-value", item.Id);
+                    }
+
+                    let comment = clone.querySelector(".post p span#comment");
+                    comment.setAttribute("data-value", item.Id);
+
+                    let postImagesParent = clone.querySelector(".post .image-container ul");
+
+                    //console.table(item.ImageList);
+                    $.each(item.ImageList, function (i, image) {
+                        let imageClone = postImagesTemplate.content.cloneNode(true);
+
+                        let img = imageClone.querySelector("li article a figure img");
+                        let a = imageClone.querySelector("li article a");
+
+                        img.setAttribute("src", image.ImagePath);
+                        a.setAttribute("href", image.ImagePath);
+                        postImagesParent.append(imageClone);
+                    });
+
+                    postParentContainer.appendChild(clone);
+                });
+                showLiked = false;
+                document.querySelector(".toggle-liked-post").innerText = "Show All Posts";
+            }
+        }
+        else {
+
+            let postTemplate = document.querySelector('template#postTemplate');
+            var postParentContainer = document.querySelector('.card-body .post-container');
+            let postImagesTemplate = document.querySelector('template#postImagesTemplate');
+
+            $('.card-body .post-container').empty();
+            $.each(posts, function (i, item) {
+                let clone = postTemplate.content.cloneNode(true);
+
+                let username = clone.querySelector(".post .user-block .username .post-author");
+                username.innerHTML = item.UserFullname;
+
+                if (!item.IsEditable) {
+                    clone.querySelector(".post .user-block .username .edit").innerHTML = "";
+
+                } else {
+                    clone.querySelector(".post .user-block .username .edit").setAttribute("data-value", item.Id);
+                }
+
+
+                let time = clone.querySelector(".post .user-block .description");
+                time.innerHTML = item.DateCreated;
+
+                let postBody = clone.querySelector(".post .post-body");
+                postBody.innerHTML = item.PostBody;
+
+                let like = clone.querySelector(".post p a.like-post");
+                like.setAttribute("data-value", item.Id);
+                //Todo: make the heart pink if the post is already liked
+                if (item.Liked) {
+                    like.innerHTML = "<i class=\"fas fa-heart mr-1 liked\"></i> Liked";
+                    like.setAttribute("data-value", item.Id);
+
+                    //let heart = clone.querySelector(".post p a.like-post i");
+                    //heart.classList.remove("far");
+                    //heart.classList.add("fas");
+                    //heart.classList.add("liked");
+                }
+
+                let comment = clone.querySelector(".post p span#comment");
+                comment.setAttribute("data-value", item.Id);
+
+                let postImagesParent = clone.querySelector(".post .image-container ul");
+
+
+                //console.table(item.ImageList);
+                $.each(item.ImageList, function (i, image) {
+                    let imageClone = postImagesTemplate.content.cloneNode(true);
+
+                    let img = imageClone.querySelector("li article a figure img");
+                    let a = imageClone.querySelector("li article a");
+
+                    img.setAttribute("src", image.ImagePath);
+                    a.setAttribute("href", image.ImagePath);
+                    postImagesParent.append(imageClone);
+                });
+
+                postParentContainer.appendChild(clone);
+
+
+            });
+
+            showLiked = true;
+            document.querySelector(".toggle-liked-post").innerText = "Show Liked Posts"
+        }
+
+    }
+
 
     function loadTimeline() {
         var timelineData;
@@ -695,38 +834,53 @@
          when click comment will open popup
          and load the post and it's comment
          */
-        $(".post-container").on("click","#comment",function () {
+        $("body").on("click","#comment",function () {
             postId = $(this).data("value");
             pId = postId;
 
-            //load post
-            $.ajax({
-                url: "@Url.Action("GetPost", "PostAPI",new { area = "Vendor" })" +"?postId=" + postId
-            })
-            .done(function (data) {
+            const getPost = new Promise(function (resolve, reject) {
+                    $.ajax({
+                        //method: "PUT",
+                        url: "@Url.Action("GetPost", "PostAPI",new { area = "Vendor" })" +"?postId=" + postId,
+                        success: function (data) {
+                            resolve(data)
+                        },
+                        error: function (data) {
+                            reject(data)
+                        }
+                    });
+                });
+
+            getPost.then((data) => {
+                //console.log(res);
                 console.table(data);
 
-                let postImagesTemplate = document.querySelector('template#postImagesTemplate');
+                if (data != null) {
+                    let postImagesTemplate = document.querySelector('template#postImagesTemplate');
 
+                    let commentModal = document.querySelector("#commentModalCenter div .modal-content");
+                    commentModal.querySelector(".modal-header div .username").innerText = data.UserFullname;
+                    commentModal.querySelector(".modal-header div .description").innerText = data.DateCreated;
+                    commentModal.querySelector(".modal-body .card-body p").innerText = data.PostBody;
 
-                let commentModal = document.querySelector("#commentModalCenter div .modal-content");
-                commentModal.querySelector(".modal-header div .username").innerText = data.UserFullname;
-                commentModal.querySelector(".modal-header div .description").innerText = data.DateCreated;
-                commentModal.querySelector(".modal-body .card-body p").innerText = data.PostBody;
+                    let postImagesParent = document.querySelector("#commentModalCenter div .modal-content .modal-body .card-body  .image-container ul");
 
-                let postImagesParent = document.querySelector("#commentModalCenter div .modal-content .modal-body .card-body  .image-container ul");
+                    $("#commentModalCenter div .modal-content .modal-body .card-body  .image-container ul").empty();
 
-                $("#commentModalCenter div .modal-content .modal-body .card-body  .image-container ul").empty();
-                $.each(data.ImageList, function (i, image) {
-                    let imageClone = postImagesTemplate.content.cloneNode(true);
+                    if (data.ImageList.length > 0) {
+                        $.each(data.ImageList, function (i, image) {
+                            let imageClone = postImagesTemplate.content.cloneNode(true);
 
-                    let img = imageClone.querySelector("li article a figure img");
-                    let a = imageClone.querySelector("li article a");
+                            let img = imageClone.querySelector("li article a figure img");
+                            let a = imageClone.querySelector("li article a");
 
-                    img.setAttribute("src", image.ImagePath);
-                    a.setAttribute("href", image.ImagePath);
-                    postImagesParent.append(imageClone);
-                });
+                            img.setAttribute("src", image.ImagePath);
+                            a.setAttribute("href", image.ImagePath);
+                            postImagesParent.append(imageClone);
+                        });
+                    }
+                    
+                }
 
                 //after loading post show comments
                 loadComments();
@@ -735,11 +889,22 @@
                 $(".comment-modal").modal("show");
 
 
+            }).catch(function (error) {
+                //console.log(error.responseText);
+                console.log("error");
+                console.log(error);
+            });
+
+            //load post
+            @*$.ajax({
+                url: "@Url.Action("GetPost", "PostAPI",new { area = "Vendor" })" +"?postId=" + postId
+            })
+            .done(function (data) {
+                
             })
             .fail(function (data) {
-                console.log("error");
-                console.log(data);
-            });
+                
+            });*@
 
         });
 
