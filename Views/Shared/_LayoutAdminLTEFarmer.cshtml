@@ -1,4 +1,10 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@using Wiggly.Identity
+
+@inject SignInManager<AppUser> SignInManager
+@inject UserManager<AppUser> UserManager
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -35,11 +41,11 @@
                     <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
                 </li>
                 @*<li class="nav-item d-none d-sm-inline-block">
-                    <a asp-area="Admin" asp-controller="Page" asp-action="Index" class="nav-link">Home</a>
-                </li>*@
+                        <a asp-area="Admin" asp-controller="Page" asp-action="Index" class="nav-link">Home</a>
+                    </li>*@
                 @*<li class="nav-item d-none d-sm-inline-block">
-                    <a href="#" class="nav-link">Contact</a>
-                </li>*@
+                        <a href="#" class="nav-link">Contact</a>
+                    </li>*@
             </ul>
 
         </nav>
@@ -60,7 +66,10 @@
                         <img src="~/dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
                     </div>
                     <div class="info">
-                        <a href="#" class="d-block">Alexander Pierce</a>
+                        <a asp-area="Farmer" asp-controller="Page" asp-action="profile" class="d-block">
+                            @(UserManager.GetUserAsync(User).Result.Firstname + " "
+                            + UserManager.GetUserAsync(User).Result.LastName )
+                        </a>
                     </div>
                 </div>
 
@@ -131,7 +140,7 @@
                                 <!-- title row -->
                                 <div class="row">
                                     <div class="col-12">
-                                      
+
                                         @RenderBody()
                                     </div>
                                     <!-- /.col -->

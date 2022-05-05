@@ -53,5 +53,11 @@ namespace Wiggly.Areas.Farmer.Controllers
         {
             return View();
         }
+
+        public IActionResult Profile()
+        {
+            return View();
+        }
+
     }
 }

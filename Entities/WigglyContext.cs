@@ -29,6 +29,8 @@ namespace Wiggly.Entities
         public virtual DbSet<Post> Post { get; set; }
         public virtual DbSet<PostComment> PostComment { get; set; }
         public virtual DbSet<PostPhoto> PostPhoto { get; set; }
+        public virtual DbSet<ProfileInfo> ProfileInfo { get; set; }
+        public virtual DbSet<ProfilePic> ProfilePic { get; set; }
         public virtual DbSet<Profiles> Profiles { get; set; }
         public virtual DbSet<Room> Room { get; set; }
         public virtual DbSet<RoomMember> RoomMember { get; set; }
@@ -207,6 +209,26 @@ namespace Wiggly.Entities
                 entity.Property(e => e.Filename).IsUnicode(false);
 
                 entity.Property(e => e.Path).IsUnicode(false);
+            });
+
+            modelBuilder.Entity<ProfileInfo>(entity =>
+            {
+                entity.Property(e => e.Description).HasColumnType("text");
+
+                entity.Property(e => e.ProfilePic).HasColumnType("text");
+
+                entity.Property(e => e.Title).HasColumnType("text");
+
+                entity.Property(e => e.UserId).HasColumnName("UserID");
+            });
+
+            modelBuilder.Entity<ProfilePic>(entity =>
+            {
+                entity.Property(e => e.FilePath).IsUnicode(false);
+
+                entity.Property(e => e.Name)
+                    .HasMaxLength(250)
+                    .IsUnicode(false);
             });
 
             modelBuilder.Entity<Profiles>(entity =>

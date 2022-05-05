@@ -37,5 +37,11 @@ namespace Wiggly.Areas.Vendor.Controllers
         }
 
 
+
+        public IActionResult Profile()
+        {
+            return View();
+        }
+
     }
 }

@@ -69,5 +69,49 @@ namespace Wiggly.Areas.Vendor.Controllers
                 return BadRequest("no file upload");
         }
 
+        [HttpPost]
+        public IActionResult UploadProfilePic()
+        {
+            string newFileName = "";
+            try
+            {
+                var myFile = Request.Form.Files["myFile"];
+                var path = Path.Combine(_hostingEnvironment.WebRootPath, "upload/profilepic");
+                // Uncomment to save the file
+                //if(!Directory.Exists(path))
+                //    Directory.CreateDirectory(path);
+                var uniqueID = Guid.NewGuid().ToString();
+                newFileName = string.Format("{0}{1}", uniqueID, myFile.FileName);
+
+                using (var fileStream = System.IO.File.Create(Path.Combine(path, newFileName)))
+                {
+                    myFile.CopyTo(fileStream);
+
+                    HttpContext.Session.SetString("currentFilePathProfilePic", string.Format("/upload/profilepic/{0}", newFileName));
+                }
+
+            }
+            catch
+            {
+                Response.StatusCode = 400;
+            }
+
+            //if (string.IsNullOrEmpty(newFileName))
+            return new EmptyResult();
+            //else
+            //return Ok(newFileName);
+        }
+
+        [HttpGet]
+        public IActionResult GetUploadProfilePic()
+        {
+            string file = HttpContext.Session.GetString("currentFilePathProfilePic").ToString();
+            if (!string.IsNullOrEmpty(file))
+                return Ok(file);
+            else
+                return BadRequest("no file upload");
+        }
+
+
     }
 }
