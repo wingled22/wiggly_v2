@@ -130,6 +130,10 @@ namespace Wiggly.Entities
 
                 entity.Property(e => e.NormalizedUserName).HasMaxLength(256);
 
+                entity.Property(e => e.Subscribed)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
                 entity.Property(e => e.UserName).HasMaxLength(256);
             });
 

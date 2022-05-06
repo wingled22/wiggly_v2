@@ -443,8 +443,6 @@
                             console.log(err);
                         });
                     }
-
-
                 }
             }).catch(function (err) {
                 console.log(err);
@@ -505,10 +503,9 @@
 
             if (msg.length > 0) {
                 connection.invoke("SendMessage", roomId, msg)
-               .catch(function (err) {
-                    console.log(err);
-                })
-                    ;
+                    .catch(function (err) {
+                        console.log(err);
+                    });
             }
 
         });
@@ -623,4 +620,4 @@
     }
 
 
-</script>
+</script></script>

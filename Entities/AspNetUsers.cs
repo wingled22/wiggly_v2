@@ -34,6 +34,7 @@ namespace Wiggly.Entities
         public string Contact { get; set; }
         public string Password { get; set; }
         public string UserType { get; set; }
+        public string Subscribed { get; set; }
 
         public virtual ICollection<AspNetUserClaims> AspNetUserClaims { get; set; }
         public virtual ICollection<AspNetUserLogins> AspNetUserLogins { get; set; }

@@ -8,6 +8,10 @@
     ViewData["Title"] = "Chat";
     Layout = "_LayoutAdminLTEVendorDashboard";
 }
+
+
+
+
 <style>
 
 
@@ -428,17 +432,17 @@
                 console.table(data);
                 if (data != null) {
                     roomInfos = data;
-                    loadRoomsToRoomsList();
-                    roomId = roomInfos[roomInfos.length - 1].roomId;
-                    connection.invoke("GetRoomMessages", roomId).then(function (data) {
-                        console.log(data);
-                        roomMessages = data;
-                        loadMessagesToChat();
-                    }).catch(function (err) {
-                        console.log(err);
-                    });
-                   
-
+                    if (roomInfos.length > 0) {
+                        loadRoomsToRoomsList();
+                        roomId = roomInfos[roomInfos.length - 1].roomId;
+                        connection.invoke("GetRoomMessages", roomId).then(function (data) {
+                            console.log(data);
+                            roomMessages = data;
+                            loadMessagesToChat();
+                        }).catch(function (err) {
+                            console.log(err);
+                        });
+                    }
                 }
             }).catch(function (err) {
                 console.log(err);
@@ -501,8 +505,7 @@
                 connection.invoke("SendMessage", roomId, msg)
                .catch(function (err) {
                     console.log(err);
-                })
-                    ;
+                });
             }
 
         });

@@ -339,16 +339,17 @@ namespace Wiggly.Hubs
                 _context.Message.Add(newMessage);
                 _context.SaveChanges();
 
-                
-                if(recipientConnId == null)
-                {
-                    await Clients.Caller.SendAsync("refreshMe");
+                var clients = new List<string>();
+                clients.Add(Context.ConnectionId);
 
-                }
+                if(recipientConnId != null)
                 {
-                    await Clients.Client(recipientConnId.connectionID).SendAsync("refreshMe");
+                    //await Clients.Caller.SendAsync("refreshMe");
+                    //await Clients.Client(recipientConnId.connectionID).SendAsync("refreshMe");
+                    clients.Add(recipientConnId.connectionID);
                 }
-                //Clients.
+
+                await Clients.Clients(clients).SendAsync("refreshMe");
             }
             catch
             {

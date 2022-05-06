@@ -401,9 +401,9 @@
                         </fieldset>
                     </div>
 
-                    <div class="clear-filter">
+                    @*<div class="clear-filter">
                         <div class="clear-filter-button">Clear Filter</div>
-                    </div>
+                    </div>*@
                 </div>
             </div>
         </div>
@@ -622,7 +622,8 @@
                 }
                 itemParentContainer.appendChild(clone);
             });
-        } else {
+        }
+        else {
             //ajax to get the list of post
             $.ajax({
                 url: "../../marketplaceapi/getitems"
@@ -989,7 +990,13 @@
             });
 
             if (finalRes.length == 0) {
-                loadItems();
+                if (!$("input#Sell").is(":checked") && !$("input#Buy").is(":checked") && !$("input#Pig").is(":checked") &&
+                    !$("input#Chicken").is(":checked") && !$("input#Cow").is(":checked") && !$("input#Goat").is(":checked")) {
+                    loadItems();
+                } else {
+                    $('.marketplace-parent-container').empty();
+
+                }
             } else {
                 loadItems(finalRes);
             }
