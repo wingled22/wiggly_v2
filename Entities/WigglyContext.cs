@@ -35,6 +35,7 @@ namespace Wiggly.Entities
         public virtual DbSet<Room> Room { get; set; }
         public virtual DbSet<RoomMember> RoomMember { get; set; }
         public virtual DbSet<Schedules> Schedules { get; set; }
+        public virtual DbSet<SubscriptionRequest> SubscriptionRequest { get; set; }
         public virtual DbSet<Transaction> Transaction { get; set; }
         public virtual DbSet<UserLikedPost> UserLikedPost { get; set; }
 
@@ -271,6 +272,22 @@ namespace Wiggly.Entities
                 entity.Property(e => e.Status)
                     .HasMaxLength(50)
                     .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<SubscriptionRequest>(entity =>
+            {
+                entity.Property(e => e.Date).HasColumnType("datetime");
+
+                entity.Property(e => e.EndSubs).HasColumnType("date");
+
+                entity.Property(e => e.ProofOfPayment).IsUnicode(false);
+
+                entity.Property(e => e.StartSubs).HasColumnType("date");
+
+                entity.Property(e => e.Status)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("('Pending')");
             });
 
             modelBuilder.Entity<Transaction>(entity =>

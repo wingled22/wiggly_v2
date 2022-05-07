@@ -29,34 +29,60 @@ namespace Wiggly.Areas.Farmer.Controllers
         }
         public IActionResult Index()
         {
-            return View();
+            if (!IsSubscribed())
+                return View("Subscription");
+            else
+                return View();
         }
 
         public IActionResult Calendar()
         {
-            return View();
+            if (!IsSubscribed())
+                return View("Subscription");
+            else
+                return View();
         }
 
         public IActionResult Transaction()
         {
-            return View();
+            if (!IsSubscribed())
+                return View("Subscription");
+            else
+                return View();
         }
 
         public IActionResult Chat()
         {
-            return View();
+            if (!IsSubscribed())
+                return View("Subscription");
+            else
+                return View();
         }
 
 
         public IActionResult Marketplace()
         {
-            return View();
+            if (!IsSubscribed())
+                return View("Subscription");
+            else
+                return View();
         }
 
         public IActionResult Profile()
         {
-            return View();
+            if (!IsSubscribed())
+                return View("Subscription");
+            else
+                return View();
         }
 
+        private bool IsSubscribed()
+        {
+            var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
+            if (loggedInUser.Subscribed == null || loggedInUser.Subscribed.ToLower() == "unsubscribed")
+                return false;
+            else
+                return true;
+        }
     }
 }

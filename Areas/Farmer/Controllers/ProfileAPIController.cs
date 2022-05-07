@@ -106,7 +106,7 @@ namespace Wiggly.Areas.Farmer.Controllers
         }
     }
 
-    class PP
+    internal class PP
     {
         public string ImagePath { get; set; }
     }

@@ -40,7 +40,7 @@ namespace Wiggly.Controllers
                 System.Security.Claims.ClaimsPrincipal currentUser = this.User;
                 if (currentUser.IsInRole("Vendor"))
                 {
-                    return RedirectToAction("Index", "Home", new { area = "Vendor" });
+                    return RedirectToAction("Index", "Page", new { area = "Vendor" });
                 }
                 if (currentUser.IsInRole("Farmer"))
                 {
@@ -134,6 +134,8 @@ namespace Wiggly.Controllers
                     if (result.Succeeded)
                     {
                         _logger.LogInformation("User logged in.");
+
+
                         if (user.UserType == "Farmer")
                         {
                             return RedirectToAction("Index", "Page", new { area = "Farmer"});

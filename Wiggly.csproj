@@ -60,6 +60,7 @@
       <Folder Include="Areas\Farmer\Data\" />
       <Folder Include="Areas\Vendor\Data\" />
       <Folder Include="wwwroot\upload\marketplace\" />
+      <Folder Include="wwwroot\upload\subscription\" />
       <Folder Include="wwwroot\upload\profilepic\" />
       <Folder Include="wwwroot\upload\post\" />
     </ItemGroup>

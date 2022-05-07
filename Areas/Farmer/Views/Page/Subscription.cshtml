@@ -1,0 +1,482 @@
+﻿@using Wiggly
+@namespace Wiggly.Models
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using DevExtreme.AspNet.Mvc
+@model Wiggly.Entities.Schedules;
+
+@{
+    ViewData["Title"] = "Marketplace";
+    Layout = "_LayoutAdminLTEFarmerDashboard";
+}
+
+<style>
+    /*html,body{
+        background: #fff;
+        font-family: 'Poppins', sans-serif;
+    }*/
+    ::selection {
+        color: #fff;
+        background: #6665ee;
+    }
+
+    .container .form {
+        background: #fff;
+        padding: 30px 35px;
+        border-radius: 5px;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    }
+
+        .container .form form .form-control {
+            height: 40px;
+            font-size: 15px;
+        }
+
+        .container .form form .forget-pass {
+            margin: -15px 0 15px 0;
+        }
+
+            .container .form form .forget-pass a {
+                font-size: 15px;
+            }
+
+        .container .form form .button {
+            background: #6665ee;
+            color: #fff;
+            font-size: 17px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+            .container .form form .button:hover {
+                background: #5757d1;
+            }
+
+        .container .form form .link {
+            padding: 5px 0;
+        }
+
+            .container .form form .link a {
+                color: #6665ee;
+            }
+
+    .container .login-form form p {
+        font-size: 14px;
+    }
+
+    .container .row .alert {
+        font-size: 14px;
+    }
+
+
+    .image-container {
+        overflow: auto;
+    }
+
+    ul {
+        text-align: left;
+        display: flex;
+    }
+
+    li {
+        list-style: none;
+        display: inline-block; /*pour limiter l'espace occupé   par l'image li*/
+    }
+
+    article {
+        position: relative;
+    }
+
+    article button {
+        position: absolute;
+        right: 20px;
+        top: 5px;
+    }
+
+    img {
+        width: 150px;
+        height: 150px;
+        display: block;
+        object-fit: cover;
+    }
+
+    figure {
+        /*background: #7D5976;*/
+        text-align: center;
+        padding: 10px;
+        margin: 10px;
+    }
+
+    a {
+        color: white;
+        text-decoration: none;
+    }
+
+        a:hover {
+            text-decoration: none;
+            color: pink;
+        }
+
+    span.description {
+        padding: 10px;
+        display: block;
+    }
+
+
+
+    /* The Modal (background) */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 2147483648; /* Sit on top */
+        padding-top: 40px; /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
+    }
+
+    /* Modal Content (Image) */
+    .modal-content {
+        margin: auto;
+        display: block;
+        width: 80%;
+        height: 80%;
+        max-width: 700px;
+    }
+</style>
+
+@* devexpress template *@
+@(Html.DevExtreme().Popup()
+    .ID("addPostPopup")
+    .Title("Add a proof payment")
+    .Width(700)
+    .Height(600)
+    .ContentTemplate(new TemplateName("customPopupContentTemplate"))
+    .ToolbarItems(items =>
+    {
+        items.Add()
+            .Widget(editor => editor.Button()
+                .Text("Confirm")
+                .Type(ButtonType.Success)
+            .OnClick("onConfirmClick")
+            )
+            .Location(ToolbarItemLocation.After)
+            .Toolbar(Toolbar.Bottom);
+        items.Add()
+            .Widget(editor => editor.Button()
+                .Text("Cancel")
+                .Type(ButtonType.Success)
+            .OnClick("onCancelClick")
+            )
+            .Location(ToolbarItemLocation.After)
+            .Toolbar(Toolbar.Bottom);
+
+    })
+    .DragEnabled(true)
+    .CloseOnOutsideClick(false)
+    .ShowCloseButton(true)
+    .OnInitialized("onPopupInitialized")
+
+)
+@*custom template inside is form*@
+@using (Html.DevExtreme().NamedTemplate("customPopupContentTemplate"))
+{
+    @(Html.DevExtreme().Form<Wiggly.Models.MarketPlaceViewModel>()
+    .ID("formEdit")
+    .ColCount(2)
+    .ActiveStateEnabled(false)
+    .LabelLocation(FormLabelLocation.Top)
+    .MinColWidth(300)
+    .ShowValidationSummary(true)
+    .ReadOnly(false)
+    .ScrollingEnabled(true)
+    .ActiveStateEnabled(false)
+    .Items(items =>
+    {
+        //items.AddGroup().ColCount(2).ColSpan(2).Items(gItem =>
+        //{
+        //    gItem.AddSimpleFor(m => m.Caption).Editor(e => e.TextArea().Height(40)).ColSpan(2).IsRequired(true);
+        //    gItem.AddSimpleFor(m => m.Description).Editor(e => e.TextArea().Height(60)).ColSpan(2).IsRequired(true);
+
+        //});
+
+        items.AddGroup()
+            .Caption("Photo of payment/reciept:")
+            .ColCount(2)
+            .ColSpan(2)
+            .Items(groupItems =>
+            {
+                //groupItems.AddSimple().Name("Image").DataField("Image").ColSpan(2).Template(new TemplateName("FileUploadTemplate"));
+                groupItems.AddSimple()
+                .Name("Image")
+                .DataField("Image")
+                .ColSpan(2)
+                .Template(@<text>
+
+                        <div class="widget-container">
+                                @(Html.DevExtreme().FileUploader()
+                                    .ID("file-uploader")
+                                    .Name("myFile")
+                                    .Multiple(false)
+                                    .Accept("*")
+                                    .UploadMode(FileUploadMode.Instantly)
+                                    .UploadUrl(Url.Action("Upload", "FileUploader", new {area = "Vendor" }))
+                                    .OnValueChanged("fileUploader_valueChanged")
+                                )
+                            <div class="content" id="selected-files">
+
+                            </div>
+                        </div>
+                    </text>).IsRequired(true);
+                });
+
+        })
+        .ShowColonAfterLabel(true)
+        .Visible(true)
+        .ShowValidationSummary(true)
+        .OnInitialized("onFormInitialized")
+    )
+}
+
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12 form">
+            <form>
+                <h2 class="text-center">Subscription Fee</h2>
+                <p class="text-left">Choose a plan for your subscription fee</p>
+
+                <div class="form-group d-flex flex-wrap mt-4 col-md-12 justify-content-around">
+
+                    <div class="card" style="width: 18rem; height: 24rem;">
+
+                        <div class="card-body text-center">
+                            <h5 class="card-title mb-5">1 Month Subscription</h5>
+                            <p class="card-text">Enjoy 1 Monthly Subscription</p>
+                        </div>
+
+                        <div class="form-group text-center">
+                            <a href="#" class="btn btn-primary" onclick="subscribe(1)">Select</a>
+                        </div>
+                    </div>
+
+                    <div class="card" style="width: 18rem; height: 24rem;">
+                        <div class="card-body text-center">
+                            <h5 class="card-title mb-5">5 Month Subscription</h5>
+                            <p class="card-text">Enjoy 5 Monthly Subscription</p>
+                        </div>
+
+                        <div class="form-group text-center">
+                            <a href="#" class="btn btn-primary" onclick="subscribe(5)">Select</a>
+                        </div>
+                    </div>
+                    <div class="card" style="width: 18rem; height: 24rem;">
+                        <div class="card-body text-center">
+                            <h5 class="card-title mb-5">8 Month Subscription</h5>
+                            <p class="card-text">Enjoy 8 Monthly Subscription</p>
+                        </div>
+
+                        <div class="form-group text-center">
+                            <a href="#" class="btn btn-primary" onclick="subscribe(8)">Select</a>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<template id="postFormImagesTemplate">
+    <li>
+        <article>
+            <button type="button" class="close image-delete" data-dismiss="modal" aria-label="Close">
+                @*<span aria-hidden="true">&times;</span>*@
+            </button>
+            <a href="">
+                <figure>
+
+                    <img src="http://www.awwwards.com/awards/images/2013/07/bootstrap-resources-cover2.jpg" alt="">
+                </figure>
+            </a>
+        </article>
+    </li>
+</template>
+
+<div id="imageModal" class="modal">
+
+    <span class="close">&times;</span>
+
+    <img class="modal-content">
+
+</div>
+
+
+<script>
+    var popup, form, fileUploader;
+    var subsMonth;
+    var pId;
+    var postImage;
+    var postImages = [];
+    var profileInfo;
+    //custom form initialization
+    function onFormInitialized(e) {
+        form = e.component;
+    }
+
+    //Custom popUpInitialization
+    function onPopupInitialized(e) {
+        popup = e.component;
+    }
+
+
+    function subscribe(months) {
+        if (months != null) {
+            subsMonth = months;
+            popup.option("visible", true);
+
+        }
+
+    }
+
+
+    //popup close
+    function onCancelClick() {
+        popup.hide();
+    }
+
+    //save button click
+    function onConfirmClick() {
+        //var validationResult = form.validate();
+        //console.log(validationResult);
+        if (postImages.length == 0) {
+            document.querySelector("#formEdit .dx-form-validation-summary.dx-validationsummary").innerHTML = "<div class=\"dx-item dx-validationsummary-item\"><div class=\"dx-item-content dx-validationsummary-item-content\">Upload an image ie. recipt of your subscription payment.</div></div>";
+        } else {
+
+            $.ajax({
+                method: "POST",
+                url: "/farmer/SubscriptionAPI/PostRequest",
+                data: {
+                    months: subsMonth,
+                    pp: JSON.stringify(postImage)
+                }
+            }).done(function () {
+                //console.log("postSaved");
+                /*   loadItems();*/
+                //popup.hide();
+                //loadProfileInformation()
+
+            }).fail(function (data) {
+                console.log("error");
+                console.log(data);
+                document.querySelector("#formEdit .dx-form-validation-summary.dx-validationsummary").innerHTML = "<div class=\"dx-item dx-validationsummary-item\"><div class=\"dx-item-content dx-validationsummary-item-content\">Something unxexpected happened processing your request, refresh the browser and try again.</div></div>";
+
+            });
+        }
+    }
+
+    function hasPendingRequest() {
+        $.ajax({
+            url: "/Farmer/SubscriptionAPI/GetPendingRequest"
+        }).done(function (data) {
+            //postImage = { ImagePath: data };
+            //postImages.push(postImage);
+            //loadImageListToPopup();
+            //console.log(data);
+            if (data != null) {
+                document.querySelector(".col-md-12.form").innerHTML = "<h2 class=\"text-center\">Your request is still on process.</h2><p class=\"text-center\">Please try again later</p>"
+            }
+        });
+    }
+
+
+    $(document).ready(function () {
+
+        hasPendingRequest();
+
+        var domModificationCounter = 0;
+        $("body").on('DOMSubtreeModified', '.dx-fileuploader-file-status-message', function () {
+
+            if ($(".dx-fileuploader-file-status-message").text() == "Uploaded") {
+                afterUpload();
+                console.log(postImages);
+            } else {
+            }
+        });
+
+        $('body').on('click', "li article a", function (e) {
+            e.preventDefault();
+            var modal = document.getElementById("imageModal");
+            modal.style.display = "block";
+            let imgSrc = $(this).attr("href");
+
+            $("#imageModal img").attr("src", $(this).attr("href"));
+
+
+        });
+
+        $(".close").on("click", function () {
+            var modal = document.getElementById("imageModal");
+            modal.style.display = "none";
+        });
+
+    });
+
+    //if file upload data values was changed
+    function fileUploader_valueChanged(e, t, d) {
+        var files = e.value;
+        e.component.option("onUploaded", "onUploaded");
+        var result = e.component.option("uploadUrl", "/Farmer/FileUploader/UploadSubscriptionProofPayment");
+
+        if (files.length > 0) {
+            $("#selected-files .selected-item").remove();
+
+            //TODO: show the uploaded images
+
+        }
+        else
+            $("#selected-files").hide();
+    }
+
+
+    function afterUpload() {
+        $.ajax({
+            url: "/Farmer/FileUploader/GetUploadSubscriptionProofPayment"
+        }).done(function (data) {
+            postImage = { ImagePath: data };
+            postImages.push(postImage);
+            loadImageListToPopup();
+        });
+    }
+
+    /*
+    * function responsible on loading imagelist when the pop up to edit the post was shown
+    */
+    function loadImageListToPopup() {
+        let parent = document.querySelector("#selected-files.content");
+        let postImagesTemplate = document.querySelector('template#postFormImagesTemplate');
+        parent.innerHTML = "";
+
+        if (postImages.length > 0) {
+            //$.each(postImage, function (i, image) {
+            var image = postImages[postImages.length - 1];
+            let imageClone = postImagesTemplate.content.cloneNode(true);
+
+            let img = imageClone.querySelector("li article a figure img");
+            let a = imageClone.querySelector("li article a");
+            let button = imageClone.querySelector("li article button");
+
+            img.setAttribute("src", image.ImagePath);
+            a.setAttribute("href", image.ImagePath);
+            button.setAttribute("data-value", image.ImageId)
+            parent.append(imageClone);
+            //});
+        }
+
+    }
+
+</script>
