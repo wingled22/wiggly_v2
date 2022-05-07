@@ -21,6 +21,10 @@ namespace Wiggly.Controllers
                 {
                     return RedirectToAction("Index", "Page", new { area = "Farmer" });
                 }
+                if (currentUser.IsInRole("Admin"))
+                {
+                    return RedirectToAction("Index", "Page", new { area = "Admin" });
+                }
             }
             return View();
         }

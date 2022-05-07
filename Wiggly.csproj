@@ -6,6 +6,11 @@
 
     <ItemGroup>
       <None Include="Areas\Vendor\Views\Page\Index.cshtml" />
+      <None Include="Areas\Vendor\Views\Page\Marketplace.cshtml" />
+      <None Include="Areas\Vendor\Views\Page\MarketplaceChat.cshtml" />
+      <None Include="Areas\Vendor\Views\Page\Profile.cshtml" />
+      <None Include="Areas\Vendor\Views\Page\Schedule.cshtml" />
+      <None Include="Areas\Vendor\Views\Page\Transaction.cshtml" />
       <None Include="Views\Home\Index.cshtml" />
       <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css.map" />
       <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-grid.min.css.map" />
@@ -57,6 +62,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Areas\Admin\Data\" />
       <Folder Include="Areas\Farmer\Data\" />
       <Folder Include="Areas\Vendor\Data\" />
       <Folder Include="wwwroot\upload\marketplace\" />

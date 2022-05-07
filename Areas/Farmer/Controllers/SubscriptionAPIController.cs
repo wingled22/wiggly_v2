@@ -67,6 +67,8 @@ namespace Wiggly.Areas.Farmer.Controllers
             var pendingReq = _context.SubscriptionRequest.Where(q => q.UserId == loggedInUser.Id && q.Status.ToLower() == "pending").OrderBy(q=>q.Date).FirstOrDefault();
             return Ok(pendingReq);
         }
+
+       
     }
 
     class SubsPic

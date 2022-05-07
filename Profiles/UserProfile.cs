@@ -17,6 +17,8 @@ namespace Wiggly.Profiles
 
             CreateMap<AspNetUsers, UsersWithFullname>().ForMember(dest => dest.Fullname, opt => opt.MapFrom(src => string.Format("{0} {1}", src.Firstname, src.LastName)));
 
+           
+
         }
     }
 }

@@ -46,6 +46,10 @@ namespace Wiggly.Controllers
                 {
                     return RedirectToAction("Index", "Page", new { area = "Farmer" });
                 }
+                if (currentUser.IsInRole("Admin"))
+                {
+                    return RedirectToAction("Index", "Page", new { area = "Admin" });
+                }
             }
             return View(new RegisterViewModel());
         }
@@ -74,9 +78,9 @@ namespace Wiggly.Controllers
                     {
                         if (user.UserType == "Farmer")
                             _usrMngr.AddToRoleAsync(user, "Farmer").Wait();
-                        else
+                        else if (user.UserType =="Vendor")
                             _usrMngr.AddToRoleAsync(user, "Vendor").Wait();
-
+                       
                         return RedirectToAction("Login", "Account");
                     }
                     else
@@ -116,6 +120,10 @@ namespace Wiggly.Controllers
                 {
                     return RedirectToAction("Index", "Page", new { area = "Farmer" });
                 }
+                if (currentUser.IsInRole("Admin"))
+                {
+                    return RedirectToAction("Index", "Page", new { area = "Admin" });
+                }
             }
             return View();
         }
@@ -139,6 +147,10 @@ namespace Wiggly.Controllers
                         if (user.UserType == "Farmer")
                         {
                             return RedirectToAction("Index", "Page", new { area = "Farmer"});
+                        }
+                        else if (user.UserType == "Admin")
+                        {
+                            return RedirectToAction("Index", "Page", new { area = "Admin" });
                         }
                         else
                         {
