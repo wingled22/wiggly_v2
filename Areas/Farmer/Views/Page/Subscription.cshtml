@@ -367,7 +367,8 @@
             }).done(function () {
                 //console.log("postSaved");
                 /*   loadItems();*/
-                //popup.hide();
+                hasPendingRequest();
+                popup.hide();
                 //loadProfileInformation()
 
             }).fail(function (data) {
