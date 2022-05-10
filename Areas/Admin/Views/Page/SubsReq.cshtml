@@ -4,11 +4,11 @@
 @using DevExtreme.AspNet.Mvc
 
 @{
-    ViewData["Title"] = "Users";
+    ViewData["Title"] = "Pending Subscription Request";
     Layout = "_LayoutAdminLTEAdmin";
 }
 
-<H1>Users</H1>
+<H1>Pending Subscription Request</H1>
 
 <style>
 
@@ -36,13 +36,12 @@
     }
 </style>
 
-@(Html.DevExtreme().DataGrid<Wiggly.Entities.AspNetUsers>()
+@(Html.DevExtreme().DataGrid<Wiggly.Entities.SubscriptionRequest>()
     .DataSource(ds => ds.Mvc()
         .Key("Id")
-        .Controller("UsersAPI")
-        .LoadAction("UsersAPI")
-    //.UpdateAction("UpdateRequest")
-    )
+        .Controller("RequestAPI")
+        .LoadAction("GetRequests")
+        .UpdateAction("UpdateRequest"))
     .ShowBorders(true)
     .SearchPanel(searchPanel => searchPanel
         .Visible(true)
@@ -55,7 +54,7 @@
         .ApplyFilter(GridApplyFilterMode.Auto)
     )
     .Columns(columns => {
-    @*columns.AddFor(m => m.ProofOfPayment)
+    columns.AddFor(m => m.ProofOfPayment)
             .Width(150)
             .AllowFiltering(false)
             .AllowSorting(false)
@@ -63,9 +62,9 @@
                 <div>
                     <img class="proof-image" style="width: 150px; height: 150px; display: block; object-fit: cover;" src="<%- value %>" alt=""/>
                 </div>
-            </text>);*@
+            </text>);
 
-        columns.AddFor(m => m.Id).Caption("User")
+        columns.AddFor(m => m.UserId).Caption("User")
             .Lookup(lookup => lookup.DataSource(d => d.Mvc()
                     .Controller("UsersAPI")
                     .LoadAction("GetUsersWithFullname")
@@ -74,34 +73,34 @@
             .DisplayExpr("Fullname")
             .ValueExpr("Id"));
 
-        //columns.AddFor(m => m.Months);
+        columns.AddFor(m => m.Months);
 
-        //columns.AddFor(m => m.Date);
+        columns.AddFor(m => m.Date);
 
-        //columns.AddFor(m => m.StartSubs).Caption("Start Subscription");
-        //columns.AddFor(m => m.EndSubs).Caption("End Subscription");
-        columns.AddFor(m => m.Subscribed);
+        columns.AddFor(m => m.StartSubs).Caption("Start Subscription");
+        columns.AddFor(m => m.EndSubs).Caption("End Subscription");
+        columns.AddFor(m => m.Status);
     })
-        //.Editing(e => e.Mode(GridEditMode.Popup)
-        //    //.AllowUpdating(true)
-        //    .Popup(p => p
-        //        .Title("Change Request Status")
-        //        .ShowTitle(true)
-        //    )
-        //    .Form(f => f.Items(items =>
-        //    {
-        //        items.AddGroup()
-        //            .ColCount(2)
-        //            .ColSpan(2)
-        //            .Items(groupItems =>
-        //            {
-        //                groupItems.AddSimpleFor(m => m.Status).Editor(e => e.SelectBox().Placeholder("Select Status").DataSource(new JS("requestStatus")).DisplayExpr("Name").ValueExpr("Name")).IsRequired(true);
+        .Editing(e => e.Mode(GridEditMode.Popup)
+            .AllowUpdating(true)
+            .Popup(p => p
+                .Title("Change Request Status")
+                .ShowTitle(true)
+            )
+            .Form(f => f.Items(items =>
+            {
+                items.AddGroup()
+                    .ColCount(2)
+                    .ColSpan(2)
+                    .Items(groupItems =>
+                    {
+                        groupItems.AddSimpleFor(m => m.Status).Editor(e => e.SelectBox().Placeholder("Select Status").DataSource(new JS("requestStatus")).DisplayExpr("Name").ValueExpr("Name")).IsRequired(true);
 
 
-        //            });
+                    });
 
-        //    })
-)
+            })
+)))
 
 
 

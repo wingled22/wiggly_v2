@@ -7,11 +7,17 @@ using System.Threading.Tasks;
 
 namespace Wiggly.Areas.Admin.Controllers
 {
+    [Authorize(Roles = "Admin")]
+    [Area("Admin")]
     public class PageController : Controller
     {
-        [Authorize(Roles = "Admin")]
-        [Area("Admin")]
+        
         public IActionResult Index()
+        {
+            return View();
+        }
+
+        public IActionResult SubsReq()
         {
             return View();
         }

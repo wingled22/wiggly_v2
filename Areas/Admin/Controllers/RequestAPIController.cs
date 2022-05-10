@@ -46,7 +46,7 @@ namespace Wiggly.Areas.Admin.Controllers
                 _logger.LogInformation(key.ToString());
                 _logger.LogInformation(values);
 
-                if(key == null || key == 0)
+                if(key == 0)
                     return BadRequest("data sent is null");
 
                 if (values == null)

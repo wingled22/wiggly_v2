@@ -36,7 +36,7 @@ namespace Wiggly.Areas.Admin.Controllers
             return View();
         }
 
-        public IActionResult GetUsers()
+        public IActionResult UsersAPI()
         {
             var users = _context.AspNetUsers.Where(q => q.UserType != "Admin").ToList();
             return Ok(users);
