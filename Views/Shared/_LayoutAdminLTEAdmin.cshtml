@@ -55,7 +55,7 @@
             <!-- Brand Logo -->
             <a href="#" class="brand-link">
                 <img src="~/dist/img/AdminLTELogo.png" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
-                <span class="brand-text font-weight-light">Farmer</span>
+                <span class="brand-text font-weight-light">Admin</span>
             </a>
 
             <!-- Sidebar -->
@@ -78,14 +78,19 @@
                     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                         <li class="nav-item">
                             <a asp-area="Farmer" asp-controller="Page" asp-action="Index" class="nav-link">
-                                <i class="nav-icon fas fa-tachometer-alt"></i>
+                                <i class="nav-icon fas fa-user-alt"></i>
                                 <p>
-                                    Dashboard
+                                    Users
                                 </p>
                             </a>
                         </li>
 
-                       
+                        <li class="nav-item">
+                            <a asp-area="Farmer" asp-controller="Page" asp-action="SubsReq" class="nav-link">
+                                <i class="nav-icon fas fa-cart-plus"></i>
+                                <p>Subscription Request</p>
+                            </a>
+                        </li>
 
                     </ul>
                 </nav>
