@@ -32,17 +32,29 @@ namespace Wiggly.Areas.Farmer.Controllers
         {
             var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
 
-            var now = DateTime.Now.AddMinutes(-30);
+            var now = DateTime.Now.AddDays(-2);
             var end = DateTime.Now.AddMinutes(60);
 
-            var timelinedata = _context.Schedules.Where(q => 
-                                    q.Farmer == loggedInUser.Id && 
-                                    q.BookingStartDate >= now && 
-                                    q.BookingEndDate <= end)
-                .Select(q => new TimelineViewModel { 
-                    Date = ((DateTime)q.BookingStartDate).ToString("MMMM dd, yyyy H:mm:ss"),
-                    Agenda = q.Notes })
-                .ToList();
+            //TODO: display timeline data 2 days before the booking
+            //var timelinedata = _context.Schedules.Where(q => 
+            //                        q.Farmer == loggedInUser.Id &&
+            //                        //q.BookingStartDate <= DateTime.Now && 
+            //                        q.BookingStartDate > now ).Where(q=>q.BookingStartDate < DateTime.Now)
+            //    .Select(q => new TimelineViewModel { 
+            //        Date = ((DateTime)q.BookingStartDate).ToString("MMMM dd, yyyy H:mm:ss"),
+            //        Agenda = q.Notes })
+            //    .ToList();
+
+            var timelinedata = (from sched in _context.Schedules
+                                where sched.Farmer == loggedInUser.Id && sched.BookingStartDate >= DateTime.Now
+                                    && sched.BookingStartDate <= now
+                                //&& sched.BookingEndDate <= DateTime.Now
+                                select new TimelineViewModel
+                                {
+                                    Date = ((DateTime)sched.BookingStartDate).ToString("MMMM dd, yyyy H:mm:ss"),
+                                    Agenda = sched.Notes
+                                }).ToList();
+                                
 
             return Ok(timelinedata);
         }

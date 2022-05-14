@@ -21,5 +21,17 @@ namespace Wiggly.Areas.Admin.Controllers
         {
             return View();
         }
+
+        public IActionResult ApprovedSubscription()
+        {
+            return View();
+        }
+
+        public IActionResult PendingSubscription()
+        {
+            return View();
+        }
+
+
     }
 }

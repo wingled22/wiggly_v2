@@ -34,7 +34,19 @@ namespace Wiggly.Areas.Admin.Controllers
 
         public IActionResult GetRequests()
         {
-            var res = _context.SubscriptionRequest.OrderByDescending(q=>q.Status).ToList();
+            var res = _context.SubscriptionRequest.OrderByDescending(q => q.Status).ToList();
+            return Ok(res);
+        }
+
+        public IActionResult GetPendingRequests()
+        {
+            var res = _context.SubscriptionRequest.Where(q=> q.Status == "Pending").OrderByDescending(q => q.Status).ToList();
+            return Ok(res);
+        }
+
+        public IActionResult GetApprovedRequests()
+        {
+            var res = _context.SubscriptionRequest.Where(q => q.Status == "Approved").OrderByDescending(q => q.Status).ToList();
             return Ok(res);
         }
 

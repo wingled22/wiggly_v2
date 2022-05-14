@@ -1,0 +1,138 @@
+﻿@using Wiggly
+@namespace Wiggly.Models
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using DevExtreme.AspNet.Mvc
+
+@{
+    ViewData["Title"] = "Pending Subscription";
+    Layout = "_LayoutAdminLTEAdmin";
+}
+
+<H1>Pending Subscription</H1>
+
+<style>
+
+    /* The Modal (background) */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 2147483648; /* Sit on top */
+        padding-top: 40px; /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
+    }
+
+    /* Modal Content (Image) */
+    .modal-content {
+
+        margin: auto;
+        display: block;
+        width: 80%;
+        max-width: 700px;
+    }
+</style>
+
+@(Html.DevExtreme().DataGrid<Wiggly.Entities.SubscriptionRequest>()
+    .DataSource(ds => ds.Mvc()
+        .Key("Id")
+        .Controller("RequestAPI")
+        .LoadAction("GetPendingRequests")
+        .UpdateAction("UpdateRequest"))
+    .ShowBorders(true)
+    .SearchPanel(searchPanel => searchPanel
+        .Visible(true)
+        .Width(240)
+        .Placeholder("Search...")
+    )
+    .HeaderFilter(headerFilter => headerFilter.Visible(true))
+    .FilterRow(filterRow => filterRow
+        .Visible(true)
+        .ApplyFilter(GridApplyFilterMode.Auto)
+    )
+    .Columns(columns => {
+    columns.AddFor(m => m.ProofOfPayment)
+            .Width(150)
+            .AllowFiltering(false)
+            .AllowSorting(false)
+            .CellTemplate(@<text>
+                <div>
+                    <img class="proof-image" style="width: 150px; height: 150px; display: block; object-fit: cover;" src="<%- value %>" alt=""/>
+                </div>
+            </text>);
+
+        columns.AddFor(m => m.UserId).Caption("User")
+            .Lookup(lookup => lookup.DataSource(d => d.Mvc()
+                    .Controller("UsersAPI")
+                    .LoadAction("GetUsersWithFullname")
+                    .Key("Id")
+            )
+            .DisplayExpr("Fullname")
+            .ValueExpr("Id"));
+
+        columns.AddFor(m => m.Months);
+
+        columns.AddFor(m => m.Date);
+
+        columns.AddFor(m => m.StartSubs).Caption("Start Subscription");
+        columns.AddFor(m => m.EndSubs).Caption("End Subscription");
+        columns.AddFor(m => m.Status);
+    })
+        .Editing(e => e.Mode(GridEditMode.Popup)
+            .AllowUpdating(true)
+            .Popup(p => p
+                .Title("Change Request Status")
+                .ShowTitle(true)
+            )
+            .Form(f => f.Items(items =>
+            {
+                items.AddGroup()
+                    .ColCount(2)
+                    .ColSpan(2)
+                    .Items(groupItems =>
+                    {
+                        groupItems.AddSimpleFor(m => m.Status).Editor(e => e.SelectBox().Placeholder("Select Status").DataSource(new JS("requestStatus")).DisplayExpr("Name").ValueExpr("Name")).IsRequired(true);
+
+
+                    });
+
+            })
+)))
+
+
+
+<div id="imageModal" class="modal">
+
+    <span class="close">&times;</span>
+
+    <img class="modal-content">
+
+</div>
+
+
+
+<script>
+
+    var requestStatus = [{ "Name": "Pending" }, { "Name": "Approved" }, { "Name": "Declined" }];
+
+    $(document).ready(function () {
+
+        $("body").on("click", ".proof-image", function () {
+            var modal = document.getElementById("imageModal");
+            modal.style.display = "block";
+            let imgSrc = $(this).attr("src");
+
+            $("#imageModal img").attr("src", $(this).attr("src"));
+        });
+
+        $(".close").on("click", function () {
+            var modal = document.getElementById("imageModal");
+            modal.style.display = "none";
+        });
+
+    });
+</script> 

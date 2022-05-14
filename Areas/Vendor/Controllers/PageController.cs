@@ -28,12 +28,18 @@ namespace Wiggly.Areas.Vendor.Controllers
         }
         public IActionResult Index()
         {
-            return View();
+            if (!IsSubscribed())
+                return View("Subscription");
+            else
+                return View();
         }
 
         public IActionResult Transaction()
         {
-            return View();
+            if (!IsSubscribed())
+                return View("Subscription");
+            else
+                return View();
         }
 
         public IActionResult Schedule()
