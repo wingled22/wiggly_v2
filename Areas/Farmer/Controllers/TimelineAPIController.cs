@@ -32,7 +32,7 @@ namespace Wiggly.Areas.Farmer.Controllers
         {
             var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
 
-            var now = DateTime.Now.AddDays(-2);
+            var now = DateTime.Now.AddDays(3);
             var end = DateTime.Now.AddMinutes(60);
 
             //TODO: display timeline data 2 days before the booking
@@ -47,7 +47,7 @@ namespace Wiggly.Areas.Farmer.Controllers
 
             var timelinedata = (from sched in _context.Schedules
                                 where sched.Farmer == loggedInUser.Id && sched.BookingStartDate >= DateTime.Now
-                                    && sched.BookingStartDate <= now
+                                   && sched.BookingStartDate <= now
                                 //&& sched.BookingEndDate <= DateTime.Now
                                 select new TimelineViewModel
                                 {

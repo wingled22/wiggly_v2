@@ -771,6 +771,9 @@
                 itemModalInfos.querySelector(".modal-item-caption").innerHTML = res.Caption;
                 itemModalInfos.querySelector(".modal-item-description").innerHTML = res.Caption;
                 itemModalInfos.querySelector("div label h5").innerHTML = res.UserFullname;
+                itemModalInfos.querySelector(".modal-item-buysell-category .item-buysell").innerHTML = res.BuyOrSell;
+                itemModalInfos.querySelector(".modal-item-buysell-category .item-category").innerHTML = res.Category;
+                itemModalInfos.querySelector("div label h5").innerHTML = res.UserFullname;
 
                 if (!res.IsEditable) {
                     itemModalInfos.querySelector(".mt-4 div").style.display = "block";
@@ -934,7 +937,29 @@
         });
 
         $("body").on("click", ".filter-container", function () {
-            console.log($("input#Sell").is(":checked"));
+            filterItems();
+        });
+
+        $(".search-filter input").keyup(function () {
+            filterItems($(this).val());
+
+        });
+
+        function filterItems(searchString) {
+
+            var srchStringList = [];
+
+            if (searchString != null) {
+                if (searchString.length >= 4) {
+                    var f = itemsList.filter((e) => e.Caption.includes(searchString));
+                    srchStringList = f;
+                }
+            } else {
+                var f = itemsList.filter((e) => e.Caption.includes($(".search-filter input").val()));
+                srchStringList = f;
+            }
+
+
 
             //filter item that are selling 
             var sellingList = [];
@@ -975,7 +1000,7 @@
                 goatList = f;
             }
 
-            var collectiveRes = Array.prototype.concat(sellingList, buyingList, pigList, chickenList, cowList, goatList);
+            var collectiveRes = Array.prototype.concat(srchStringList, sellingList, buyingList, pigList, chickenList, cowList, goatList);
             var resID = collectiveRes.map(({ ItemID }) => ItemID);
             //unique / distinct
             var distinctId = [...new Set(resID)];
@@ -1000,11 +1025,13 @@
             } else {
                 loadItems(finalRes);
             }
+        }
 
-        });
+    });
+    
 
         
-    });
+
 
     function loadMessagesToChatPopup() {
         if (roomMessages.length > 0) {
@@ -1058,6 +1085,7 @@
                 <div class="col-12 col-sm-4 item-infos">
                     <h3 class="my-3 modal-item-caption">LOWA Men’s Renegade GTX Mid Hiking Boots Review</h3>
                     <p class="modal-item-description">Raw denim you probably haven't heard of them jean shorts Austin. Nesciunt tofu stumptown aliqua butcher retro keffiyeh dreamcatcher synth. Cosby sweater eu banh mi, qui irure terr.</p>
+                    <p class="modal-item-buysell-category"><b class="item-buysell">buy or selling</b> : <b class="item-category">Cow</b></p>
 
                     <hr>
                     <h4>Seller info</h4>
