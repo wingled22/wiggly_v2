@@ -40,6 +40,7 @@ namespace Wiggly.Controllers
                              UserId = user.Id,
                              UserFullname = string.Format("{0} {1}", user.Firstname, user.LastName),
                              Caption = item.Caption,
+                             Address = item.Address,
                              BuyOrSell = item.BuyOrSell,
                              DateCreated = item.DateCreated.ToString(),
                              Category = item.Category,
@@ -61,8 +62,8 @@ namespace Wiggly.Controllers
             var posts = (from item in _context.MarketPlace
                          join user in _context.AspNetUsers
                          on item.User equals user.Id
-                         join photos in _context.PostPhoto
-                         on item.Id equals photos.Post
+                         //join photos in _context.PostPhoto
+                         //on item.Id equals photos.Post
                          orderby item.DateCreated descending
                          where item.Id == itemId
                          select new MarketPlaceViewModel
@@ -74,6 +75,7 @@ namespace Wiggly.Controllers
                              BuyOrSell = item.BuyOrSell,
                              Category = item.Category,
                              Description = item.Description,
+                             Address = item.Address,
                              DateCreated = item.DateCreated.ToString(),
                              ImageList = _context.PostPhoto.Where(p => item.Id == p.Post && p.Path.Contains("marketplace"))
                                                 .Select(p => new MarketPlaceImage { ImageId = p.Id, ImagePath = p.Path })
@@ -108,6 +110,7 @@ namespace Wiggly.Controllers
                 Id = Guid.NewGuid(),
                 Caption = val.Caption,
                 Description = val.Description,
+                Address = val.Address,
                 User = loggedInUser.Id,
                 DateCreated = DateTime.Now,
                 BuyOrSell = val.BuyOrSell,
@@ -171,6 +174,7 @@ namespace Wiggly.Controllers
             item.Description = edited.Description;
             item.BuyOrSell = edited.BuyOrSell;
             item.Category = edited.Category;
+            item.Address = edited.Address;
 
             _context.MarketPlace.Update(item);
             _context.SaveChanges();

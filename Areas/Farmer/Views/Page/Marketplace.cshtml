@@ -259,8 +259,9 @@
             {
                 gItem.AddSimpleFor(m => m.Caption).Editor(e => e.TextArea().Height(40)).ColSpan(2).IsRequired(true);
                 gItem.AddSimpleFor(m => m.Description).Editor(e => e.TextArea().Height(60)).ColSpan(2).IsRequired(true);
-                gItem.AddSimpleFor(m => m.BuyOrSell).Editor(e => e.SelectBox().DataSource(new JS("buyOrSell")).ValueExpr("Name").DisplayExpr("Name")).ColSpan(2).IsRequired(true);
-                gItem.AddSimpleFor(m => m.Category).Editor(e => e.SelectBox().DataSource(new JS("category")).ValueExpr("Name").DisplayExpr("Name")).ColSpan(2).IsRequired(true);
+                gItem.AddSimpleFor(m => m.Address).Editor(e => e.TextArea().Height(40)).ColSpan(2).IsRequired(true);
+                gItem.AddSimpleFor(m => m.BuyOrSell).Editor(e => e.SelectBox().DataSource(new JS("buyOrSell")).ValueExpr("Name").DisplayExpr("Name")).ColSpan(1).IsRequired(true);
+                gItem.AddSimpleFor(m => m.Category).Editor(e => e.SelectBox().DataSource(new JS("category")).ValueExpr("Name").DisplayExpr("Name")).ColSpan(1).IsRequired(true);
 
             });
 
@@ -310,7 +311,7 @@
         </div>
         <div class="item-caption">
             <p>lorem ipsuasdfkj sdlkfjs asdf sdfsdf </p>
-            <p><i>address is here </i></p>
+            <p class="item-address"><i>address is here </i></p>
         </div>
     </div>
 </template>
@@ -469,7 +470,7 @@
         isPostEdit = false;
         popup.option("visible", true);
         if (form) {
-            //form.option('key', data.SchedId);
+            form.option('formData', {});
             //console.log(data);
         }
     }
@@ -614,6 +615,12 @@
                 clone.querySelector(".item-type").innerHTML = item.BuyOrSell;
                 clone.querySelector(".item-caption p").innerHTML = item.Caption;
 
+                if (item.Address == null) {
+                    clone.querySelector(".item-caption .item-address i").innerHTML = "";
+                } else {
+                    clone.querySelector(".item-caption .item-address i").innerHTML = item.Address;
+                }
+
                 if (item.ImageList.length > 0) {
                     clone.querySelector(".image-container img").setAttribute("src", item.ImageList[0].ImagePath);
                 }
@@ -640,6 +647,12 @@
                     clone.querySelector(".item-edit ").setAttribute("data-value", item.ItemID);
                     clone.querySelector(".item-type").innerHTML = item.BuyOrSell;
                     clone.querySelector(".item-caption p").innerHTML = item.Caption;
+
+                    if (item.Address == null) {
+                        clone.querySelector(".item-caption .item-address i").innerHTML = "";
+                    } else {
+                        clone.querySelector(".item-caption .item-address i").innerHTML = item.Address;
+                    }
 
                     if (item.ImageList.length > 0) {
                         clone.querySelector(".image-container img").setAttribute("src", item.ImageList[0].ImagePath);
@@ -770,8 +783,14 @@
                 console.log(res);
                 var itemModalInfos = document.querySelector("#itemModal div div div .item-infos");
                 itemModalInfos.querySelector(".modal-item-caption").innerHTML = res.Caption;
-                itemModalInfos.querySelector(".modal-item-description").innerHTML = res.Caption;
+                itemModalInfos.querySelector(".modal-item-description").innerHTML = res.Description;
                 itemModalInfos.querySelector("div label h5").innerHTML = res.UserFullname;
+                if (res.Address == null) {
+                    itemModalInfos.querySelector("div label h6 i").innerHTML = "";
+                } else {
+                    itemModalInfos.querySelector("div label h6 i").innerHTML = res.Address;
+
+                }
 
                 if (!res.IsEditable) {
                     itemModalInfos.querySelector(".mt-4 div").style.display = "block";
@@ -1064,7 +1083,7 @@
                     <p class="modal-item-description">Raw denim you probably haven't heard of them jean shorts Austin. Nesciunt tofu stumptown aliqua butcher retro keffiyeh dreamcatcher synth. Cosby sweater eu banh mi, qui irure terr.</p>
 
                     <hr>
-                    <h4>Seller info</h4>
+                    <h6>Seller info</h6>
                     <div class="btn-group btn-group-toggle" data-toggle="buttons">
                         <label class="btn btn-default text-center active">
                             <h5 class="modal-item-username">Fullname</h5>
