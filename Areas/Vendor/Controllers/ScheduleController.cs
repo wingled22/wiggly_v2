@@ -64,6 +64,17 @@ namespace Wiggly.Areas.Vendor.Controllers
 
             _context.Schedules.Add(schedule);
             _context.SaveChanges();
+
+          
+                var notif = new Notif();
+                notif.Id = Guid.NewGuid();
+                notif.Message = string.Format("{0} {1} book you a schedule.", loggedInUser.Firstname, loggedInUser.LastName);
+                notif.Recipient = newAppointment.Farmer;
+                notif.DateCreated = DateTime.Now;
+                notif.DateCreatedString = DateTime.Now.ToString("MMMM dd yyyy");
+                _context.Notif.Add(notif);
+                _context.SaveChanges();
+
             return Ok();
         }
 

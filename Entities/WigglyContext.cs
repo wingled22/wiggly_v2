@@ -25,6 +25,7 @@ namespace Wiggly.Entities
         public virtual DbSet<Kilos> Kilos { get; set; }
         public virtual DbSet<MarketPlace> MarketPlace { get; set; }
         public virtual DbSet<Message> Message { get; set; }
+        public virtual DbSet<Notif> Notif { get; set; }
         public virtual DbSet<Payment> Payment { get; set; }
         public virtual DbSet<Post> Post { get; set; }
         public virtual DbSet<PostComment> PostComment { get; set; }
@@ -170,6 +171,19 @@ namespace Wiggly.Entities
                 entity.Property(e => e.DatetimeCreate).HasColumnType("datetime");
 
                 entity.Property(e => e.MessageText).HasColumnType("text");
+            });
+
+            modelBuilder.Entity<Notif>(entity =>
+            {
+                entity.Property(e => e.Id).ValueGeneratedNever();
+
+                entity.Property(e => e.DateCreated).HasColumnType("datetime");
+
+                entity.Property(e => e.DateCreatedString)
+                    .HasMaxLength(250)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Message).IsUnicode(false);
             });
 
             modelBuilder.Entity<Payment>(entity =>

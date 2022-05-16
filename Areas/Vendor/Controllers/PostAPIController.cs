@@ -231,6 +231,20 @@ namespace Wiggly.Areas.Vendor.Controllers
 
                 _context.UserLikedPost.Add(likedPost);
                 _context.SaveChanges();
+
+                var postDetail = _context.Post.Where(q => q.Id == post).FirstOrDefault();
+                if (postDetail != null)
+                {
+
+                    var notif = new Notif();
+                    notif.Id = Guid.NewGuid();
+                    notif.Message = string.Format("{0} {1} liked your post.", loggedInUser.Firstname, loggedInUser.LastName);
+                    notif.Recipient = postDetail.User;
+                    notif.DateCreated = DateTime.Now;
+                    notif.DateCreatedString = DateTime.Now.ToString("MMMM dd, yyyy");
+                    _context.Notif.Add(notif);
+                    _context.SaveChanges();
+                }
             }
             else
             {
