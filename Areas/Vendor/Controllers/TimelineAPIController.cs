@@ -47,13 +47,15 @@ namespace Wiggly.Areas.Vendor.Controllers
             //    .ToList();
 
             var timelinedata = (from sched in _context.Schedules
-                                where sched.Vendor == loggedInUser.Id && sched.BookingStartDate >= DateTime.Now 
-                                    && sched.BookingStartDate <= now
+                                join user in _context.AspNetUsers
+                                on sched.Farmer equals user.Id
+                                where sched.Vendor == loggedInUser.Id && sched.BookingStartDate >= DateTime.Now
+                                   && sched.BookingStartDate <= now
                                 //&& sched.BookingEndDate <= DateTime.Now
                                 select new TimelineViewModel
                                 {
                                     Date = ((DateTime)sched.BookingStartDate).ToString("MMMM dd, yyyy H:mm:ss"),
-                                    Agenda = sched.Notes
+                                    Agenda = string.Format("{0} {1} : {2}", user.Firstname, user.LastName, sched.Notes)
                                 }).ToList();
 
 
