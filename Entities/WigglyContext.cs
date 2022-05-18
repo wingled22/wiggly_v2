@@ -159,6 +159,10 @@ namespace Wiggly.Entities
 
                 entity.Property(e => e.Description).HasColumnType("text");
 
+                entity.Property(e => e.Lat).HasColumnType("text");
+
+                entity.Property(e => e.Lng).HasColumnType("text");
+
                 entity.Property(e => e.Status)
                     .HasMaxLength(10)
                     .IsUnicode(false);

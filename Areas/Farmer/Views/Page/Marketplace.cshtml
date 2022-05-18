@@ -9,6 +9,8 @@
     Layout = "_LayoutAdminLTEFarmerDashboard";
 }
 
+<link rel="stylesheet" href="~/plugins/leaflet/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
 
 <style>
     .marketplace-parent-container {
@@ -155,7 +157,7 @@
         max-width: 700px;
     }
 
-/*
+    /*
     * {
         padding: 0;
         margin: 0;
@@ -203,6 +205,53 @@
             padding: .5em;
             text-align: center;
         }
+
+    .example-container {
+        background: white;
+        width: 600px;
+        box-sizing: border-box;
+        font-family: helvetica;
+        font-size: 16px;
+        padding: 1.5em;
+        /*        -webkit-box-shadow: 1px 5px 5px 0px rgba(0,0,0,0.15);
+        -moz-box-shadow: 1px 5px 5px 0px rgba(0,0,0,0.15);*/
+        /*box-shadow: 1px 5px 5px 0px rgba(0,0,0,0.15);*/
+        border-radius: 8px;
+    }
+
+        .example-container * {
+            box-sizing: inherit;
+            font-size: inherit;
+        }
+
+        .example-container .header {
+            margin: 1em 0;
+        }
+
+        .example-container #MapLocation {
+            margin-bottom: 0.75em;
+        }
+
+    /*.leaflet-popup {
+        top: 55px !important;
+    }*/
+    /* Here I move the "tip" to the right location, but didn't succeed in making it visible. So I just remove the box-shadow and leave it: */
+    /*.leaflet-popup-tip-container {
+        top: 0px !important;
+    }
+
+    .leaflet-popup-tip {
+        box-shadow: none !important;
+    }
+
+    .leaflet-popup:before {
+        content: "";
+        position: absolute;
+        border: 13px solid transparent;
+        border-bottom-color: white;
+        bottom: 0px;
+        margin-left: -13px;
+    }*/
 </style>
 
 <h3>Marketplace</h3>
@@ -212,7 +261,7 @@
     .ID("addPostPopup")
     .Title("Appointment info")
     .Width(700)
-    .Height(600)
+    .Height(650)
     .ContentTemplate(new TemplateName("customPopupContentTemplate"))
     .ToolbarItems(items =>
     {
@@ -259,10 +308,35 @@
             {
                 gItem.AddSimpleFor(m => m.Caption).Editor(e => e.TextArea().Height(40)).ColSpan(2).IsRequired(true);
                 gItem.AddSimpleFor(m => m.Description).Editor(e => e.TextArea().Height(60)).ColSpan(2).IsRequired(true);
-                gItem.AddSimpleFor(m => m.Address).Editor(e => e.TextArea().Height(40)).ColSpan(2).IsRequired(true);
+                //gItem.AddSimpleFor(m => m.Address).Editor(e => e.TextArea().Height(40)).ColSpan(2).IsRequired(true);
                 gItem.AddSimpleFor(m => m.BuyOrSell).Editor(e => e.SelectBox().DataSource(new JS("buyOrSell")).ValueExpr("Name").DisplayExpr("Name")).ColSpan(1).IsRequired(true);
                 gItem.AddSimpleFor(m => m.Category).Editor(e => e.SelectBox().DataSource(new JS("category")).ValueExpr("Name").DisplayExpr("Name")).ColSpan(1).IsRequired(true);
 
+            });
+
+            items.AddGroup()
+            .ColCount(2)
+            .ColSpan(2)
+            .Items(groupItems =>
+            {
+                groupItems.AddSimple()
+                .Name("Address")
+                .DataField("Address")
+                .ColSpan(2)
+                .Template(@<text>
+                    <div class="example-container"  style="width:630px;height:450px;">
+                        <div class="row">
+                          <section class="col col-12 header location-address">Address : </section>
+                          <section class="col col-12">
+                            <div class="row">
+                              <section class="col col-12">
+                                <div id="MapLocation" style="height: 350px"></div>
+                              </section>
+                            </div>
+                          </section>
+                        </div>
+                    </div>
+                </text>);
             });
 
              items.AddGroup()
@@ -303,7 +377,7 @@
 @* Templates *@
 <template id="marketplace-card-item">
     <div class="item-card">
-        <div class="date-posted"> august 22, 1997</div>
+        @*<div class="date-posted"> august 22, 1997</div>*@
         <div class="item-type">Selling</div>
         <div class="item-edit" role="button"><i class="fas fa-pen"></i></div>
         <div class="image-container">
@@ -403,8 +477,8 @@
                     </div>
 
                     @*<div class="clear-filter">
-                        <div class="clear-filter-button">Clear Filter</div>
-                    </div>*@
+                            <div class="clear-filter-button">Clear Filter</div>
+                        </div>*@
                 </div>
             </div>
         </div>
@@ -473,6 +547,171 @@
             form.option('formData', {});
             //console.log(data);
         }
+
+        initGeolocation()
+    }
+
+    //var for geolocation
+    var myMap;
+    var lyrOSM;
+    var marker;
+    var mapLocationDisplayPopup;
+    var displayName;
+    var locationLatLng;
+    var curLocation = [11.0530536, 124.0110354];
+
+    function initGeolocation(latitude, longitude, locationName) {
+
+        if (myMap == null) {
+            // create map object
+            myMap = L.map('MapLocation').setView(curLocation, 18);
+            mapLocationDisplayPopup = L.popup();
+            //add basemap layer
+            lyrOSM = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png');
+            myMap.addLayer(lyrOSM);
+            var geocoder = L.Control.geocoder({
+                defaultMarkGeocode: false
+            })
+                .on('markgeocode', function (e) {
+                    var latlng = e.geocode.center;
+                    if (marker != undefined) {
+                        myMap.removeLayer(marker);
+                        marker = null;
+                        locationLatLng = null;
+                    }
+                    var p = new Promise(function (resolve, reject) {
+                        $.ajax({
+                            url: "https://nominatim.openstreetmap.org/reverse?format=json&lat=" + latlng.lat + "&lon=" + latlng.lng,
+                            success: function (data) {
+                                resolve(data)
+                            },
+                            error: function (data) {
+                                reject(data)
+                            }
+                        });
+                    });
+                    p.then((data) => {
+                        console.log(data);
+                        marker = L.marker(latlng).addTo(myMap);
+                        displayName = data.display_name;
+                        locationLatLng = latlng;
+                        mapLocationDisplayPopup.setLatLng(latlng).setContent(displayName).openOn(myMap);
+                    }).catch((err) => {
+                        console.table(err);
+                    });
+
+                    console.log(latlng);
+                    myMap.fitBounds(e.geocode.bbox);
+                })
+                .addTo(myMap);
+
+            myMap.on('click', function (e) {
+                // console.log(e);
+                if (marker != undefined) {
+                    myMap.removeLayer(marker);
+                    marker = null;
+                    locationLatLng = null;
+                } else {
+                    console.log("no marker");
+                }
+                var p = new Promise(function (resolve, reject) {
+                    $.ajax({
+                        url: "https://nominatim.openstreetmap.org/reverse?format=json&lat=" + e.latlng.lat + "&lon=" + e.latlng.lng,
+                        success: function (data) {
+                            resolve(data)
+                        },
+                        error: function (data) {
+                            reject(data)
+                        }
+                    });
+                });
+                p.then((data) => {
+                    console.log(data);
+                    marker = L.marker(e.latlng).addTo(myMap);
+                    displayName = data.display_name;
+                    locationLatLng = e.latlng;
+                    mapLocationDisplayPopup.setLatLng(e.latlng).setContent(displayName).openOn(myMap);
+                    document.querySelector('.location-address').innerHTML = displayName;
+                }).catch((err) => {
+                    console.table(err);
+                });
+            });
+
+            if (latitude != null && longitude != null) {
+                var newLatLangFromItem = { lat: latitude, lng: longitude };
+                locationLatLng = newLatLangFromItem;
+
+                marker = L.marker(newLatLangFromItem).addTo(myMap);
+                mapLocationDisplayPopup.setLatLng(newLatLangFromItem).setContent(locationName).openOn(myMap);
+                //myMap.fitBounds(e.geocode.bbox);
+            }
+        } else {
+
+            if (latitude != null && longitude != null) {
+                if (marker != null) {
+                    myMap.removeLayer(marker);
+                    myMap.removeLayer(mapLocationDisplayPopup);
+                    marker = null;
+                    locationLatLng = null;
+                }
+
+                var newLatLangFromItem = { lat: latitude, lng: longitude };
+                locationLatLng = newLatLangFromItem;
+
+                marker = L.marker(newLatLangFromItem).addTo(myMap);
+                mapLocationDisplayPopup.setLatLng(newLatLangFromItem).setContent(locationName).openOn(myMap);
+                //myMap.fitBounds(e.geocode.bbox);
+
+            }
+        }
+    }
+
+
+    var addressMapInformation;
+    var addressMapInformationLyrOSM;
+    var addressMapInformationMarker;
+    var addressMapInformationPopup;
+
+    function initAddressMapInformation(latitude, longitude, addressName) {
+        var itemLatLng = { lat: parseFloat(latitude), lng: parseFloat(longitude) };
+
+        if (addressMapInformation == null) {
+            if (latitude != null && longitude != null) {
+                // create map object
+                addressMapInformation = L.map('addressMapLocationInformation', {
+                    center: new L.LatLng(latitude, longitude),
+                }).setView(itemLatLng, 18);
+
+                lyrOSM = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png');
+                addressMapInformation.addLayer(lyrOSM);
+
+
+                var geocoder = L.Control.geocoder().addTo(addressMapInformation);
+
+                addressMapInformationMarker = L.marker(itemLatLng).addTo(addressMapInformation);
+                //var latLon = L.latLng(itemLatLng.lat, itemLatLng.lng);
+                //var bounds = latLon.toBounds(100); // 500 = metres
+                //addressMapInformation.panTo(latLon).fitBounds(bounds);
+
+                //myMap = L.map('addressMapLocationInformation').setView(curLocation, 18);
+                //mapLocationDisplayPopup = L.popup();
+                ////add basemap layer
+                //lyrOSM = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png');
+                //myMap.addLayer(lyrOSM);
+
+            }
+        } else {
+
+            if (addressMapInformationMarker != null) {
+                addressMapInformation.removeLayer(addressMapInformationMarker);
+                //addressMapInformation.removeLayer(addressMapInformationPopup);
+                addressMapInformationMarker = null;
+            }
+
+            addressMapInformationPopup = L.popup();
+
+            addressMapInformationMarker = L.marker(itemLatLng).addTo(addressMapInformation);
+        }
     }
 
     //popup close
@@ -496,14 +735,21 @@
         if (validationResult != null && !validationResult.isValid) {
             //alert('Please fix invalid fields');
             return false;
+        } else if (displayName == null || locationLatLng == null) {
+            window.alert('Plese specify the address');
+            return false;
         } else {
             if (!isPostEdit) {
+                var ll = { Lat: locationLatLng.lat.toString(), Lng: locationLatLng.lng.toString() };
+
                 $.ajax({
                     method: "POST",
                     url: "../../marketplaceapi/saveitem",
                     data: {
                         values: JSON.stringify(data),
-                        postImages: JSON.stringify(postImages)
+                        postImages: JSON.stringify(postImages),
+                        address: JSON.stringify({ Val: displayName }),
+                        latlngStr: JSON.stringify(ll)
                     }
                 }).done(function () {
                     //console.log("postSaved");
@@ -518,14 +764,18 @@
                 });
             }
             else {
-
+                var ll = {
+                    Lat: locationLatLng.lat.toString(), Lng: locationLatLng.lng.toString()
+                };
                 $.ajax({
                     method: "POST",
                     url: "../../marketplaceapi/UpdateItem",
                     data: {
-                        key : pId,
+                        key: pId,
                         values: JSON.stringify(data),
-                        postImages: JSON.stringify(postImages)
+                        postImages: JSON.stringify(postImages),
+                        address: JSON.stringify({ Val: displayName }),
+                        latlngStr: JSON.stringify(ll)
                     }
                 }).done(function () {
                     //console.log("postSaved");
@@ -545,7 +795,7 @@
 
 
     //if file upload data values was changed
-    function fileUploader_valueChanged(e,t,d) {
+    function fileUploader_valueChanged(e, t, d) {
         var files = e.value;
         e.component.option("onUploaded", "onUploaded");
         var result = e.component.option("uploadUrl", "../../MarketplaceFileUpload/UploadItemImage");
@@ -562,13 +812,13 @@
 
 
     function afterUpload() {
-            $.ajax({
-                url: "../../MarketplaceFileUpload/GetUploadedItemImage"
-            }).done(function (data) {
-                postImage = { ImagePath: data};
-                postImages.push(postImage);
-                loadImageListToPopup();
-            });
+        $.ajax({
+            url: "../../MarketplaceFileUpload/GetUploadedItemImage"
+        }).done(function (data) {
+            postImage = { ImagePath: data };
+            postImages.push(postImage);
+            loadImageListToPopup();
+        });
     }
 
     /*
@@ -597,9 +847,9 @@
     }
 
 
-        /*
-     * function responsible for loading post
-     */
+    /*
+ * function responsible for loading post
+ */
     function loadItems(filteredItems) {
         console.log(filteredItems);
         if (filteredItems) {
@@ -615,11 +865,16 @@
                 clone.querySelector(".item-type").innerHTML = item.BuyOrSell;
                 clone.querySelector(".item-caption p").innerHTML = item.Caption;
 
+
                 if (item.Address == null) {
                     clone.querySelector(".item-caption .item-address i").innerHTML = "";
                 } else {
                     clone.querySelector(".item-caption .item-address i").innerHTML = item.Address;
+                    clone.querySelector(".item-caption .item-address i").setAttribute("data-lat", item.Lat);
+                    clone.querySelector(".item-caption .item-address i").setAttribute("data-lng", item.Lng);
+                    clone.querySelector(".item-caption .item-address i").setAttribute("data-displayName", item.address);
                 }
+
 
                 if (item.ImageList.length > 0) {
                     clone.querySelector(".image-container img").setAttribute("src", item.ImageList[0].ImagePath);
@@ -652,7 +907,11 @@
                         clone.querySelector(".item-caption .item-address i").innerHTML = "";
                     } else {
                         clone.querySelector(".item-caption .item-address i").innerHTML = item.Address;
+                        clone.querySelector(".item-caption .item-address i").setAttribute("data-lat", item.Lat);
+                        clone.querySelector(".item-caption .item-address i").setAttribute("data-lng", item.Lng);
+                        clone.querySelector(".item-caption .item-address i").setAttribute("data-displayName", item.Address);
                     }
+
 
                     if (item.ImageList.length > 0) {
                         clone.querySelector(".image-container img").setAttribute("src", item.ImageList[0].ImagePath);
@@ -673,7 +932,7 @@
                 console.log(data);
             });
         }
-        
+
     }
 
 
@@ -707,17 +966,17 @@
                     itemId: pId
                 }
             })
-            .done(function (data) {
+                .done(function (data) {
 
-                popup.option("visible", true);
-                form.option('formData', data);
+                    popup.option("visible", true);
+                    form.option('formData', data);
+                    initGeolocation(data.Lat, data.Lng, data.Address);
+                    isPostEdit = true;
 
-                isPostEdit = true;
-
-                postImages = data.ImageList;
-                console.log(postImages);
-                loadImageListToPopup();
-            });
+                    postImages = data.ImageList;
+                    console.log(postImages);
+                    loadImageListToPopup();
+                });
         });
 
 
@@ -741,11 +1000,11 @@
                         itemId: pId
                     }
                 })
-                .done(function (data) {
-                    postImages = data.ImageList;
-                    console.log(postImages);
-                    loadImageListToPopup();
-                });
+                    .done(function (data) {
+                        postImages = data.ImageList;
+                        console.log(postImages);
+                        loadImageListToPopup();
+                    });
             });
 
         });
@@ -787,11 +1046,18 @@
                 itemModalInfos.querySelector(".modal-item-buysell-category .item-buysell").innerHTML = res.BuyOrSell;
                 itemModalInfos.querySelector(".modal-item-buysell-category .item-category").innerHTML = res.Category;
                 itemModalInfos.querySelector("div label h5").innerHTML = res.UserFullname;
+
                 if (res.Address == null) {
                     itemModalInfos.querySelector("div label h6 i").innerHTML = "";
                 } else {
                     itemModalInfos.querySelector("div label h6 i").innerHTML = res.Address;
 
+                }
+
+                if (res.Address == null) {
+                    itemModalInfos.querySelector("div label h6 i").innerHTML = "";
+                } else {
+                    itemModalInfos.querySelector("div label h6 i").innerHTML = res.Address;
                 }
 
                 if (!res.IsEditable) {
@@ -822,12 +1088,17 @@
                 }
 
                 modal.style.display = "block";
-
             }).catch(function (error) {
             });
+        });
 
-
-
+        $("body").on("click", ".item-caption .item-address i", function (event) {
+            event.stopPropagation();
+            console.log($(this).attr('data-lat'));
+            console.log($(this).attr('data-lng'));
+            $("#addressInfoModal").modal("toggle");
+            console.log($(this).attr('data-displayName'));
+            initAddressMapInformation($(this).attr('data-lat'), $(this).attr('data-lng'), $(this).attr('data-displayName'));
         });
 
         let connection, createRoom, doNothing;
@@ -974,11 +1245,16 @@
                     srchStringList = f;
                 }
             } else {
-                var f = itemsList.filter((e) => e.Caption.includes($(".search-filter input").val()));
-                srchStringList = f;
+                //var f = itemsList.filter((e) => e.Caption.includes($(".search-filter input").val()));
+                //srchStringList = f;
+                if ($(".search-filter input").val().length >= 4) {
+                    var f = itemsList.filter((e) => e.Caption.includes(searchString));
+                    srchStringList = f;
+                }
+
             }
 
-            //filter item that are selling 
+            //filter item that are selling
             var sellingList = [];
             if ($("input#Sell").is(":checked")) {
                 var f = itemsList.filter((e) => e.BuyOrSell.toString() == "Selling");
@@ -1017,7 +1293,7 @@
                 goatList = f;
             }
 
-            var collectiveRes = Array.prototype.concat(srchStringList,sellingList, buyingList, pigList, chickenList, cowList, goatList);
+            var collectiveRes = Array.prototype.concat(srchStringList, sellingList, buyingList, pigList, chickenList, cowList, goatList);
             var resID = collectiveRes.map(({ ItemID }) => ItemID);
             //unique / distinct
             var distinctId = [...new Set(resID)];
@@ -1049,7 +1325,7 @@
     });
 
 
-    
+
 
     function loadMessagesToChatPopup() {
         if (roomMessages.length > 0) {
@@ -1079,10 +1355,32 @@
 
 </script>
 
+<!-- address info modal -->
+<div class="modal fade" id="addressInfoModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">View Address</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="width:640px;">
+
+                <div id="addressMapLocationInformation" style="height: 350px; "></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <template id="itemModalThumbnailTemplate">
     <div class="product-image-thumb"><img src="../../dist/img/prod-5.jpg" alt="Product Image"></div>
-
 </template>
+
 <div id="itemModal" class="modal">
     <div class="card card-solid col-8 clearfix" style="margin: 0 auto">
         <span class="close" style="position: absolute;right: 15px;top: 5px;">&times;</span>
@@ -1104,22 +1402,22 @@
                     <h3 class="my-3 modal-item-caption">LOWA Men’s Renegade GTX Mid Hiking Boots Review</h3>
                     <p class="modal-item-description">Raw denim you probably haven't heard of them jean shorts Austin. Nesciunt tofu stumptown aliqua butcher retro keffiyeh dreamcatcher synth. Cosby sweater eu banh mi, qui irure terr.</p>
                     <p class="modal-item-buysell-category"><b class="item-buysell">buy or selling</b> : <b class="item-category">Cow</b></p>
-                        <hr>
-                        <h6>Seller info</h6>
-                        <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                            <label class="btn btn-default text-center active">
-                                <h5 class="modal-item-username">Fullname</h5>
-                                <h6><i class="modal-item-address">address</i></h6>
-                            </label>
+                    <hr>
+                    <h6>Seller info</h6>
+                    <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                        <label class="btn btn-default text-center active">
+                            <h5 class="modal-item-username">Fullname</h5>
+                            <h6><i class="modal-item-address">address</i></h6>
+                        </label>
 
+                    </div>
+                    <div class="mt-4">
+                        <div class="btn btn-primary btn-lg btn-flat chat-button">
+                            <i class="fas fa-cart-plus fa-lg mr-2"></i>
+                            Chat seller now
                         </div>
-                        <div class="mt-4">
-                            <div class="btn btn-primary btn-lg btn-flat chat-button">
-                                <i class="fas fa-cart-plus fa-lg mr-2"></i>
-                                Chat seller now
-                            </div>
 
-                        </div>
+                    </div>
                 </div>
             </div>
         </div>

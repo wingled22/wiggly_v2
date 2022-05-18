@@ -40,11 +40,11 @@
                     <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
                 </li>
                 @*<li class="nav-item d-none d-sm-inline-block">
-                    <a asp-area="Admin" asp-controller="Page" asp-action="Index" class="nav-link">Home</a>
-                </li>*@
+                        <a asp-area="Admin" asp-controller="Page" asp-action="Index" class="nav-link">Home</a>
+                    </li>*@
                 @*<li class="nav-item d-none d-sm-inline-block">
-                    <a href="#" class="nav-link">Contact</a>
-                </li>*@
+                        <a href="#" class="nav-link">Contact</a>
+                    </li>*@
             </ul>
 
             <!-- Right navbar links -->
@@ -208,11 +208,11 @@
         </div>
         <!-- /.content-wrapper -->
         @*<footer class="main-footer">
-            <div class="float-right d-none d-sm-block">
-                <b>Version</b> 3.2.0
-            </div>
-            <strong>Copyright &copy; 2014-2021 <a href="https://adminlte.io">AdminLTE.io</a>.</strong> All rights reserved.
-        </footer>*@
+                <div class="float-right d-none d-sm-block">
+                    <b>Version</b> 3.2.0
+                </div>
+                <strong>Copyright &copy; 2014-2021 <a href="https://adminlte.io">AdminLTE.io</a>.</strong> All rights reserved.
+            </footer>*@
 
 
         <!-- Control Sidebar -->
@@ -274,6 +274,98 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <!-- AdminLTE App -->
     <script src="~/dist/js/adminlte.min.js"></script>
+    <script src="~/plugins/leaflet/leaflet.js"></script>
+
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <script>
+        //for geolocation
+       
+        $(document).ready(function () {
+
+            //var curLocation = [11.0530536, 124.0110354];
+
+            //// create map object 
+            //myMap = L.map('MapLocation').setView(curLocation, 10);
+
+            //var mapLocationDisplayPopup = L.popup();
+
+            ////add basemap layer
+            //lyrOSM = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png');
+            //myMap.addLayer(lyrOSM);
+
+
+            //var geocoder = L.Control.geocoder({
+            //    defaultMarkGeocode: false
+            //})
+            //    .on('markgeocode', function (e) {
+            //        var latlng = e.geocode.center;
+            //        if (marker != undefined) {
+            //            myMap.removeLayer(marker);
+            //            marker = null;
+            //            locationLatLng = null;
+            //        }
+            //        var p = new Promise(function (resolve, reject) {
+            //            $.ajax({
+            //                url: "https://nominatim.openstreetmap.org/reverse?format=json&lat=" + latlng.lat + "&lon=" + latlng.lng,
+            //                success: function (data) {
+            //                    resolve(data)
+            //                },
+            //                error: function (data) {
+            //                    reject(data)
+            //                }
+            //            });
+            //        });
+            //        p.then((data) => {
+            //            console.log(data);
+            //            marker = L.marker(latlng).addTo(myMap);
+            //            displayName = data.display_name;
+            //            locationLatLng = latlng;
+            //            mapLocationDisplayPopup.setLatLng(latlng).setContent(displayName).openOn(myMap);
+            //        }).catch((err) => {
+            //            console.table(err);
+            //        });
+
+            //        console.log(latlng);
+            //        myMap.fitBounds(e.geocode.bbox);
+            //    })
+            //    .addTo(myMap);
+
+            //myMap.on('click', function (e) {
+            //    // console.log(e); 
+            //    if (marker != undefined) {
+            //        myMap.removeLayer(marker);
+            //        marker = null;
+            //        locationLatLng = null;
+            //    } else {
+            //        console.log("no marker");
+            //    }
+            //    var p = new Promise(function (resolve, reject) {
+            //        $.ajax({
+            //            url: "https://nominatim.openstreetmap.org/reverse?format=json&lat=" + e.latlng.lat + "&lon=" + e.latlng.lng,
+            //            success: function (data) {
+            //                resolve(data)
+            //            },
+            //            error: function (data) {
+            //                reject(data)
+            //            }
+            //        });
+            //    });
+
+            //    p.then((data) => {
+            //        console.log(data);
+            //        marker = L.marker(e.latlng).addTo(myMap);
+            //        displayName = data.display_name;
+            //        locationLatLng = e.latlng;
+            //        mapLocationDisplayPopup.setLatLng(e.latlng).setContent(displayName).openOn(myMap);
+            //    }).catch((err) => {
+            //        console.table(err);
+            //    });
+
+
+            //})
+
+        });
+    </script>
     <!-- AdminLTE for demo purposes -->
     @*<script src="/dist/js/demo.js"></script>*@
     @*<script src="~/js/site.js" asp-append-version="true"></script>*@

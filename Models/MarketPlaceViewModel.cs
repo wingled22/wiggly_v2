@@ -10,6 +10,8 @@ namespace Wiggly.Models
         public Guid ItemID { get; set; }
         public string Caption { get; set; }
         public string Address { get; set; }
+        public string Lat { get; set; }
+        public string Lng { get; set; }
         public string Description { get; set; }
         public string BuyOrSell { get; set; }
         public string Category { get; set; }

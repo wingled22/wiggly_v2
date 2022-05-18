@@ -41,6 +41,8 @@ namespace Wiggly.Controllers
                              UserFullname = string.Format("{0} {1}", user.Firstname, user.LastName),
                              Caption = item.Caption,
                              Address = item.Address,
+                             Lat = item.Lat,
+                             Lng = item.Lng,
                              BuyOrSell = item.BuyOrSell,
                              DateCreated = item.DateCreated.ToString(),
                              Category = item.Category,
@@ -76,6 +78,8 @@ namespace Wiggly.Controllers
                              Category = item.Category,
                              Description = item.Description,
                              Address = item.Address,
+                             Lat = item.Lat,
+                             Lng = item.Lng,
                              DateCreated = item.DateCreated.ToString(),
                              ImageList = _context.PostPhoto.Where(p => item.Id == p.Post && p.Path.Contains("marketplace"))
                                                 .Select(p => new MarketPlaceImage { ImageId = p.Id, ImagePath = p.Path })
@@ -91,15 +95,19 @@ namespace Wiggly.Controllers
 
 
         [HttpPost]
-        public IActionResult SaveItem(string values, string postImages)
+        public IActionResult SaveItem(string values, string postImages, string address, string latlngStr)
         {
             if (string.IsNullOrEmpty(values))
                 return BadRequest("Value sent is empty");
 
             var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
 
+            var addressStr = new Address();
+            var latLng = new LatLng();
             var val = new MarketPlaceViewModel();
             JsonConvert.PopulateObject(values, val);
+            JsonConvert.PopulateObject(address, addressStr);
+            JsonConvert.PopulateObject(latlngStr, latLng);
 
             if (!TryValidateModel(val))
                 return BadRequest("values sent error");
@@ -110,11 +118,13 @@ namespace Wiggly.Controllers
                 Id = Guid.NewGuid(),
                 Caption = val.Caption,
                 Description = val.Description,
-                Address = val.Address,
                 User = loggedInUser.Id,
                 DateCreated = DateTime.Now,
                 BuyOrSell = val.BuyOrSell,
-                Category = val.Category
+                Category = val.Category,
+                Address = addressStr.Val,
+                Lat = latLng.Lat,
+                Lng = latLng.Lng
             };
 
             if (!TryValidateModel(newItem))
@@ -159,7 +169,7 @@ namespace Wiggly.Controllers
         }
 
         [HttpPost]
-        public ActionResult UpdateItem(Guid key, string values, string postImages)
+        public ActionResult UpdateItem(Guid key, string values, string postImages, string address, string latlngStr)
         {
             var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
 
@@ -168,13 +178,21 @@ namespace Wiggly.Controllers
             if (item == null || string.IsNullOrEmpty(values))
                 return BadRequest("Post not found");
 
+            var addressStr  = new Address();
+            var latLng = new LatLng();
             var edited = new MarketPlaceViewModel();
             JsonConvert.PopulateObject(values, edited);
+
+            JsonConvert.PopulateObject(address, addressStr);
+            JsonConvert.PopulateObject(latlngStr, latLng);
+            
             item.Caption = edited.Caption;
             item.Description = edited.Description;
             item.BuyOrSell = edited.BuyOrSell;
             item.Category = edited.Category;
-            item.Address = edited.Address;
+            item.Address = addressStr.Val;
+            item.Lat = latLng.Lat;
+            item.Lng = latLng.Lng;
 
             _context.MarketPlace.Update(item);
             _context.SaveChanges();
@@ -236,6 +254,15 @@ namespace Wiggly.Controllers
             return Ok();
         }
 
+    }
+    class Address
+    {
+        public string Val{ get; set; }
+    }
 
+    class LatLng
+    {
+        public string Lat { get; set; }
+        public string Lng { get; set; }
     }
 }
