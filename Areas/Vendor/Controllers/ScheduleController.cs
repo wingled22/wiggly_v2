@@ -129,7 +129,7 @@ namespace Wiggly.Areas.Vendor.Controllers
         {
             var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
             var ret = new List<AspNetUsers>();
-            var res = _context.AspNetUsers.Where(q => q.Id != loggedInUser.Id).ToList();
+            var res = _context.AspNetUsers.Where(q => q.Id != loggedInUser.Id && q.UserType!="Admin").ToList();
             if (res == null)
                 BadRequest("No Vendor ");
 
