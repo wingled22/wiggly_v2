@@ -42,16 +42,16 @@ namespace Wiggly.Areas.Farmer.Controllers
             var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
             var info = _context.ProfileInfo.Where(q => q.UserId == loggedInUser.Id).FirstOrDefault();
 
-
-            if(info == null)
+            _logger.LogInformation(pp);
+            if (info == null)
             {
                 ProfileInfo prof = new ProfileInfo();
                 JsonConvert.PopulateObject(values, prof);
                 prof.UserId = loggedInUser.Id;
-                
-                if(pp != null)
+
+                if (pp != null)
                 {
-                    var pic = new PP();
+                    var pic = new Vendor.Controllers.PP();
                     JsonConvert.PopulateObject(pp, pic);
                     prof.ProfilePic = pic.ImagePath;
 
@@ -83,15 +83,22 @@ namespace Wiggly.Areas.Farmer.Controllers
                 info.Description = prof.Description;
                 if (pp != null)
                 {
-                    var pic = new PP();
-                    JsonConvert.PopulateObject(pp, pic);
+                    var pic = new Vendor.Controllers.PP();
+                    
+                    JsonConvert.PopulateObject(pp, pic); _logger.LogInformation("ang na convert:" + pic.ToString());
                     info.ProfilePic = pic.ImagePath;
                     //split the string to differentiate the filename
-                    string path = prof.ProfilePic;
-                    string[] subs = path.Split('/');
+                    string fpath = pic.ImagePath; _logger.LogInformation("pic.ImagePath :" + pic.ImagePath); _logger.LogInformation("prof.ProfilePic :" + prof.ProfilePic);
+                    string[] subs = fpath.Split('/');
                     var profilePic = _context.ProfilePic.Where(q => q.UserId == loggedInUser.Id).FirstOrDefault();
+                    _logger.LogInformation("pic.ImagePath :" + pic.ImagePath);
+                    _logger.LogInformation("1:" + subs[1]);
+                    _logger.LogInformation("2:" + subs[2]);
+                    _logger.LogInformation("3:" + subs[3]);
+
                     profilePic.FilePath = pic.ImagePath;
                     profilePic.Name = subs[3];
+               
 
                     _context.ProfilePic.Update(profilePic);
                     _context.SaveChanges();
@@ -102,12 +109,12 @@ namespace Wiggly.Areas.Farmer.Controllers
                 return Ok();
             }
             return BadRequest("somehing happened!");
-            
+
         }
     }
 
-    internal class PP
-    {
-        public string ImagePath { get; set; }
-    }
+    //class PP
+    //{
+    //    public string ImagePath { get; set; }
+    //}
 }
