@@ -85,16 +85,19 @@ namespace Wiggly.Areas.Farmer.Controllers
                 {
                     var pic = new Vendor.Controllers.PP();
                     
-                    JsonConvert.PopulateObject(pp, pic); _logger.LogInformation("ang na convert:" + pic.ToString());
+                    JsonConvert.PopulateObject(pp, pic); 
+                    //_logger.LogInformation("ang na convert:" + pic.ToString());
                     info.ProfilePic = pic.ImagePath;
                     //split the string to differentiate the filename
-                    string fpath = pic.ImagePath; _logger.LogInformation("pic.ImagePath :" + pic.ImagePath); _logger.LogInformation("prof.ProfilePic :" + prof.ProfilePic);
+                    string fpath = pic.ImagePath;
+                    //_logger.LogInformation("pic.ImagePath :" + pic.ImagePath); 
+                    //_logger.LogInformation("prof.ProfilePic :" + prof.ProfilePic);
                     string[] subs = fpath.Split('/');
                     var profilePic = _context.ProfilePic.Where(q => q.UserId == loggedInUser.Id).FirstOrDefault();
-                    _logger.LogInformation("pic.ImagePath :" + pic.ImagePath);
-                    _logger.LogInformation("1:" + subs[1]);
-                    _logger.LogInformation("2:" + subs[2]);
-                    _logger.LogInformation("3:" + subs[3]);
+                    //_logger.LogInformation("pic.ImagePath :" + pic.ImagePath);
+                    //_logger.LogInformation("1:" + subs[1]);
+                    //_logger.LogInformation("2:" + subs[2]);
+                    //_logger.LogInformation("3:" + subs[3]);
 
                     profilePic.FilePath = pic.ImagePath;
                     profilePic.Name = subs[3];
