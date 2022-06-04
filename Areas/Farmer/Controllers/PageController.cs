@@ -32,7 +32,7 @@ namespace Wiggly.Areas.Farmer.Controllers
             if (!IsSubscribed())
                 return View("Subscription");
             else
-                return View();
+                return View("Index-v2");
         }
 
         public IActionResult Calendar()
@@ -76,6 +76,11 @@ namespace Wiggly.Areas.Farmer.Controllers
                 return View();
         }
 
+        public IActionResult SearchResult(string searchResult, string searchBy)
+        {
+            return View();
+        }
+
         private bool IsSubscribed()
         {
             var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
@@ -84,5 +89,7 @@ namespace Wiggly.Areas.Farmer.Controllers
             else
                 return true;
         }
+
+        
     }
 }

@@ -1,0 +1,277 @@
+﻿@using Wiggly
+@namespace Wiggly.Models
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using DevExtreme.AspNet.Mvc
+@model Wiggly.Entities.Schedules;
+
+@{
+    ViewData["Title"] = "Search Result";
+    Layout = "_LayoutAdminLTEVendorDashboard";
+}
+<style>
+    .image-container {
+        overflow: auto;
+    }
+
+    ul {
+        text-align: left;
+        display: flex;
+    }
+
+    li {
+        list-style: none;
+        display: inline-block; /*pour limiter l'espace occupé   par l'image li*/
+    }
+
+    article {
+        position: relative;
+    }
+
+        article button {
+            position: absolute;
+            right: 20px;
+            top: 5px;
+        }
+
+    img {
+        width: 150px;
+        height: 150px;
+        display: block;
+        object-fit: cover;
+    }
+
+    figure {
+        /*background: #7D5976;*/
+        text-align: center;
+        padding: 10px;
+        margin: 10px;
+    }
+
+    a {
+        color: white;
+        text-decoration: none;
+    }
+
+        a:hover {
+            text-decoration: none;
+            color: pink;
+        }
+
+    span.description {
+        padding: 10px;
+        display: block;
+    }
+
+    /* The Modal (background) */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 2147483648; /* Sit on top */
+        padding-top: 40px; /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
+    }
+
+    /* Modal Content (Image) */
+    .modal-content {
+        margin: auto;
+        display: block;
+        width: 80%;
+        height: 80%;
+        max-width: 700px;
+    }
+</style>
+<div class="row">
+    <div class="col-lg-3">
+        <div class="card" style="padding: 20px">
+            <h5>Filters</h5>
+            <div class="form-group">
+                <!-- <label for="searchString"></label> -->
+                <input type="text"
+                       class="form-control" name="searchString" id="" aria-describedby="helpId" placeholder="">
+                <!-- <small id="helpId" class="form-text text-muted">Help text</small> -->
+            </div>
+            <div class="form-check">
+                <label class="form-check-label">
+                    <input type="radio" class="form-check-input" name="searchBy" id="" value="user" checked>
+                    User
+                </label>
+            </div>
+            <div class="form-check">
+                <label class="form-check-label">
+                    <input type="radio" class="form-check-input" name="searchBy" id="" value="location" checked>
+                    Location
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-9 post-container">
+        
+    </div>
+</div>
+
+<template id="postTemplate">
+    <div class="card">
+        <div class="card-body">
+            <div class="post">
+                <div class="user-block">
+                    <img class="img-circle img-bordered-sm" src="../../dist/img/person-thumbnail.png" alt="user image">
+                    <span class="username">
+                        <span class="post-author" href="#">Jonathan Burke Jr.</span>
+                        @*<a class="float-right btn-tool edit" role="button"><i class="fas fa-pen"></i></a>*@
+                    </span>
+                    <span class="description">Shared publicly - 7:30 PM today</span>
+                </div>
+                <!-- /.user-block -->
+
+                <div class="post-infos" style="line-height:10px">
+                    <p class="livestockType">Livestock type: <b>value</b></p>
+                    <p class="livestockQty">Quantity: <b>value</b></p>
+                    <p class="livestockAmount">Amount: <b>value</b> </p>
+                    <p class="livestockKilos">Kilos: <b>value</b></p>
+                    <p class="livestockAddress">Address: <b style="line-height:normal">value</b></p>
+                </div>
+                <div class="image-container">
+                    <ul>
+                    </ul>
+                </div>
+
+                <p>
+                    <span class="float-right" id="book">
+                        <a  class="link-black text-sm">
+                            <i class="fas fa-calendar-check"></i> Book
+                        </a>
+                    </span>
+                </p>
+                <br />
+            </div>
+        </div>
+    </div>
+</template>
+
+<template id="postImagesTemplate">
+    <li>
+        <article>
+            <a href="">
+                <figure>
+                    <img src="http://www.awwwards.com/awards/images/2013/07/bootstrap-resources-cover2.jpg" alt="">
+                </figure>
+            </a>
+        </article>
+    </li>
+</template>
+
+
+<div id="imageModal" class="modal">
+    <span class="close">&times;</span>
+    <img class="modal-content">
+</div>
+<script>
+    var firstload = {
+        addressString : "@ViewData["addressString"]",
+        livestockType : "@ViewData["livestockType"]",
+        priceRange : "@ViewData["priceRange"]"
+    }
+
+    console.table(firstload);
+
+    function searchPostsByLocation() {
+        var p = new Promise(function (resolve, reject) {
+            $.ajax({
+                url: "../../SearchAPI/SearchResults?addressString="+firstload.addressString + "&livestockType=" + firstload.livestockType + "&priceRange=" + firstload.priceRange,
+                success: function (data) {
+                    resolve(data)
+                },
+                error: function (data) {
+                    reject(data)
+                }
+            });
+        });
+
+        p.then((data) => {
+            //toastr.success('Booking Success!');
+            console.table(data);
+            if (data.length > 0) {
+                let postTemplate = document.querySelector('template#postTemplate');
+                var postParentContainer = document.querySelector('.post-container');
+                let postImagesTemplate = document.querySelector('template#postImagesTemplate');
+
+                $(".post-container").empty();
+                $.each(data, function (i, item) {
+                    let clone = postTemplate.content.cloneNode(true);
+
+                    let username = clone.querySelector(".post .user-block .username .post-author");
+                    username.innerHTML = item.UserFullname;
+
+                    let time = clone.querySelector(".post .user-block .description");
+                    time.innerHTML = item.DateCreated;
+
+                    clone.querySelector(".post .post-infos p.livestockType b").innerHTML = item.Category;
+                    clone.querySelector(".post .post-infos p.livestockQty b").innerHTML = item.Quantity;
+                    clone.querySelector(".post .post-infos p.livestockAmount b").innerHTML = item.Amount;
+                    clone.querySelector(".post .post-infos p.livestockKilos b").innerHTML = item.Kilos;
+                    clone.querySelector(".post .post-infos p.livestockAddress b").innerHTML = item.Address;
+                    if (item.Status == "Pending") {
+                        //clone.querySelector(".post p span").setAttribute("data-value", item.ItemID);
+                        //clone.querySelector(".post p span a").setAttribute("href", "");
+                        clone.querySelector(".post p span a").classList.add("text-danger");
+                        clone.querySelector(".post p span a").innerHTML = "Already have a pending request.";
+                    } else {
+                        clone.querySelector(".post p span a").setAttribute("href", "#");
+                        clone.querySelector(".post p span").setAttribute("data-value", item.ItemID);
+                    }
+
+
+                    let postImagesParent = clone.querySelector(".post .image-container ul");
+
+
+                    //console.table(item.ImageList);
+                    $.each(item.ImageList, function (i, image) {
+                        let imageClone = postImagesTemplate.content.cloneNode(true);
+
+                        let img = imageClone.querySelector("li article a figure img");
+                        let a = imageClone.querySelector("li article a");
+
+                        img.setAttribute("src", image.ImagePath);
+                        a.setAttribute("href", image.ImagePath);
+                        postImagesParent.append(imageClone);
+                    });
+
+                    postParentContainer.appendChild(clone);
+
+                });
+            } else {
+                document.querySelector('.post-container').innerHTML = "<h5>No post found</h5>";
+            }
+        }).catch((err) => {
+            //toastr.error('Something unexpected happened adding a booking, try again later.');
+
+            console.table(err);
+        });
+    }
+
+    $(document).ready(function () {
+        searchPostsByLocation();
+
+
+        //image is clicked on the post row
+        $('body').on('click', "li article a", function (e) {
+            e.preventDefault();
+            var modal = document.getElementById("imageModal");
+            modal.style.display = "block";
+            let imgSrc = $(this).attr("href");
+
+            $("#imageModal img").attr("src", $(this).attr("href"));
+        });
+
+        $(".close").on("click", function () {
+            var modal = document.getElementById("imageModal");
+            modal.style.display = "none";
+        });
+    });
+</script>

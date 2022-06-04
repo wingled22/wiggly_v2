@@ -10,6 +10,12 @@ using Wiggly.Entities;
 using Wiggly.Identity;
 using Wiggly.Models;
 
+
+//TODO: changed Marketplace DB
+//todo: changed Notif DB
+//todo: added BookingRequest DB
+
+
 namespace Wiggly.Controllers
 {
     public class MarketPlaceAPIController : Controller
@@ -32,20 +38,56 @@ namespace Wiggly.Controllers
             var posts = (from item in _context.MarketPlace
                          join user in _context.AspNetUsers
                          on item.User equals user.Id
+                         
                          orderby item.DateCreated descending
 
-                         select new MarketPlaceViewModel
+                         select new MarketPlaceViewModelRevised
                          {
                              ItemID = item.Id,
                              UserId = user.Id,
                              UserFullname = string.Format("{0} {1}", user.Firstname, user.LastName),
-                             Caption = item.Caption,
                              Address = item.Address,
                              Lat = item.Lat,
                              Lng = item.Lng,
-                             BuyOrSell = item.BuyOrSell,
                              DateCreated = item.DateCreated.ToString(),
                              Category = item.Category,
+                             Quantity = (int)item.Quantity,
+                             Amount = (decimal)item.Amount,
+                             Kilos = (int)item.Kilos,
+                             ImageList = _context.PostPhoto.Where(p => item.Id == p.Post)
+                                                .Select(p => new MarketPlaceImage { ImageId = p.Id, ImagePath = p.Path })
+                                                .ToList(),
+                             //Liked = _context.UserLikedPost.Any(q => q.Post == item.Id && q.User == loggedInUser.Id),
+                             IsEditable = loggedInUser.Id == user.Id ? true : false
+
+                         }).ToList();
+
+            return Ok(posts);
+        }
+
+        [HttpGet]
+        public IActionResult GetItemsFromLoggedInUser()
+        {
+            var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
+            var posts = (from item in _context.MarketPlace
+                         join user in _context.AspNetUsers
+                         on item.User equals user.Id
+                         where item.User == user.Id
+                         orderby item.DateCreated descending
+
+                         select new MarketPlaceViewModelRevised
+                         {
+                             ItemID = item.Id,
+                             UserId = user.Id,
+                             UserFullname = string.Format("{0} {1}", user.Firstname, user.LastName),
+                             Address = item.Address,
+                             Lat = item.Lat,
+                             Lng = item.Lng,
+                             DateCreated = item.DateCreated.ToString(),
+                             Category = item.Category,
+                             Quantity = (int)item.Quantity,
+                             Amount = (decimal)item.Amount,
+                             Kilos = (int)item.Kilos,
                              ImageList = _context.PostPhoto.Where(p => item.Id == p.Post)
                                                 .Select(p => new MarketPlaceImage { ImageId = p.Id, ImagePath = p.Path })
                                                 .ToList(),
@@ -104,7 +146,7 @@ namespace Wiggly.Controllers
 
             var addressStr = new Address();
             var latLng = new LatLng();
-            var val = new MarketPlaceViewModel();
+            var val = new MarketPlaceViewModelRevised();
             JsonConvert.PopulateObject(values, val);
             JsonConvert.PopulateObject(address, addressStr);
             JsonConvert.PopulateObject(latlngStr, latLng);
@@ -116,12 +158,12 @@ namespace Wiggly.Controllers
             var newItem = new MarketPlace()
             {
                 Id = Guid.NewGuid(),
-                Caption = val.Caption,
-                Description = val.Description,
                 User = loggedInUser.Id,
                 DateCreated = DateTime.Now,
-                BuyOrSell = val.BuyOrSell,
                 Category = val.Category,
+                Quantity = val.Quantity,
+                Amount = val.Amount,
+                Kilos = val.Kilos,
                 Address = addressStr.Val,
                 Lat = latLng.Lat,
                 Lng = latLng.Lng
@@ -155,9 +197,7 @@ namespace Wiggly.Controllers
                         Post = newItem.Id
 
                     };
-
                     postPhotos.Add(temp);
-
                 }
 
                 _context.PostPhoto.AddRange(postPhotos);

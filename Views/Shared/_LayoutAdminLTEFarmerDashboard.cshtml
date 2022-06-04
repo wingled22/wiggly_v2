@@ -40,12 +40,7 @@
                 <li class="nav-item">
                     <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
                 </li>
-                @*<li class="nav-item d-none d-sm-inline-block">
-                        <a asp-area="Admin" asp-controller="Page" asp-action="Index" class="nav-link">Home</a>
-                    </li>*@
-                @*<li class="nav-item d-none d-sm-inline-block">
-                        <a href="#" class="nav-link">Contact</a>
-                    </li>*@
+                
             </ul>
 
 
@@ -232,7 +227,7 @@
             });
 
             loadNotif.then((data) => {
-                console.log(data);
+                //console.log(data);
                 let template = document.querySelector('template#notif-template');
                 var parent = document.querySelector('#notif-parent');
 
@@ -241,8 +236,13 @@
                     $.each(data, function (i, item) {
                         let clone = template.content.cloneNode(true);
 
-                        clone.querySelector("a").innerHTML = "<i class=\"fas fa-bell mr-2\"></i> " + item.Message;
+                        if (item.NotifType == "Booking") {
+                            clone.querySelector("a").innerHTML = "<i class=\"fas fa-bell mr-2\"></i> " + item.Message + "<br/> <button type=\"button\" class=\"btn btn-success view-booking-notif\" data-bookingReqID=\"" + item.BookingRequest+"\" data-notificationID=\""+item.Id+"\">View</button> ";
 
+                        } else {
+                            clone.querySelector("a").innerHTML = "<i class=\"fas fa-bell mr-2\"></i> " + item.Message;
+
+                        }
                         parent.appendChild(clone);
                     });
                 } else {

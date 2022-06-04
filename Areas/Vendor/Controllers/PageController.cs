@@ -31,7 +31,7 @@ namespace Wiggly.Areas.Vendor.Controllers
             if (!IsSubscribed())
                 return View("Subscription");
             else
-                return View();
+                return View("Index-v2");
         }
 
         public IActionResult Transaction()
@@ -70,6 +70,29 @@ namespace Wiggly.Areas.Vendor.Controllers
 
         public IActionResult Profile()
         {
+            if (!IsSubscribed())
+                return View("Subscription");
+            else
+                return View();
+        }
+
+        public IActionResult SearchLocation()
+        {
+            if (!IsSubscribed())
+                return View("Subscription");
+            else
+                return View();
+        }
+
+        public IActionResult SearchResults(string addressString, string livestockType,string priceRange)
+        {
+            _logger.LogInformation(addressString);
+            _logger.LogInformation(livestockType);
+            _logger.LogInformation(priceRange);
+
+            ViewData["addressString"] = addressString;
+            ViewData["livestockType"] = livestockType;
+            ViewData["priceRange"] = priceRange;
             if (!IsSubscribed())
                 return View("Subscription");
             else

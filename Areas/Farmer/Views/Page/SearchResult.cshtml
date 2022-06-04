@@ -1,0 +1,73 @@
+﻿@using Wiggly
+@namespace Wiggly.Models
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using DevExtreme.AspNet.Mvc
+@model Wiggly.Entities.Schedules;
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "_LayoutAdminLTEFarmerDashboard";
+}
+<div class="row">
+    <div class="col-lg-3">
+        <div class="card" style="padding: 20px">
+            <h5>Filters</h5>
+            <div class="form-group">
+                <!-- <label for="searchString"></label> -->
+                <input type="text"
+                       class="form-control" name="searchString" id="" aria-describedby="helpId" placeholder="">
+                <!-- <small id="helpId" class="form-text text-muted">Help text</small> -->
+            </div>
+            <div class="form-check">
+                <label class="form-check-label">
+                    <input type="radio" class="form-check-input" name="searchBy" id="" value="user" checked>
+                    User
+                </label>
+            </div>
+            <div class="form-check">
+                <label class="form-check-label">
+                    <input type="radio" class="form-check-input" name="searchBy" id="" value="location" checked>
+                    Location
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-9">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">
+                    <img src="dist/img/user2-160x160.jpg" height="50" width="50" style="margin-right: 10px;" class="img-circle elevation-2" alt="User Image">
+                    farmer name
+                </h4>
+
+                <div style="padding-top: 10px;">
+                    <p class="card-text">
+                        Some quick example text to build on the card title and make up the bulk of the card's
+                        content.
+                    </p>
+                </div>
+
+                <a href="#" class="card-link">View Profile</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">
+                    <img src="dist/img/user2-160x160.jpg" height="50" width="50" style="margin-right: 10px;" class="img-circle elevation-2" alt="User Image">
+                    farmer name
+                </h4>
+
+                <div style="padding-top: 10px;">
+                    <p class="card-text">
+                        Some quick example text to build on the card title and make up the bulk of the card's
+                        content.
+                    </p>
+                </div>
+
+                <a href="#" class="card-link">View Profile</a>
+            </div>
+        </div>
+
+    </div>
+</div>  

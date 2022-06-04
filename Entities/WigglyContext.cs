@@ -22,6 +22,7 @@ namespace Wiggly.Entities
         public virtual DbSet<AspNetUserRoles> AspNetUserRoles { get; set; }
         public virtual DbSet<AspNetUserTokens> AspNetUserTokens { get; set; }
         public virtual DbSet<AspNetUsers> AspNetUsers { get; set; }
+        public virtual DbSet<BookingRequest> BookingRequest { get; set; }
         public virtual DbSet<Kilos> Kilos { get; set; }
         public virtual DbSet<MarketPlace> MarketPlace { get; set; }
         public virtual DbSet<Message> Message { get; set; }
@@ -139,11 +140,25 @@ namespace Wiggly.Entities
                 entity.Property(e => e.UserName).HasMaxLength(256);
             });
 
+            modelBuilder.Entity<BookingRequest>(entity =>
+            {
+                entity.Property(e => e.DateCreated).HasColumnType("datetime");
+
+                entity.Property(e => e.DateUpdated).HasColumnType("datetime");
+
+                entity.Property(e => e.Status)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("('Pending')");
+            });
+
             modelBuilder.Entity<MarketPlace>(entity =>
             {
                 entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.Address).HasColumnType("text");
+
+                entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
 
                 entity.Property(e => e.BuyOrSell)
                     .HasMaxLength(10)
@@ -188,6 +203,10 @@ namespace Wiggly.Entities
                     .IsUnicode(false);
 
                 entity.Property(e => e.Message).IsUnicode(false);
+
+                entity.Property(e => e.NotifType)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
             });
 
             modelBuilder.Entity<Payment>(entity =>

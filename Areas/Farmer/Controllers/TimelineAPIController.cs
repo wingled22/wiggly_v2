@@ -35,16 +35,6 @@ namespace Wiggly.Areas.Farmer.Controllers
             var now = DateTime.Now.AddDays(3);
             var end = DateTime.Now.AddMinutes(60);
 
-            //TODO: display timeline data 2 days before the booking
-            //var timelinedata = _context.Schedules.Where(q => 
-            //                        q.Farmer == loggedInUser.Id &&
-            //                        //q.BookingStartDate <= DateTime.Now && 
-            //                        q.BookingStartDate > now ).Where(q=>q.BookingStartDate < DateTime.Now)
-            //    .Select(q => new TimelineViewModel { 
-            //        Date = ((DateTime)q.BookingStartDate).ToString("MMMM dd, yyyy H:mm:ss"),
-            //        Agenda = q.Notes })
-            //    .ToList();
-
             var timelinedata = (from sched in _context.Schedules
                                 join user in _context.AspNetUsers
                                 on sched.Vendor equals user.Id

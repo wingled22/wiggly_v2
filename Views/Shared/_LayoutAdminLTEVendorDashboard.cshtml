@@ -30,6 +30,9 @@
     <link href="~/css/site.css" rel="stylesheet" />
 </head>
 <body class="hold-transition sidebar-mini">
+    <div class="preloader flex-column justify-content-center align-items-center">
+        <img class="animation__shake" src="~/images/wiggly.png" alt="AdminLTELogo" height="60" width="60">
+    </div>
     <!-- Site wrapper -->
     <div class="wrapper">
         <!-- Navbar -->
@@ -50,6 +53,12 @@
             <!-- Right navbar links -->
             <ul class="navbar-nav ml-auto">
                 <!-- Notifications Dropdown Menu -->
+                <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("SearchLocation", "Page", new { area = "Vendor" })">
+                        <i class="fas fa-search"></i>
+                    </a>
+                </li>
+
                 <li class="nav-item dropdown">
                     <a class="nav-link" data-toggle="dropdown" href="#notif-parent">
                         <i class="far fa-bell"></i>
@@ -237,7 +246,7 @@
             });
 
             loadNotif.then((data) => {
-                console.log(data);
+                //console.log(data);
                 let template = document.querySelector('template#notif-template');
                 var parent = document.querySelector('#notif-parent');
 
@@ -279,12 +288,12 @@
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
     <script>
         //for geolocation
-       
+
         $(document).ready(function () {
 
             //var curLocation = [11.0530536, 124.0110354];
 
-            //// create map object 
+            //// create map object
             //myMap = L.map('MapLocation').setView(curLocation, 10);
 
             //var mapLocationDisplayPopup = L.popup();
@@ -331,7 +340,7 @@
             //    .addTo(myMap);
 
             //myMap.on('click', function (e) {
-            //    // console.log(e); 
+            //    // console.log(e);
             //    if (marker != undefined) {
             //        myMap.removeLayer(marker);
             //        marker = null;

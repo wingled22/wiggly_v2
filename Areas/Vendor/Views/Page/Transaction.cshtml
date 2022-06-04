@@ -12,9 +12,9 @@
 
 <h1>Transaction</h1>
 
-<p>
+@*<p>
     <a asp-action="Index">Home Vendor</a>
-</p>
+</p>*@
 
 
 @(Html.DevExtreme().DataGrid<Wiggly.Areas.Vendor.Models.TransactionInfoViewModel>()
@@ -23,6 +23,7 @@
         .LoadAction("GetTransactions")
         .InsertAction("PostTransaction")
         .UpdateAction("PutTransaction")
+        .DeleteAction("DeleteTransaction")
         .Key("TransactionID")
     )
     .Selection(s => s.Mode(SelectionMode.Single))
@@ -43,7 +44,8 @@
         col.AddFor(m => m.Farmer)
             .Lookup(lookup => lookup.DataSource(d => d.Mvc()
                 .Controller("Transaction")
-                .LoadAction("GetFarmers")
+                //.LoadAction("GetFarmers")
+                .LoadAction("GetFarmersWithFullname")
                 .Key("Id"))
             .DisplayExpr(new JS("FarmerGridDisplayExpr"))
             .ValueExpr("Id"));
@@ -180,10 +182,15 @@
         form = e.component;
     }
 
+    $(document).ready(function () {
+        $.ajax("../Transaction/GetFarmersWithFullname").done(function (data) {
+            asdfasdf = data;
+            console.table(data);
 
-    $.ajax("../Transaction/GetFarmersWithFullname").done(function (data) {
-        asdfasdf = data;
+        });
     });
+
+    
 
     //var  ItemTemplate = (data) => function() {
     //    return data.Firstname + " " + data.LastName;
