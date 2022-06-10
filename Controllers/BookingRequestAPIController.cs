@@ -131,6 +131,13 @@ namespace Wiggly.Controllers
                 _context.SaveChanges();
 
                 DeleteOldBookingNotif(notificationId);
+
+                /**
+                 * chat to the seller
+                 **/
+                //select if there is a room where the logged in user and the vendor 
+
+
             }
             else
             {
@@ -153,6 +160,7 @@ namespace Wiggly.Controllers
                 };
 
                 DeleteOldBookingNotif(notificationId);
+
 
             }
 
