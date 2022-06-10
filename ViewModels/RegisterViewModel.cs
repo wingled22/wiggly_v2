@@ -18,6 +18,9 @@ namespace Wiggly.ViewModels
         [Required]
         public string MiddleName { get; set; }
         [Required]
+        public string Address { get; set; }
+
+        [Required]
         public string ContactNumber { get; set; }
        
         [Required]

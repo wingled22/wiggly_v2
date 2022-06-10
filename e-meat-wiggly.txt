@@ -1,0 +1,30 @@
+farmer
+x-subscribe
+x-signup/login
+-post/data entry livestock
+-search meat dealer (by location), view meatdealer(name, location, contact number)
+-from the list select and view meat dealer
+x-chat meat dealer
+x-view notification(bookings)
+-accept booking(chat dealer to agree on meet-up date)
+-set date (calendar)
+-receive notification(a reminder for meet-up)
+x-receive payment
+x-view completed transaction
+x-view transaction history (by type of livestock, by date)
+
+Meat dealer
+x-subscribe
+x-signup/login
+-search farmer(by location, type of livestock and amount)
+-from the list select and view farmer
+x-chat farmer
+x-book farmer
+x-receive notification for meet-up
+x-receive notification (a reminder for meet-up-a day before the scheduled date)
+-select payment method
+-send proof of payment
+x-view completed transaction
+x-view transaction history(by type of livestock, by date)
+
+

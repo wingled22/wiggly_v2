@@ -14,5 +14,7 @@ namespace Wiggly.Identity
         public string Contact { get; set; }
         public string Password{ get; set; }
         public string UserType { get; set; }
+        public string Address { get; set; }
+
     }
 }

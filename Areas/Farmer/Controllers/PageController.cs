@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -76,10 +77,35 @@ namespace Wiggly.Areas.Farmer.Controllers
                 return View();
         }
 
-        public IActionResult SearchResult(string searchResult, string searchBy)
+
+        public IActionResult SearchLocation()
         {
-            return View();
+            if (!IsSubscribed())
+                return View("Subscription");
+            else
+                return View();
         }
+
+        public IActionResult SearchResults(string addressString, string livestockType, string priceRange)
+        {
+            
+            _logger.LogInformation(addressString);
+
+            ViewData["addressString"] = addressString;
+
+
+
+            if (!IsSubscribed())
+                return View("Subscription");
+            else if (string.IsNullOrEmpty(addressString))
+                return View("SearchLocation");
+            else
+            {
+                var vendors = _context.AspNetUsers.Where(q => EF.Functions.Like(q.Address, string.Format("%{0}%", addressString))).ToList();
+                return View(vendors);
+            }
+        }
+
 
         private bool IsSubscribed()
         {

@@ -84,7 +84,7 @@ namespace Wiggly.Areas.Vendor.Controllers
                 return View();
         }
 
-        public IActionResult SearchResults(string addressString, string livestockType,string priceRange)
+        public IActionResult SearchResults(string addressString, string livestockType, string priceRange)
         {
             _logger.LogInformation(addressString);
             _logger.LogInformation(livestockType);

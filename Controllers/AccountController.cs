@@ -69,7 +69,8 @@ namespace Wiggly.Controllers
                         Contact = registration.ContactNumber,
                         UserType = registration.UserType,
                         Email = registration.Email,
-                        UserName = registration.UserName
+                        UserName = registration.UserName,
+                        Address = registration.Address
                     };
 
                     var result = await _usrMngr.CreateAsync(user, registration.Password);
@@ -95,8 +96,6 @@ namespace Wiggly.Controllers
                         }
                         View(registration);
                     }
-
-
                 }
                 return View(registration);
             }

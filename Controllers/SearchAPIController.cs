@@ -170,5 +170,10 @@ namespace Wiggly.Controllers
 
             return Ok();
         }
+    
+        public IActionResult SearchVendorByLocation(string addressString)
+        {
+            return Ok();
+        }
     }
 }
