@@ -10,7 +10,31 @@
     Layout = "_LayoutAdminLTEFarmerDashboard";
 }
 
+<style>
+    /* The Modal (background) */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 2147483648; /* Sit on top */
+        padding-top: 40px; /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
+    }
 
+    /* Modal Content (Image) */
+    .modal-content {
+        margin: auto;
+        display: block;
+        width: 80%;
+        height: 80%;
+        max-width: 700px;
+    }
+</style>
 <div class="row">
     <div class="col-lg-3">
         <div class="card" style="padding: 20px">
@@ -46,7 +70,7 @@
                         </p>
                     </div>
 
-                    <a href="#" data-value="@item.Id" class="card-link">Chat Now</a>
+                    <a href="#" data-value="@item.Id" class="card-link chat-now">Chat Now</a>
                 </div>
             </div>
         }
@@ -55,3 +79,74 @@
 
     </div>
 </div>  
+
+
+<div id="itemMessageModal" class="modal">
+    <div class="card card-primary card-outline direct-chat direct-chat-primary" style="width:400px; margin-left:auto;margin-right:auto;">
+        <div class="card-header">
+            <h3 class="card-title">Room name</h3>
+            <div class="card-tools">
+                @*<button type="button" class="btn btn-tool" data-card-widget="remove">
+                        <i class="fas fa-times"></i>
+                    </button>*@
+                <span class="close" style="position: absolute;right: 15px;top: 5px;">&times;</span>
+
+            </div>
+        </div>
+        <!-- /.card-header -->
+        <div class="card-body">
+            <div class="direct-chat-messages">
+                <div class="direct-chat-msg">
+                        <div class="direct-chat-infos clearfix">
+                            <span class="direct-chat-name float-left">Alexander Pierce</span>
+                            <span class="direct-chat-timestamp float-right">23 Jan 2:00 pm</span>
+                        </div>
+                        <div class="direct-chat-text">
+                            Is this template really for free? That's unbelievable!
+                        </div>
+                    </div>
+
+                    <div class="direct-chat-msg right">
+                        <div class="direct-chat-infos clearfix">
+                            <span class="direct-chat-name float-right">Sarah Bullock</span>
+                            <span class="direct-chat-timestamp float-left">23 Jan 2:05 pm</span>
+                        </div>
+
+                        <div class="direct-chat-text">
+                            You better believe it!
+                        </div>
+                    </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <div class="input-group">
+                <input type="text" name="message" placeholder="Type Message ..." class="form-control">
+                <span class="input-group-append">
+                    <button type="submit" class="btn btn-primary send-message">Send</button>
+                </span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    $(document).ready(function () {
+
+        $("body").on("click", ".chat-now", function () {
+            var modal = document.getElementById("itemMessageModal");
+            modal.style.display = "block";
+        });
+
+        $(".close").on("click", function () {
+            //var modal = document.getElementById("itemModal");
+            //modal.style.display = "none";
+
+            document.getElementById("itemMessageModal").style.display = "none";
+        });
+
+        //create room if no room with the vendor
+        //send messge redirect to the chat page
+
+    });
+</script>
