@@ -26,7 +26,10 @@
     <script src="~/js/devextreme/aspnet/dx.aspnet.mvc.js"></script>
     <script src="~/js/devextreme/aspnet/dx.aspnet.data.js"></script>
 
+    <link href="~/plugins/toastr/toastr.min.css" rel="stylesheet" />
     <script src="~/plugins/moment/moment.min.js"></script>
+    <script src="~/plugins/toastr/toastr.min.js"></script>
+
     <link href="~/css/site.css" rel="stylesheet" />
     @*<link href="~/css/Site.css" rel="stylesheet" />*@
 </head>
@@ -40,7 +43,7 @@
                 <li class="nav-item">
                     <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
                 </li>
-                
+
             </ul>
 
 
@@ -122,11 +125,11 @@
                         </li>
 
                         @*<li class="nav-item">
-                            <a asp-area="Farmer" asp-controller="Page" asp-action="Marketplace" class="nav-link">
-                                <i class="nav-icon fas fa-store"></i>
-                                <p>Marketplace</p>
-                            </a>
-                        </li>*@
+                                <a asp-area="Farmer" asp-controller="Page" asp-action="Marketplace" class="nav-link">
+                                    <i class="nav-icon fas fa-store"></i>
+                                    <p>Marketplace</p>
+                                </a>
+                            </li>*@
 
                         <li class="nav-item">
                             <a asp-area="Farmer" asp-controller="Page" asp-action="Chat" class="nav-link">
@@ -219,6 +222,45 @@
         <!-- /.control-sidebar -->
     </div>
 
+
+    <div class="modal" id="modal-viewBooking" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Booking Request</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="post">
+                        <div class="post-infos" style="line-height:10px">
+                            <h4 class="booking-info-msg">Some one booked you</h4>
+                            <p class="booking-info-livestockType">Livestock type: <b>value</b></p>
+                            <p class="booking-info-livestockQty">Quantity: <b>value</b></p>
+                            <p class="booking-info-livestockAmount">Amount: <b>value</b> </p>
+                            <p class="booking-info-livestockKilos">Kilos: <b>value</b></p>
+                            <p class="booking-info-livestockAddress">Address: <b>value</b></p>
+                        </div>
+                        <div class="image-container">
+                            <ul>
+                            </ul>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="modal-footer left">
+                    @*<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>*@
+                    <button type="button" class="btn btn-success" id="booking-accepted">Accept</button>
+                    <button type="button" class="btn btn-danger" id="booking-declined">Decline</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+
     <script>
         function loadNotification() {
             const loadNotif = new Promise(function (resolve, reject) {
@@ -244,7 +286,7 @@
                         let clone = template.content.cloneNode(true);
 
                         if (item.NotifType == "Booking") {
-                            clone.querySelector("a").innerHTML = "<i class=\"fas fa-bell mr-2\"></i> " + item.Message + "<br/> <button type=\"button\" class=\"btn btn-success view-booking-notif\" data-bookingReqID=\"" + item.BookingRequest+"\" data-notificationID=\""+item.Id+"\">View</button> ";
+                            clone.querySelector("a").innerHTML = "<i class=\"fas fa-bell mr-2\"></i> " + item.Message + "<br/> <button type=\"button\" class=\"btn btn-success view-booking-notif\" data-bookingReqID=\"" + item.BookingRequest + "\" data-notificationID=\"" + item.Id + "\">View</button> ";
 
                         } else {
                             clone.querySelector("a").innerHTML = "<i class=\"fas fa-bell mr-2\"></i> " + item.Message;
@@ -265,6 +307,107 @@
 
         $(document).ready(function () {
             loadNotification();
+
+            //booking notif  clicked for view
+            $("body").on("click", ".view-booking-notif", function () {
+                //goto the page of the view bookin request
+                //console.log();
+                var bookingRequest = $(this).attr("data-bookingReqID");
+                var notificationID = $(this).attr("data-notificationID");
+                //get the data
+                var p = new Promise(function (resolve, reject) {
+                    $.ajax({
+                        url: "../../BookingRequestAPI/GetBookingRequestFarmer?id=" + bookingRequest,
+                        success: function (data) {
+                            resolve(data);
+
+                        },
+                        error: function (data) {
+                            reject(data)
+                        }
+                    });
+                });
+                //populate the data to the modal
+                p.then((data) => {
+                    //toastr.success('Booking Success!');
+                    console.log(data);
+                    document.querySelector(".booking-info-msg").innerHTML = data.Message;
+                    document.querySelector(".booking-info-livestockType b").innerHTML = data.Category;
+                    document.querySelector(".booking-info-livestockQty b").innerHTML = data.Quantity;
+                    document.querySelector(".booking-info-livestockAmount b").innerHTML = data.Amount;
+                    document.querySelector(".booking-info-livestockKilos b").innerHTML = data.Kilos;
+                    document.querySelector(".booking-info-livestockAddress b").innerHTML = "address comes here";
+
+                    document.querySelector("#booking-accepted").setAttribute("data-value", data.Id);
+                    document.querySelector("#booking-accepted").setAttribute("data-notifID", notificationID);
+
+                    document.querySelector("#booking-declined").setAttribute("data-value", data.Id);
+                    document.querySelector("#booking-declined").setAttribute("data-notifID", notificationID);
+
+                    $('#modal-viewBooking').modal("toggle");
+
+                }).catch((err) => {
+                    toastr.error('Something unexpected happened adding a booking, try again later.');
+
+                    console.table(err);
+                });
+                //show modal
+
+                //window.location.replace("/farmer/ViewBookingRequest?bookingRequest="+bookingRequest);
+            });
+
+            $("body").on("click", "#booking-accepted", function () {
+                //console.log("booking will be accepted");
+                var brId = $(this).attr("data-value");
+                var notifId = $(this).attr("data-notifID");
+                var p = new Promise(function (resolve, reject) {
+                    $.ajax({
+                        url: "../../BookingRequestAPI/AcceptOrDeclineBooking?id=" + brId + "&status=Accepted&notificationId=" + notifId,
+                        success: function (data) {
+                            resolve(data);
+                        },
+                        error: function (data) {
+                            reject(data)
+                        }
+                    });
+                });
+                //populate the data to the modal
+                p.then((data) => {
+                    $('#modal-viewBooking').modal("toggle");
+                    toastr.success('Booking Accepted!');
+
+                }).catch((err) => {
+                    //toastr.error('Unexpected happpened!');
+                    console.log(err);
+                });
+            });
+
+            $("body").on("click", "#booking-declined", function () {
+                //console.log("Booking declined");
+                var brId = $(this).attr("data-value");
+                var notifId = $(this).attr("data-notifID");
+                var p = new Promise(function (resolve, reject) {
+                    $.ajax({
+                        url: "../../BookingRequestAPI/AcceptOrDeclineBooking?id=" + brId + "&status=Declined&notificationId=" + notifId,
+                        success: function (data) {
+                            resolve(data);
+                        },
+                        error: function (data) {
+                            reject(data)
+                        }
+                    });
+                });
+                //populate the data to the modal
+                p.then((data) => {
+                    $('#modal-viewBooking').modal("toggle");
+                    toastr.error('Booking declined!');
+
+                }).catch((err) => {
+                    //toastr.error('Unexpected happpened!');
+                    console.log(err);
+                });
+            });
+
         });
     </script>
 
@@ -277,6 +420,7 @@
     <!-- AdminLTE App -->
     <script src="~/dist/js/adminlte.min.js"></script>
 
+
     <script src="~/plugins/leaflet/leaflet.js"></script>
 
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
@@ -284,7 +428,7 @@
     <!-- AdminLTE for demo purposes -->
     @*<script src="/dist/js/demo.js"></script>*@
     @*<script src="~/js/site.js" asp-append-version="true"></script>
-    <script src="~/dist/js/pages/dashboard.js"></script>*@
+        <script src="~/dist/js/pages/dashboard.js"></script>*@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

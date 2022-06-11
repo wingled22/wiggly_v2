@@ -110,19 +110,19 @@ namespace Wiggly.Controllers
                          //on item.Id equals photos.Post
                          orderby item.DateCreated descending
                          where item.Id == itemId
-                         select new MarketPlaceViewModel
+                         select new MarketPlaceViewModelRevised
                          {
                              ItemID = item.Id,
                              UserId = user.Id,
                              UserFullname = string.Format("{0} {1}", user.Firstname, user.LastName),
-                             Caption = item.Caption,
-                             BuyOrSell = item.BuyOrSell,
-                             Category = item.Category,
-                             Description = item.Description,
                              Address = item.Address,
                              Lat = item.Lat,
                              Lng = item.Lng,
                              DateCreated = item.DateCreated.ToString(),
+                             Category = item.Category,
+                             Quantity = (int)item.Quantity,
+                             Amount = (decimal)item.Amount,
+                             Kilos = (int)item.Kilos,
                              ImageList = _context.PostPhoto.Where(p => item.Id == p.Post && p.Path.Contains("marketplace"))
                                                 .Select(p => new MarketPlaceImage { ImageId = p.Id, ImagePath = p.Path })
                                                 .ToList(),

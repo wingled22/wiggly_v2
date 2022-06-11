@@ -11,7 +11,21 @@
 
 <link rel="stylesheet" href="~/plugins/leaflet/leaflet.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+<dialog>
+    <div class="example-container" style="height:450px;">
+        <div class="row">
+            <section class="col col-12 header location-address">Address : </section>
+            <section class="col col-12">
+                <div class="row">
+                    <section class="col col-12">
+                        <div id="addressMapLocationInformation" style="height: 350px; "></div>
 
+                    </section>
+                </div>
+            </section>
+        </div>
+    </div>
+</dialog>
 <style>
     .image-container {
         overflow: auto;
@@ -121,7 +135,6 @@
         box-sizing: border-box;
         font-family: helvetica;
         font-size: 16px;
-        padding: 1.5em;
         /*        -webkit-box-shadow: 1px 5px 5px 0px rgba(0,0,0,0.15);
         -moz-box-shadow: 1px 5px 5px 0px rgba(0,0,0,0.15);*/
         /*box-shadow: 1px 5px 5px 0px rgba(0,0,0,0.15);*/
@@ -482,43 +495,6 @@
 
 </div>
 
-<div class="modal" id="modal-viewBooking" role="dialog">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title">Booking Request</h4>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">×</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="post">
-                    <div class="post-infos" style="line-height:10px">
-                        <h4 class="booking-info-msg">Some one booked you</h4>
-                        <p class="booking-info-livestockType">Livestock type: <b>value</b></p>
-                        <p class="booking-info-livestockQty">Quantity: <b>value</b></p>
-                        <p class="booking-info-livestockAmount">Amount: <b>value</b> </p>
-                        <p class="booking-info-livestockKilos">Kilos: <b>value</b></p>
-                        <p class="booking-info-livestockAddress">Address: <b>value</b></p>
-                    </div>
-                    <div class="image-container">
-                        <ul>
-                        </ul>
-                    </div>
-
-                </div>
-            </div>
-            <div class="modal-footer left">
-                @*<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>*@
-                <button type="button" class="btn btn-success" id="booking-accepted">Accept</button>
-                <button type="button" class="btn btn-danger"  id="booking-declined">Decline</button>
-            </div>
-        </div>
-        <!-- /.modal-content -->
-    </div>
-    <!-- /.modal-dialog -->
-</div>
-
 
 
 <script>
@@ -565,7 +541,7 @@
     }
 
 
-    
+
 
 
     //var for geolocation
@@ -699,14 +675,17 @@
                     center: new L.LatLng(latitude, longitude),
                 }).setView(itemLatLng, 18);
 
+
                 lyrOSM = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png');
+                addressMapInformationPopup = L.popup();
                 addressMapInformation.addLayer(lyrOSM);
 
 
                 var geocoder = L.Control.geocoder().addTo(addressMapInformation);
 
                 addressMapInformationMarker = L.marker(itemLatLng).addTo(addressMapInformation);
-                
+                addressMapInformationPopup.setLatLng(itemLatLng).setContent(addressName).openOn(addressMapInformation);
+
             }
         } else {
 
@@ -719,6 +698,8 @@
             addressMapInformationPopup = L.popup();
 
             addressMapInformationMarker = L.marker(itemLatLng).addTo(addressMapInformation);
+            addressMapInformationPopup.setLatLng(itemLatLng).setContent(addressName).openOn(addressMapInformation);
+
         }
     }
 
@@ -808,7 +789,7 @@
         $.ajax({
             url: "../../MarketPlaceAPI/GetItemsFromLoggedInUser"
         }).done(function (data) {
-            //console.table(data);
+            console.table(data);
             posts = data;
             let postTemplate = document.querySelector('template#postTemplate');
             var postParentContainer = document.querySelector('.card-body .post-container');
@@ -821,12 +802,8 @@
                 let username = clone.querySelector(".post .user-block .username .post-author");
                 username.innerHTML = item.UserFullname;
 
-                if (!item.IsEditable) {
-                    clone.querySelector(".post .user-block .username .edit").innerHTML = "";
-
-                } else {
-                    clone.querySelector(".post .user-block .username .edit").setAttribute("data-value", item.Id);
-                }
+               
+                clone.querySelector(".post .user-block .username .edit").setAttribute("data-value", item.ItemID);
 
 
                 let time = clone.querySelector(".post .user-block .description");
@@ -837,6 +814,9 @@
                 clone.querySelector(".post .post-infos p.livestockAmount b").innerHTML = item.Amount;
                 clone.querySelector(".post .post-infos p.livestockKilos b").innerHTML = item.Kilos;
                 clone.querySelector(".post .post-infos p.livestockAddress b").innerHTML = item.Address;
+                clone.querySelector(".post .post-infos p.livestockAddress").setAttribute("data-lat", item.Lat);
+                clone.querySelector(".post .post-infos p.livestockAddress").setAttribute("data-lng", item.Lng);
+                clone.querySelector(".post .post-infos p.livestockAddress").setAttribute("data-displayName", item.Address);
 
 
                 let postImagesParent = clone.querySelector(".post .image-container ul");
@@ -945,16 +925,14 @@
 
             //get data out of the postID
             $.ajax({
-                url: "@Url.Action("GetPost", "PostAPI",new { area = "Farmer"})",
-                data: {
-                    postId: pId
-                }
+                url: "../../MarketPlaceAPI/GetItem?itemID="+pId,
+               
             })
             .done(function (data) {
-
+                console.table(data);
                 popup.option("visible", true);
                 form.option('formData', data);
-
+                initGeolocation(data.Lat, data.Lng, data.Address);
                 isPostEdit = true;
 
                 postImages = data.ImageList;
@@ -963,6 +941,26 @@
             });
             //separate the images from the data
             //populate the data to the images list
+        });
+
+        //address is clicked
+        $("body").on("click", ".livestockAddress ", function (event) {
+            event.stopPropagation();
+            console.log($(this).attr('data-lat'));
+            console.log($(this).attr('data-lng'));
+            //$("#addressInfoModal").modal("toggle");
+            document.querySelector("dialog").showModal();
+            console.log($(this).attr('data-displayName'));
+            document.querySelector(".location-address").innerHTML = "Address : " + $(this).attr('data-displayName');
+            initAddressMapInformation($(this).attr('data-lat'), $(this).attr('data-lng'), $(this).attr('data-displayName'));
+        });
+
+        $('dialog').click(function (e) {
+            let dialog = document.querySelector("dialog");
+
+            if (e.target === dialog) {
+                document.querySelector("dialog").close();
+            }
         });
 
         $('body').on('click', ".image-delete", function (e) {
@@ -994,83 +992,7 @@
 
         });
 
-        //booking notif  clicked for view
-        $("body").on("click", ".view-booking-notif", function () {
-            //goto the page of the view bookin request
-            //console.log();
-            var bookingRequest = $(this).attr("data-bookingReqID");
-            var notificationID = $(this).attr("data-notificationID");
-            //get the data
-            var p = new Promise(function (resolve, reject) {
-                $.ajax({
-                    url: "../../BookingRequestAPI/GetBookingRequestFarmer?id=" + bookingRequest,
-                    success: function (data) {
-                        resolve(data);
-                        
-                    },
-                    error: function (data) {
-                        reject(data)
-                    }
-                });
-            });
-            //populate the data to the modal
-            p.then((data) => {
-                //toastr.success('Booking Success!');
-                console.log(data);
-                document.querySelector(".booking-info-msg").innerHTML = data.Message;
-                document.querySelector(".booking-info-livestockType b").innerHTML = data.Category;
-                document.querySelector(".booking-info-livestockQty b").innerHTML = data.Quantity;
-                document.querySelector(".booking-info-livestockAmount b").innerHTML = data.Amount;
-                document.querySelector(".booking-info-livestockKilos b").innerHTML = data.Kilos;
-                document.querySelector(".booking-info-livestockAddress b").innerHTML = "address comes here";
 
-                document.querySelector("#booking-accepted").setAttribute("data-value", data.Id);
-                document.querySelector("#booking-accepted").setAttribute("data-notifID", notificationID);
-
-                document.querySelector("#booking-declined").setAttribute("data-value", data.Id) ;
-                document.querySelector("#booking-declined").setAttribute("data-notifID", notificationID);
-
-                $('#modal-viewBooking').modal("toggle");
-
-            }).catch((err) => {
-                toastr.error('Something unexpected happened adding a booking, try again later.');
-
-                console.table(err);
-            });
-            //show modal
-
-            //window.location.replace("/farmer/ViewBookingRequest?bookingRequest="+bookingRequest);
-        });
-
-        $("body").on("click", "#booking-accepted", function () {
-            //console.log("booking will be accepted");
-            var brId = $(this).attr("data-value");
-            var notifId = $(this).attr("data-notifID");
-            var p = new Promise(function (resolve, reject) {
-                $.ajax({
-                    url: "../../BookingRequestAPI/AcceptOrDeclineBooking?id=" + brId + "&status=Accepted&notificationId="+notifId,
-                    success: function (data) {
-                        resolve(data);
-                    },
-                    error: function (data) {
-                        reject(data)
-                    }
-                });
-            });
-            //populate the data to the modal
-            p.then((data) => {
-                $('#modal-viewBooking').modal("toggle");
-                //toastr.success('Booking Accepted!');
-
-            }).catch((err) => {
-                //toastr.error('Unexpected happpened!');
-                console.log(err);
-            });
-        });
-
-        $("body").on("click", "#booking-declined", function () {
-            console.log("Booking declined");
-        });
 
     });
 
@@ -1104,3 +1026,36 @@
 
 
 </script>
+
+
+@*<div class="modal fade" id="addressInfoModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">View Address</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" >
+                <div class="example-container" style="height:450px;">
+                    <div class="row">
+                        <section class="col col-12 header location-address">Address : </section>
+                        <section class="col col-12">
+                            <div class="row">
+                                <section class="col col-12">
+                                    <div id="addressMapLocationInformation" style="height: 350px; "></div>
+
+                                </section>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>*@
+
