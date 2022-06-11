@@ -40,8 +40,6 @@ namespace Wiggly.Areas.Vendor.Controllers
             var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
 
             var transactions = (from trnsctn in _context.Transaction
-                                join kilos in _context.Kilos on trnsctn.Id equals kilos.Transaction
-                                join pymt in _context.Payment on trnsctn.Id equals pymt.Transaction
                                 join frmer in _context.AspNetUsers on trnsctn.Farmer equals frmer.Id
                                 where trnsctn.Vendor == loggedInUser.Id
 
@@ -51,26 +49,22 @@ namespace Wiggly.Areas.Vendor.Controllers
                                     Farmer = (int)trnsctn.Farmer,
                                     FarmerFullname = frmer.Firstname + " " + frmer.LastName,
                                     BookDate = trnsctn.BookDate,
-                                    PorkNum = kilos.PorkNum,
-                                    Pork = kilos.Pork,
-                                    BeefNum = kilos.BeefNum,
-                                    Beef = kilos.Beef,
-                                    ChickenNum = kilos.ChickenNum,
-                                    Chicken = kilos.Chicken,
-                                    GoatNum = kilos.GoatNum,
-                                    Goat = kilos.Goat,
-                                    CarabaoNum = kilos.CarabaoNum,
-                                    Carabao = kilos.Carabao,
-                                    PaymentType = pymt.Type,
-                                    Status = pymt.Status,
-                                    Amount = pymt.Amount
+                                    LiveStockType = trnsctn.TypeOfLivestock,
+                                    Kilos = trnsctn.Kilos,
+                                    Quantity = (int)trnsctn.Quantity,
+                                    PaymentType = trnsctn.PaymentType,
+                                    Status = trnsctn.PaymentStatus,
+                                    Amount = trnsctn.Amount,
+                                    ProofOfpayment = trnsctn.ProofOfPayment
                                 }).ToList();
+
+            //var transactions = _context.Transaction.Where(q => q.Vendor == loggedInUser.Id).ToList();
 
             return Ok(transactions);
         }
 
         [HttpPost]
-        public async Task<ActionResult<Transaction>> PostTransaction(string values)
+        public async Task<ActionResult<Transaction>> PostTransaction(string values, string proofPayment)
         {
             var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
 
@@ -86,7 +80,7 @@ namespace Wiggly.Areas.Vendor.Controllers
             Transaction transaction = new Transaction {
                 Vendor = loggedInUser.Id,
                 Farmer = info.Farmer,
-                BookDate = info.BookDate,
+                //BookDate = info.BookDate,
                 DateCreated = DateTime.Now,
                 Status = "Pending"
             };
@@ -97,146 +91,48 @@ namespace Wiggly.Areas.Vendor.Controllers
             _context.Transaction.Add(transaction);
             await _context.SaveChangesAsync();
 
-            Kilos kilos = new Kilos { 
-                Transaction = transaction.Id,
-                PorkNum = info.PorkNum,
-                Pork = info.Pork,
-                BeefNum = info.BeefNum,
-                Beef = info.Beef,
-                ChickenNum = info.ChickenNum,
-                Chicken = info.Chicken,
-                GoatNum = info.GoatNum,
-                Goat = info.Goat,
-                CarabaoNum = info.CarabaoNum,
-                Carabao = info.Carabao
-
-            };
-            _context.Kilos.Add(kilos);
-            await _context.SaveChangesAsync();
-
-            Payment payment = new Payment { 
-                Type = info.PaymentType,
-                Status = "Pending",
-                Transaction = transaction.Id,
-                Vendor = loggedInUser.Id,
-                Farmer = info.Farmer,
-                Amount = info.Amount,
-                Total = info.Amount
-            };
-
-            _context.Payment.Add(payment);
-            await _context.SaveChangesAsync();
-
-
-            //if (!TryValidateModel(transaction))
-            //    return BadRequest("Values are incorrect");
-
-            //_context.Transaction.Add(transaction);
-            //await _context.SaveChangesAsync();
             return Ok();
 
         }
 
 
         [HttpPut]
-        public async Task<IActionResult> PutTransaction(int? key, string values)
+        public async Task<IActionResult> PutTransaction( string values, string proofPayment)
         {
-            if (key == null)
-            {
-                return BadRequest("Data sent is incomplete!");
-            }
-            var info = (from trnsctn in _context.Transaction
-                        join kg in _context.Kilos on trnsctn.Id equals kg.Transaction
-                        join pymt in _context.Payment on trnsctn.Id equals pymt.Transaction
-                        where trnsctn.Id == key
 
-                        select new TransactionInfoViewModel
-                        {
-                            TransactionID = trnsctn.Id,
-                            Farmer = (int)trnsctn.Farmer,
-                            BookDate = trnsctn.BookDate,
-                            PorkNum = kg.PorkNum,
-                            Pork = kg.Pork,
-                            BeefNum = kg.BeefNum,
-                            Beef = kg.Beef,
-                            ChickenNum = kg.ChickenNum,
-                            Chicken = kg.Chicken,
-                            GoatNum = kg.GoatNum,
-                            Goat = kg.Goat,
-                            CarabaoNum = kg.CarabaoNum,
-                            Carabao = kg.Carabao,
-                            PaymentType = pymt.Type,
-                            Amount = pymt.Amount
-                        }).FirstOrDefault(); 
-
-
+            var info = new TransactionInfoViewModel();
 
             JsonConvert.PopulateObject(values, info);
 
-            var transaction = _context.Transaction.Where(q => q.Id == key).FirstOrDefault();
-            var kilo = _context.Kilos.Where(q => q.Transaction == key).FirstOrDefault();
-            var payment = _context.Payment.Where(q => q.Transaction == key).FirstOrDefault();
+            var transaction = _context.Transaction.Where(q => q.Id == info.TransactionID).FirstOrDefault();
 
-            if (transaction == null || kilo == null || payment == null)
+            if (transaction == null )
             {
                 return BadRequest("Requested data not found!");
             }
 
-            //transaction
-            if (!String.IsNullOrEmpty(info.Farmer.ToString()))
-                transaction.Farmer = info.Farmer;
-            if (info.BookDate != null)
-                transaction.BookDate = info.BookDate;
+            if(info.PaymentType == "Cash on Hand")
+            {
+                transaction.PaymentStatus = "Pending";
+                transaction.PaymentType = info.PaymentType;
+                
+            }
+            else
+            {
+                transaction.PaymentStatus = "Pending";
+                transaction.PaymentType = info.PaymentType;
+                transaction.ProofOfPayment = proofPayment.ToString();
+            }
 
-            //kilos
-            if (info.PorkNum != null)
-                kilo.PorkNum = info.PorkNum;
-            if (info.Pork != null)
-                kilo.Pork = info.Pork;
-            if (info.BeefNum != null)
-                kilo.BeefNum = info.BeefNum;
-            if (info.Beef != null)
-                kilo.Beef = info.Beef;
-            if (info.ChickenNum != null)
-                kilo.ChickenNum = info.ChickenNum;
-            if (info.Chicken != null)
-                kilo.Chicken = info.Chicken;
-            if (info.GoatNum != null)
-                kilo.GoatNum = info.GoatNum;
-            if (info.Goat != null)
-                kilo.Goat = info.Goat;
-            if (info.CarabaoNum != null)
-                kilo.CarabaoNum = info.CarabaoNum;
-            if (info.Carabao != null)
-                kilo.Carabao = info.Carabao;
-
-            //payment
-            if (info.PaymentType != null)
-                payment.Type = info.PaymentType;
-            if (info.Amount != null)
-                payment.Amount = info.Amount; payment.Total = info.Amount;
-
-
-
-            //JsonConvert.PopulateObject(values, transaction);
 
             if (!TryValidateModel(transaction))
                 return BadRequest("transaction infos are incorrect");
-            if (!TryValidateModel(kilo))
-                return BadRequest("kilos infos are incorrect");
-            if (!TryValidateModel(payment))
-                return BadRequest("payment infos are incorrect");
+     
 
             _context.Transaction.Update(transaction);
             await _context.SaveChangesAsync();
 
-            _context.Kilos.Update(kilo);
-            await _context.SaveChangesAsync();
-
-            _context.Payment.Update(payment);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return Ok();
         }
 
         

@@ -68,6 +68,7 @@
       <Folder Include="Areas\Vendor\Data\" />
       <Folder Include="Entities\" />
       <Folder Include="wwwroot\upload\marketplace\" />
+      <Folder Include="wwwroot\upload\transaction\" />
       <Folder Include="wwwroot\upload\subscription\" />
       <Folder Include="wwwroot\upload\profilepic\" />
       <Folder Include="wwwroot\upload\post\" />

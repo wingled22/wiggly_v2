@@ -9,6 +9,86 @@
     Layout = "_LayoutAdminLTEFarmerDashboard";
 }
 
+<style>
+    .image-container {
+        overflow: auto;
+    }
+
+    ul {
+        text-align: left;
+        display: flex;
+    }
+
+    li {
+        list-style: none;
+        display: inline-block; /*pour limiter l'espace occupé   par l'image li*/
+    }
+
+    article {
+        position: relative;
+    }
+
+        article button {
+            position: absolute;
+            right: 20px;
+            top: 5px;
+        }
+
+    img {
+        width: 150px;
+        height: 150px;
+        display: block;
+        object-fit: cover;
+    }
+
+    figure {
+        /*background: #7D5976;*/
+        text-align: center;
+        padding: 10px;
+        margin: 10px;
+    }
+
+    a {
+        color: white;
+        text-decoration: none;
+    }
+
+        a:hover {
+            text-decoration: none;
+            color: pink;
+        }
+
+    span.description {
+        padding: 10px;
+        display: block;
+    }
+
+
+    /* The Modal (background) */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 2147483648; /* Sit on top */
+        padding-top: 40px; /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
+    }
+
+    /* Modal Content (Image) */
+    .modal-content {
+        margin: auto;
+        display: block;
+        width: 80%;
+        height: 80%;
+        max-width: 700px;
+    }
+</style>
+
 <h1>@ViewData["Title"]</h1>
 
 
@@ -35,24 +115,33 @@
     .Columns(col =>
     {
         col.AddFor(m => m.TransactionID).Name("Transaction ID");
-      
+
         col.AddFor(m => m.VendorFullname);
+
         col.AddFor(m => m.BookDate);
+        col.AddFor(m => m.LiveStockType);
+        col.AddFor(m => m.Quantity);
+        col.AddFor(m => m.Kilos);
         col.AddFor(m => m.Amount).Visible(true);
         col.AddFor(m => m.Status);
-        //kilos
-        col.AddFor(m => m.Pork).Visible(false);
-        col.AddFor(m => m.PorkNum).Visible(false);
-        col.AddFor(m => m.Beef).Visible(false);
-        col.AddFor(m => m.BeefNum).Visible(false);
-        col.AddFor(m => m.Chicken).Visible(false);
-        col.AddFor(m => m.ChickenNum).Visible(false);
-        col.AddFor(m => m.Goat).Visible(false);
-        col.AddFor(m => m.GoatNum).Visible(false);
-        col.AddFor(m => m.Carabao).Visible(false);
-        col.AddFor(m => m.CarabaoNum).Visible(false);
+
+
+
         //payment
-        col.AddFor(m => m.PaymentType).Visible(false);
+
+        col.AddFor(m => m.PaymentType).Visible(true);
+        col.AddFor(m => m.ProofOfpayment)
+            .Width(150)
+            .AllowFiltering(false)
+            .AllowSorting(false)
+            .CellTemplate(@<text>
+                <% if (value != null ) { %>
+                    <div><img class="proof-image" style="width: 150px; height: 150px; display: block; object-fit: cover;" src="<%- value %>" alt=""/></div>
+                <% } else { %>
+                    <div></div>
+                <% } %>
+            </text>);
+
         col.Add()
             .Type(GridCommandColumnType.Buttons)
             .Buttons(b =>
@@ -75,7 +164,7 @@
         e.Mode(GridEditMode.Popup)
         .Popup(p => p
             .Width(700)
-            .Height(750)
+            .Height(450)
         )
         .AllowUpdating(true)
         .Form(f => f.Items(items =>
@@ -90,22 +179,6 @@
                     gItem.AddSimpleFor(m => m.BookDate).Editor(e => e.DateBox().ReadOnly(true).Type(DateBoxType.DateTime)).ColSpan(1);
                 });
 
-            items.AddGroup()
-                .ColCount(2)
-                .ColSpan(2)
-                .Caption("Kilos")
-                .Items(gItem => {
-                    gItem.AddSimpleFor(m => m.PorkNum).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
-                    gItem.AddSimpleFor(m => m.Pork).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
-                    gItem.AddSimpleFor(m => m.BeefNum).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
-                    gItem.AddSimpleFor(m => m.Beef).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
-                    gItem.AddSimpleFor(m => m.ChickenNum).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
-                    gItem.AddSimpleFor(m => m.Chicken).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
-                    gItem.AddSimpleFor(m => m.GoatNum).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
-                    gItem.AddSimpleFor(m => m.Goat).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
-                    gItem.AddSimpleFor(m => m.Carabao).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
-                    gItem.AddSimpleFor(m => m.Carabao).Editor(e => e.NumberBox().ReadOnly(true)).ColSpan(1);
-                });
 
             items.AddGroup()
                 .ColCount(2)
@@ -113,7 +186,7 @@
                 .Caption("Payment")
                 .Items(gItem => {
                     gItem.AddSimpleFor(m => m.PaymentType).ColSpan(1).Editor(e => e.SelectBox().ReadOnly(true).Placeholder("Select Status").DataSource(new JS("PaymentType")).DisplayExpr("Name").ValueExpr("Name"));
-                    gItem.AddSimpleFor(m => m.Amount).ColSpan(1).Editor(e => e.NumberBox());
+                    gItem.AddSimpleFor(m => m.Amount).ColSpan(1).Editor(e => e.NumberBox().ReadOnly(true));
                     gItem.AddSimpleFor(m => m.Status).ColSpan(1).IsRequired(true).Editor(e => e.SelectBox().ReadOnly(false).Placeholder("Select Status").DataSource(new JS("Status")).DisplayExpr("Name").ValueExpr("Name"));
                 });
 
@@ -123,6 +196,13 @@
     })
 )
 
+<div id="imageModal" class="modal">
+
+    <span class="close">&times;</span>
+
+    <img class="modal-content">
+
+</div>
 
 
 <script>
@@ -164,6 +244,22 @@
 
     $.ajax("../Transaction/GetVendors").done(function (data) {
         asdfasdf = data;
+    });
+
+    $(document).ready(function () {
+        $("body").on("click", ".proof-image", function () {
+            var modal = document.getElementById("imageModal");
+            modal.style.display = "block";
+            let imgSrc = $(this).attr("src");
+
+            $("#imageModal img").attr("src", $(this).attr("src"));
+        });
+
+        $(".close").on("click", function () {
+            var modal = document.getElementById("imageModal");
+            modal.style.display = "none";
+        });
+
     });
 
     function ItemTemplate(data) {

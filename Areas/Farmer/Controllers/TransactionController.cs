@@ -32,10 +32,8 @@ namespace Wiggly.Areas.Farmer.Controllers
             var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
 
             var transactions = (from trnsctn in _context.Transaction
-                                join kilos in _context.Kilos on trnsctn.Id equals kilos.Transaction
-                                join pymt in _context.Payment on trnsctn.Id equals pymt.Transaction
                                 join frmer in _context.AspNetUsers on trnsctn.Vendor equals frmer.Id
-                                where trnsctn.Farmer == loggedInUser.Id
+                                where trnsctn.Farmer == loggedInUser.Id && trnsctn.PaymentType != null 
 
                                 select new TransactionInfoViewModel
                                 {
@@ -44,25 +42,17 @@ namespace Wiggly.Areas.Farmer.Controllers
                                     Vendor = (int)trnsctn.Vendor,
                                     VendorFullname = frmer.Firstname+" "+frmer.LastName,
                                     BookDate = trnsctn.BookDate,
-                                    PorkNum = kilos.PorkNum,
-                                    Pork = kilos.Pork,
-                                    BeefNum = kilos.BeefNum,
-                                    Beef = kilos.Beef,
-                                    ChickenNum = kilos.ChickenNum,
-                                    Chicken = kilos.Chicken,
-                                    GoatNum = kilos.GoatNum,
-                                    Goat = kilos.Goat,
-                                    CarabaoNum = kilos.CarabaoNum,
-                                    Carabao = kilos.Carabao,
-                                    PaymentType = pymt.Type,
-                                    Amount = pymt.Amount,
-                                    Status = pymt.Status
+                                    LiveStockType = trnsctn.TypeOfLivestock,
+                                    Kilos = trnsctn.Kilos,
+                                    Quantity = (int)trnsctn.Quantity,
+                                    PaymentType = trnsctn.PaymentType,
+                                    Status = trnsctn.PaymentStatus,
+                                    Amount = trnsctn.Amount,
+                                    ProofOfpayment = trnsctn.ProofOfPayment
                                 }).ToList();
 
             return Ok(transactions);
         }
-
-
 
         [HttpPut]
         public async Task<IActionResult> PutTransaction(int? key, string values)
@@ -80,15 +70,15 @@ namespace Wiggly.Areas.Farmer.Controllers
 
 
             Transaction transaction = _context.Transaction.Where(q => q.Id == key).FirstOrDefault();
-            transaction.Status = info.Status;
+            transaction.PaymentStatus = info.Status;
 
             _context.Transaction.Update(transaction);
             await _context.SaveChangesAsync();
 
-            Payment payment = _context.Payment.Where(q => q.Transaction == key).FirstOrDefault();
-            payment.Status = info.Status;
-            _context.Payment.Update(payment);
-            await _context.SaveChangesAsync();
+            //Payment payment = _context.Payment.Where(q => q.Transaction == key).FirstOrDefault();
+            //payment.Status = info.Status;
+            //_context.Payment.Update(payment);
+            //await _context.SaveChangesAsync();
 
             return NoContent();
         }

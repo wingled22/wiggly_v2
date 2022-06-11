@@ -156,6 +156,46 @@ namespace Wiggly.Areas.Vendor.Controllers
                 return BadRequest("no file upload");
         }
 
+        [HttpPost]
+        public IActionResult UploadTransactionProofPayment()
+        {
+            string newFileName = "";
+            try
+            {
+                var myFile = Request.Form.Files["myFile"];
+                var path = Path.Combine(_hostingEnvironment.WebRootPath, "upload/transaction");
+                // Uncomment to save the file
+                //if(!Directory.Exists(path))
+                //    Directory.CreateDirectory(path);
+                var uniqueID = Guid.NewGuid().ToString();
+                newFileName = string.Format("{0}{1}", uniqueID, myFile.FileName);
+
+                using (var fileStream = System.IO.File.Create(Path.Combine(path, newFileName)))
+                {
+                    myFile.CopyTo(fileStream);
+
+                    HttpContext.Session.SetString("currentFilePathTransactionProofPayment", string.Format("/upload/transaction/{0}", newFileName));
+                }
+
+            }
+            catch
+            {
+                Response.StatusCode = 400;
+            }
+            
+            return new EmptyResult();
+        }
+
+        [HttpGet]
+        public IActionResult GetUploadTransactionProofPayment()
+        {
+            string file = HttpContext.Session.GetString("currentFilePathTransactionProofPayment").ToString();
+            if (!string.IsNullOrEmpty(file))
+                return Ok(file);
+            else
+                return BadRequest("no file upload");
+        }
+
 
     }
 }

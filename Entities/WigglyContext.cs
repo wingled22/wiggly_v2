@@ -331,11 +331,31 @@ namespace Wiggly.Entities
 
             modelBuilder.Entity<Transaction>(entity =>
             {
+                entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
+
                 entity.Property(e => e.BookDate).HasColumnType("datetime");
+
+                entity.Property(e => e.BookingId).HasColumnName("BookingID");
 
                 entity.Property(e => e.DateCreated).HasColumnType("datetime");
 
+                entity.Property(e => e.Kilos).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.PaymentStatus)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.PaymentType)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.ProofOfPayment).IsUnicode(false);
+
                 entity.Property(e => e.Status)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.TypeOfLivestock)
                     .HasMaxLength(50)
                     .IsUnicode(false);
             });

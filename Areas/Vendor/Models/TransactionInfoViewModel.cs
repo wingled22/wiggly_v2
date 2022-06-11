@@ -18,37 +18,22 @@ namespace Wiggly.Areas.Vendor.Models
         public DateTime? BookDate { get; set; }
         //public DateTime? DateCreated { get; set; }
 
-        /*
-         Kilos
-         */
-        [Display(Name ="No of Pigs")]
-        public int? PorkNum { get; set; }
-        [Display(Name ="Kilos of pork")]
-        public double? Pork { get; set; }
-        [Display(Name ="No of Cows")]
-        public int? BeefNum { get; set; }
-        [Display(Name ="Kilos of beef")]
-        public double? Beef { get; set; }
-        [Display(Name ="No of Chicken")]
-        public int? ChickenNum { get; set; }
-        [Display(Name ="Kilos of chicken")]
-        public double? Chicken { get; set; }
-        [Display(Name ="No of Goats")]
-        public int? GoatNum { get; set; }
-        [Display(Name ="Kilos of goat")]
-        public double? Goat { get; set; }
-        [Display(Name ="No of carabao")]
-        public int? CarabaoNum { get; set; }
-        [Display(Name ="Kilos of carabao")]
-        public double? Carabao { get; set; }
+        
+        /**
+         * livestocks 
+         **/
+        public string LiveStockType { get; set; }
+        [Required]
+        public decimal? Kilos { get; set; }
+        [Required]
+        public decimal? Amount { get; set; }
+        public int Quantity { get; set; }
 
-        /*
-         Payment
-        */
         [Required]
         public string PaymentType { get; set; }
         //public string PaymentStatus { get; set; }
-        [Required]
-        public decimal? Amount { get; set; }
+        public string ProofOfpayment { get; set; }
+
+
     }
 }
