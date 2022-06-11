@@ -220,16 +220,17 @@ namespace Wiggly.Controllers
 
             var addressStr  = new Address();
             var latLng = new LatLng();
-            var edited = new MarketPlaceViewModel();
+            var edited = new MarketPlaceViewModelRevised();
             JsonConvert.PopulateObject(values, edited);
 
             JsonConvert.PopulateObject(address, addressStr);
             JsonConvert.PopulateObject(latlngStr, latLng);
             
-            item.Caption = edited.Caption;
-            item.Description = edited.Description;
-            item.BuyOrSell = edited.BuyOrSell;
+         
             item.Category = edited.Category;
+            item.Quantity = edited.Quantity;
+            item.Amount = edited.Amount;
+            item.Kilos = edited.Kilos;
             item.Address = addressStr.Val;
             item.Lat = latLng.Lat;
             item.Lng = latLng.Lng;

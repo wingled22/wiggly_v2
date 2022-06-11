@@ -554,7 +554,7 @@
     var curLocation = [11.0530536, 124.0110354];
 
     function initGeolocation(latitude, longitude, locationName) {
-
+        displayName = locationName;
         if (myMap == null) {
             // create map object
             myMap = L.map('MapLocation').setView(curLocation, 18);
@@ -585,6 +585,7 @@
                     });
                     p.then((data) => {
                         console.log(data);
+                        console.log(data.display_name);
                         marker = L.marker(latlng).addTo(myMap);
                         displayName = data.display_name;
                         locationLatLng = latlng;
@@ -752,31 +753,31 @@
                     console.log(data);
                 });
             }
-            //else {
-            //    var ll = {
-            //        Lat: locationLatLng.lat.toString(), Lng: locationLatLng.lng.toString()
-            //    };
-            //    $.ajax({
-            //        method: "POST",
-            //        url: "../../marketplaceapi/UpdateItem",
-            //        data: {
-            //            key: pId,
-            //            values: JSON.stringify(data),
-            //            postImages: JSON.stringify(postImages),
-            //            address: JSON.stringify({ Val: displayName }),
-            //            latlngStr: JSON.stringify(ll)
-            //        }
-            //    }).done(function () {
-            //        //console.log("postSaved");
-            //        loadItems();
-            //        popup.hide();
-            //    }).fail(function (data) {
-            //        console.log("error");
-            //        console.log(data);
-            //    });
+            else {
+                var ll = {
+                    Lat: locationLatLng.lat.toString(), Lng: locationLatLng.lng.toString()
+                };
+                $.ajax({
+                    method: "POST",
+                    url: "../../marketplaceapi/UpdateItem",
+                    data: {
+                        key: pId,
+                        values: JSON.stringify(data),
+                        postImages: JSON.stringify(postImages),
+                        address: JSON.stringify({ Val: displayName }),
+                        latlngStr: JSON.stringify(ll)
+                    }
+                }).done(function () {
+                    //console.log("postSaved");
+                    loadPosts();
+                    popup.hide();
+                }).fail(function (data) {
+                    console.log("error");
+                    console.log(data);
+                });
 
-            //    console.log(data);
-            //}
+                console.log(data);
+            }
             //console.table(data);
         }
     }
