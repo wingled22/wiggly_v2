@@ -35,7 +35,7 @@ namespace Wiggly.Controllers
                         on req.Vendor equals vendor.Id
                         join item in _context.MarketPlace
                         on req.Item equals item.Id
-
+                        where req.Id == id
                         select new BookingRequestViewModel
                         {
                             Id = req.Id,

@@ -276,7 +276,7 @@
             });
 
             loadNotif.then((data) => {
-                //console.log(data);
+                console.table(data);
                 let template = document.querySelector('template#notif-template');
                 var parent = document.querySelector('#notif-parent');
 
@@ -314,6 +314,8 @@
                 //console.log();
                 var bookingRequest = $(this).attr("data-bookingReqID");
                 var notificationID = $(this).attr("data-notificationID");
+                console.log(bookingRequest);
+                console.log(notificationID);
                 //get the data
                 var p = new Promise(function (resolve, reject) {
                     $.ajax({

@@ -8,6 +8,27 @@
     ViewData["Title"] = "Search Result";
     Layout = "_LayoutAdminLTEVendorDashboard";
 }
+
+<link rel="stylesheet" href="~/plugins/leaflet/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+
+
+<dialog>
+    <div class="example-container" style="height:450px;">
+        <div class="row">
+            <section class="col col-12 header location-address">Address : </section>
+            <section class="col col-12">
+                <div class="row">
+                    <section class="col col-12">
+                        <div id="addressMapLocationInformation" style="height: 350px; "></div>
+
+                    </section>
+                </div>
+            </section>
+        </div>
+    </div>
+</dialog>
+
 <style>
     .image-container {
         overflow: auto;
@@ -20,7 +41,7 @@
 
     li {
         list-style: none;
-        display: inline-block; 
+        display: inline-block;
     }
 
     article {
@@ -85,6 +106,31 @@
         height: 80%;
         max-width: 700px;
     }
+
+    .example-container {
+        background: white;
+        width: 600px;
+        box-sizing: border-box;
+        font-family: helvetica;
+        font-size: 16px;
+        /*        -webkit-box-shadow: 1px 5px 5px 0px rgba(0,0,0,0.15);
+        -moz-box-shadow: 1px 5px 5px 0px rgba(0,0,0,0.15);*/
+        /*box-shadow: 1px 5px 5px 0px rgba(0,0,0,0.15);*/
+        border-radius: 8px;
+    }
+
+        .example-container * {
+            box-sizing: inherit;
+            font-size: inherit;
+        }
+
+        .example-container .header {
+            margin: 1em 0;
+        }
+
+        .example-container #MapLocation {
+            margin-bottom: 0.75em;
+        }
 </style>
 <div class="row">
     <div class="col-lg-3">
@@ -150,7 +196,7 @@
         </div>
     </div>
     <div class="col-lg-9 post-container">
-        
+
     </div>
 </div>
 
@@ -182,7 +228,7 @@
 
                 <p>
                     <span class="float-right" id="book">
-                        <a  class="link-black text-sm">
+                        <a class="link-black text-sm">
                             <i class="fas fa-calendar-check"></i> Book
                         </a>
                     </span>
@@ -255,6 +301,11 @@
                     clone.querySelector(".post .post-infos p.livestockAmount b").innerHTML = item.Amount;
                     clone.querySelector(".post .post-infos p.livestockKilos b").innerHTML = item.Kilos;
                     clone.querySelector(".post .post-infos p.livestockAddress b").innerHTML = item.Address;
+                    clone.querySelector(".post .post-infos p.livestockAddress").setAttribute("data-lat", item.Lat);
+                    clone.querySelector(".post .post-infos p.livestockAddress").setAttribute("data-lng", item.Lng);
+                    clone.querySelector(".post .post-infos p.livestockAddress").setAttribute("data-displayName", item.Address);
+
+
                     if (item.Status == "Pending") {
                         //clone.querySelector(".post p span").setAttribute("data-value", item.ItemID);
                         //clone.querySelector(".post p span a").setAttribute("href", "");
@@ -312,5 +363,72 @@
             var modal = document.getElementById("imageModal");
             modal.style.display = "none";
         });
+
+        //address is clicked
+        $("body").on("click", ".livestockAddress ", function (event) {
+            event.stopPropagation();
+            console.log($(this).attr('data-lat'));
+            console.log($(this).attr('data-lng'));
+            //$("#addressInfoModal").modal("toggle");
+            document.querySelector("dialog").showModal();
+            console.log($(this).attr('data-displayName'));
+            document.querySelector(".location-address").innerHTML = "Address : " + $(this).attr('data-displayName');
+            initAddressMapInformation($(this).attr('data-lat'), $(this).attr('data-lng'), $(this).attr('data-displayName'));
+        });
+
+        $('dialog').click(function (e) {
+            let dialog = document.querySelector("dialog");
+
+            if (e.target === dialog) {
+                document.querySelector("dialog").close();
+            }
+        });
     });
+
+
+
+    //map address lookup
+    var addressMapInformation;
+    var addressMapInformationLyrOSM;
+    var addressMapInformationMarker;
+    var addressMapInformationPopup;
+
+    function initAddressMapInformation(latitude, longitude, addressName) {
+        var itemLatLng = { lat: parseFloat(latitude), lng: parseFloat(longitude) };
+
+        if (addressMapInformation == null) {
+            if (latitude != null && longitude != null) {
+                // create map object
+                addressMapInformation = L.map('addressMapLocationInformation', {
+                    center: new L.LatLng(latitude, longitude),
+                }).setView(itemLatLng, 18);
+
+
+                lyrOSM = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png');
+                addressMapInformationPopup = L.popup();
+                addressMapInformation.addLayer(lyrOSM);
+
+
+                var geocoder = L.Control.geocoder().addTo(addressMapInformation);
+
+                addressMapInformationMarker = L.marker(itemLatLng).addTo(addressMapInformation);
+                addressMapInformationPopup.setLatLng(itemLatLng).setContent(addressName).openOn(addressMapInformation);
+
+            }
+        } else {
+
+            if (addressMapInformationMarker != null) {
+                addressMapInformation.removeLayer(addressMapInformationMarker);
+                //addressMapInformation.removeLayer(addressMapInformationPopup);
+                addressMapInformationMarker = null;
+            }
+
+            addressMapInformationPopup = L.popup();
+
+            addressMapInformationMarker = L.marker(itemLatLng).addTo(addressMapInformation);
+            addressMapInformationPopup.setLatLng(itemLatLng).setContent(addressName).openOn(addressMapInformation);
+
+        }
+    }
+
 </script>
