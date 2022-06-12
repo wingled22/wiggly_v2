@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="~/plugins/leaflet/leaflet.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
 
+<link href="~/plugins/toastr/toastr.min.css" rel="stylesheet" />
 
 <dialog>
     <div class="example-container" style="height:450px;">
@@ -256,6 +257,8 @@
     <span class="close">&times;</span>
     <img class="modal-content">
 </div>
+
+
 <script>
     var firstload = {
         addressString : "@ViewData["addressString"]",
@@ -347,6 +350,32 @@
 
     $(document).ready(function () {
         searchPostsByLocation();
+
+        //book is clicked
+        $("body").on("click", "#book", function () {
+            console.log($(this).attr("data-value"));
+            var itemId = $(this).attr("data-value");
+            var p = new Promise(function (resolve, reject) {
+                $.ajax({
+                    url: "../../BookingRequestAPI/AddBookingRequest?item=" + itemId,
+                    success: function (data) {
+                        resolve(data)
+                    },
+                    error: function (data) {
+                        reject(data)
+                    }
+                });
+            });
+
+            p.then((data) => {
+                toastr.success('Booking Request sent!');
+
+            }).catch((err) => {
+                toastr.error('Something unexpected happened adding a booking, try again later.');
+
+                console.table(err);
+            });
+        })
 
 
         //image is clicked on the post row

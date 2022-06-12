@@ -377,7 +377,7 @@
                 p.then((data) => {
                     $('#modal-viewBooking').modal("toggle");
                     toastr.success('Booking Accepted!');
-
+                    location.reload();
                 }).catch((err) => {
                     //toastr.error('Unexpected happpened!');
                     console.log(err);
@@ -403,6 +403,7 @@
                 p.then((data) => {
                     $('#modal-viewBooking').modal("toggle");
                     toastr.error('Booking declined!');
+                    location.reload();
 
                 }).catch((err) => {
                     //toastr.error('Unexpected happpened!');
