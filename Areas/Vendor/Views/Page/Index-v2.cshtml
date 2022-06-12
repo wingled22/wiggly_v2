@@ -11,6 +11,26 @@
 }
 
 <link href="~/plugins/toastr/toastr.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="~/plugins/leaflet/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+
+
+<dialog>
+    <div class="example-container" style="height:450px;">
+        <div class="row">
+            <section class="col col-12 header location-address">Address : </section>
+            <section class="col col-12">
+                <div class="row">
+                    <section class="col col-12">
+                        <div id="addressMapLocationInformation" style="height: 350px; "></div>
+
+                    </section>
+                </div>
+            </section>
+        </div>
+    </div>
+</dialog>
+
 <style>
     .image-container {
         overflow: auto;
@@ -112,6 +132,31 @@
 
         .timeline-row:hover {
             background: #bfbfbf;
+        }
+
+    .example-container {
+        background: white;
+        width: 600px;
+        box-sizing: border-box;
+        font-family: helvetica;
+        font-size: 16px;
+        /*        -webkit-box-shadow: 1px 5px 5px 0px rgba(0,0,0,0.15);
+        -moz-box-shadow: 1px 5px 5px 0px rgba(0,0,0,0.15);*/
+        /*box-shadow: 1px 5px 5px 0px rgba(0,0,0,0.15);*/
+        border-radius: 8px;
+    }
+
+        .example-container * {
+            box-sizing: inherit;
+            font-size: inherit;
+        }
+
+        .example-container .header {
+            margin: 1em 0;
+        }
+
+        .example-container #MapLocation {
+            margin-bottom: 0.75em;
         }
 </style>
 
@@ -243,19 +288,21 @@
     </section>
 
     <!--<section class="col-lg-3 connectedSortable">-->
-        <!-- Custom tabs (Charts with tabs)-->
-        <!--<div class="card">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-calendar-alt mr-1"></i>
-                    Timeline
-                </h3>
-            </div>--><!-- /.card-header -->
-            <!--<div class="card-body timeline-parent">
+    <!-- Custom tabs (Charts with tabs)-->
+    <!--<div class="card">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fas fa-calendar-alt mr-1"></i>
+                Timeline
+            </h3>
+        </div>-->
+    <!-- /.card-header -->
+    <!--<div class="card-body timeline-parent">
 
-            </div>--><!-- /.card-body -->
-        <!--</div>-->
-        <!-- /.card -->
+    </div>-->
+    <!-- /.card-body -->
+    <!--</div>-->
+    <!-- /.card -->
     <!--</section>-->
 </div>
 
@@ -317,7 +364,7 @@
 </div>
 
 
-<script src="~/plugins/toastr/toastr.min.js" ></script>
+<script src="~/plugins/toastr/toastr.min.js"></script>
 <script>
     var popup, form, fileUploader;
     // true if edit false if add
@@ -458,6 +505,10 @@
                 clone.querySelector(".post .post-infos p.livestockAmount b").innerHTML = item.Amount;
                 clone.querySelector(".post .post-infos p.livestockKilos b").innerHTML = item.Kilos;
                 clone.querySelector(".post .post-infos p.livestockAddress b").innerHTML = item.Address;
+                clone.querySelector(".post .post-infos p.livestockAddress").setAttribute("data-lat", item.Lat);
+                clone.querySelector(".post .post-infos p.livestockAddress").setAttribute("data-lng", item.Lng);
+                clone.querySelector(".post .post-infos p.livestockAddress").setAttribute("data-displayName", item.Address);
+
                 clone.querySelector(".post p span").setAttribute("data-value", item.ItemID);
 
 
@@ -568,6 +619,28 @@
             var modal = document.getElementById("imageModal");
             modal.style.display = "none";
         });
+
+
+        //address is clicked
+        $("body").on("click", ".livestockAddress ", function (event) {
+            event.stopPropagation();
+            console.log($(this).attr('data-lat'));
+            console.log($(this).attr('data-lng'));
+            //$("#addressInfoModal").modal("toggle");
+            document.querySelector("dialog").showModal();
+            console.log($(this).attr('data-displayName'));
+            document.querySelector(".location-address").innerHTML = "Address : " + $(this).attr('data-displayName');
+            initAddressMapInformation($(this).attr('data-lat'), $(this).attr('data-lng'), $(this).attr('data-displayName'));
+        });
+
+        $('dialog').click(function (e) {
+            let dialog = document.querySelector("dialog");
+
+            if (e.target === dialog) {
+                document.querySelector("dialog").close();
+            }
+        });
+
     });
 
     //if file upload data values was changed
@@ -584,6 +657,51 @@
         }
         else
             $("#selected-files").hide();
+    }
+
+
+    //map address lookup
+    var addressMapInformation;
+    var addressMapInformationLyrOSM;
+    var addressMapInformationMarker;
+    var addressMapInformationPopup;
+
+    function initAddressMapInformation(latitude, longitude, addressName) {
+        var itemLatLng = { lat: parseFloat(latitude), lng: parseFloat(longitude) };
+
+        if (addressMapInformation == null) {
+            if (latitude != null && longitude != null) {
+                // create map object
+                addressMapInformation = L.map('addressMapLocationInformation', {
+                    center: new L.LatLng(latitude, longitude),
+                }).setView(itemLatLng, 18);
+
+
+                lyrOSM = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png');
+                addressMapInformationPopup = L.popup();
+                addressMapInformation.addLayer(lyrOSM);
+
+
+                var geocoder = L.Control.geocoder().addTo(addressMapInformation);
+
+                addressMapInformationMarker = L.marker(itemLatLng).addTo(addressMapInformation);
+                addressMapInformationPopup.setLatLng(itemLatLng).setContent(addressName).openOn(addressMapInformation);
+
+            }
+        } else {
+
+            if (addressMapInformationMarker != null) {
+                addressMapInformation.removeLayer(addressMapInformationMarker);
+                //addressMapInformation.removeLayer(addressMapInformationPopup);
+                addressMapInformationMarker = null;
+            }
+
+            addressMapInformationPopup = L.popup();
+
+            addressMapInformationMarker = L.marker(itemLatLng).addTo(addressMapInformation);
+            addressMapInformationPopup.setLatLng(itemLatLng).setContent(addressName).openOn(addressMapInformation);
+
+        }
     }
 
 
