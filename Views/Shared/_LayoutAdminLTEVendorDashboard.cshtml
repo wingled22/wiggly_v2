@@ -151,12 +151,12 @@
                             </a>
                         </li>
 
-                        <li class="nav-item">
+                        @*<li class="nav-item">
                             <a asp-area="Vendor" asp-controller="Page" asp-action="Schedule" class="nav-link">
                                 <i class="nav-icon fas fa-calendar-day"></i>
                                 <p>Calendar</p>
                             </a>
-                        </li>
+                        </li>*@
 
 
 
@@ -232,6 +232,24 @@
     </div>
 
     <script>
+        var pushnotif = [];
+
+        function loopThroughNotif(arr) {
+            for (var i = 0; i < arr.length; i++) {
+
+                (function (i) {
+                    setTimeout(function () {
+                        let notif = new Notification("Wiggly Meetup Memo", {
+                            body: arr[i].message
+                        });
+                        notif.onclick = (e) => {
+                            window.location.href = arr[i].link;
+                        };
+                    }, 300);
+                })(i);
+            };
+        }
+
         function loadNotification() {
             const loadNotif = new Promise(function (resolve, reject) {
                 $.ajax({
@@ -255,10 +273,33 @@
                     $.each(data, function (i, item) {
                         let clone = template.content.cloneNode(true);
 
-                        clone.querySelector("a").innerHTML = "<i class=\"fas fa-bell mr-2\"></i> " + item.Message;
+                        if (item.NotifType == "Push") {
 
-                        parent.appendChild(clone);
+                            if (item.PushNotifIsRead != "Read") {
+                                pushnotif.push({ message: item.Message, link: "https://localhost:44349/vendor/page/MarkPushNotifAsRead?notifID=" + item.Id });
+                            }
+                        
+                           
+                        } else {
+                            clone.querySelector("a").innerHTML = "<i class=\"fas fa-bell mr-2\"></i> " + item.Message;
+
+                            parent.appendChild(clone);
+                        }
+
+                        
                     });
+
+                    //let notf = new window.Notification("Wiggly Meetup Memo", {
+                    //    body: "asdadadasd"
+                    //});
+
+                    //notf.onclick = (e) => {
+                    //   window.location.href = "https://localhost:44349/sample?id=12";
+                    //}
+                    if (pushnotif.length > 0) {
+                        loopThroughNotif(pushnotif);
+                    }
+
                 } else {
                     console.log("no comment");
                     parent.innerHTML = "<p>No notifications.</p>";

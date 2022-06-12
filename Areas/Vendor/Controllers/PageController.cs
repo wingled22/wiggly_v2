@@ -99,6 +99,18 @@ namespace Wiggly.Areas.Vendor.Controllers
                 return View();
         }
 
+        public IActionResult MarkPushNotifAsRead(Guid notifID)
+        {
+            var notif = _context.Notif.Where(q => q.Id == notifID).FirstOrDefault();
+            if(notif != null)
+            {
+                notif.PushNotifIsRead = "Read";
+                _context.SaveChanges();
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
         private bool IsSubscribed()
         {
             var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();

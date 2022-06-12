@@ -12,5 +12,8 @@ namespace Wiggly.Entities
         public string DateCreatedString { get; set; }
         public string NotifType { get; set; }
         public int? BookingRequest { get; set; }
+        public string PushNotifIsRead { get; set; }
+        public DateTime? PushNotifReminder { get; set; }
+        public string PushNotifReminderIsRead { get; set; }
     }
 }

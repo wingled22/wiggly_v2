@@ -41,7 +41,7 @@ namespace Wiggly.Areas.Farmer.Controllers
             if (!IsSubscribed())
                 return View("Subscription");
             else
-                return View();
+                return View("Calendar-v2");
         }
 
         public IActionResult Transaction()

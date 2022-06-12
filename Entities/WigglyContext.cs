@@ -209,6 +209,16 @@ namespace Wiggly.Entities
                 entity.Property(e => e.NotifType)
                     .HasMaxLength(50)
                     .IsUnicode(false);
+
+                entity.Property(e => e.PushNotifIsRead)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.PushNotifReminder).HasColumnType("datetime");
+
+                entity.Property(e => e.PushNotifReminderIsRead)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
             });
 
             modelBuilder.Entity<Payment>(entity =>

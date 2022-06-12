@@ -1,0 +1,239 @@
+﻿@using Wiggly
+@namespace Wiggly.Models
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using DevExtreme.AspNet.Mvc
+@model Wiggly.Entities.Schedules;
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "_LayoutAdminLTEFarmerDashboard";
+}
+
+<h3>My Schedule</h3>
+
+@*<p>
+        <a asp-action="Index">Home Farmer</a>
+    </p>*@
+<button type="button" class="btn btn-primary" onclick="addAppointment()">Add Appointment</button>
+<br />
+<br />
+@(Html.DevExtreme().Scheduler()
+    .ID("scheduler")
+    .DataSource(d => d.Mvc()
+        .Controller("CalendarAPI")
+        .Key("SchedId")
+        .LoadAction("GetSched")
+        .InsertAction("SetSched")
+        .UpdateAction("UpdateSched")
+        .DeleteAction("DeleteSched")
+    )
+    .Views(new[] {
+        SchedulerViewType.Day,
+        SchedulerViewType.Month
+    })
+    .Editing(e => e.AllowAdding(true).AllowUpdating(true).AllowDeleting(true))
+    .CurrentView(SchedulerViewType.Month)
+    .StartDateExpr("BookingStartDate")
+    .EndDateExpr("BookingEndDate")
+    .TextExpr("Notes")
+    .StartDayHour(1)
+    .EndDayHour(24)
+    .OnInitialized("onInit")
+    .Height(500)
+    .OnAppointmentFormOpening("onAppointmentFormOpening")
+    .OnAppointmentDblClick("OnAppointmentDblClick")
+    .OnCellClick("OnCellClick")
+)
+@(Html.DevExtreme().Popup()
+    .ID("popupDetails")
+    .Title("Appointment info")
+    .Width(700)
+    .Height(450)
+    .ContentTemplate(new TemplateName("customPopupContentTemplate"))
+    .ToolbarItems(items =>
+    {
+        items.Add()
+            .Widget(editor => editor.Button()
+                .Text("Confirm")
+                .Type(ButtonType.Success)
+                .OnClick("onConfirmClick")
+            )
+            .Location(ToolbarItemLocation.After)
+            .Toolbar(Toolbar.Bottom);
+        items.Add()
+            .Widget(editor => editor.Button()
+                .Text("Cancel")
+                .Type(ButtonType.Success)
+                .OnClick("onCancelClick")
+            )
+            .Location(ToolbarItemLocation.After)
+            .Toolbar(Toolbar.Bottom);
+
+    })
+    .DragEnabled(true)
+    .CloseOnOutsideClick(true)
+    .ShowCloseButton(true)
+    .OnInitialized("onPopupInitialized")
+
+)
+
+@using (Html.DevExtreme().NamedTemplate("customPopupContentTemplate"))
+{
+    @(Html.DevExtreme().Form<Wiggly.Areas.Farmer.Models.FarmerAppointmentViewModel>()
+        .ID("formDetails")
+        .ColCount(2)
+        .ActiveStateEnabled(false)
+        .LabelLocation(FormLabelLocation.Left)
+        .MinColWidth(300)
+        .ShowValidationSummary(true)
+        .ReadOnly(false)
+        .ActiveStateEnabled(false)
+        .Items(items =>
+        {
+            items.AddGroup().ColCount(2).ColSpan(2).Items(gItem =>
+            {
+                gItem.AddSimpleFor(m => m.BookingStartDate).Editor(e => e.DateBox().Type(DateBoxType.DateTime)).ColSpan(1).IsRequired(true);
+                gItem.AddSimpleFor(m => m.BookingEndDate).Editor(e => e.DateBox().Type(DateBoxType.DateTime)).ColSpan(1).IsRequired(true);
+                gItem.AddSimpleFor(m => m.Vendor).ColSpan(1).IsRequired(true)
+                    .Editor(e => e.SelectBox()
+                        .Placeholder("Select Farmer")
+                        .DataSource(new JS("vendors"))
+                        .ItemTemplate(new JS("ItemTemplate"))
+                        .DisplayExpr(new JS("DispExpr"))
+                        .ValueExpr("Id")
+                        .SearchEnabled(true)
+                    );
+                gItem.AddSimpleFor(m => m.Status).ColSpan(1).IsRequired(true).Editor(e => e.SelectBox().Placeholder("Select Status").DataSource(new JS("Status")).DisplayExpr("Name").ValueExpr("Name"));
+                gItem.AddSimpleFor(m => m.Notes).IsRequired(true).Editor(e => e.TextArea().Placeholder("Enter Notes").Height(200)).ColSpan(2);
+            });
+        })
+        .ShowColonAfterLabel(true).Visible(true).OnInitialized("onFormInitialized")
+    )
+}
+
+
+
+
+<script>
+    var vendors, scheduler, selectedSched;
+
+    let form;
+    let popup;
+    var Status = [{
+        "Name": "Pending"
+    },
+    {
+        "Name": "Done"
+    },
+    {
+        "Name": "Cancelled"
+    }
+    ];
+
+    let rowData = {}, mode;
+
+    function ItemTemplate(data) {
+        return data.Firstname + " " + data.LastName;
+    }
+
+
+    var DispExpr = (item) => function () {
+        if (item) {
+            //console.log(item);
+            return item.Firstname + " " + item.LastName;
+        } else {
+        }
+    }
+
+    function OnCellClick(e) {
+        //console.log(e);
+    }
+
+    //custom form initialization
+    function onFormInitialized(e) {
+        form = e.component;
+    }
+
+    //Custom popUpInitialization
+    function onPopupInitialized(e) {
+        popup = e.component;
+    }
+
+
+    //custom button Clicked to add
+    function addAppointment(e) {
+        showPopup("Add", {});
+    }
+
+    function onConfirmClick() {
+        let data = form.option("formData");
+        let schedSrc = scheduler.getDataSource();
+        let schedStr = schedSrc.store();
+
+        var validationResult = form.validate();
+        if (validationResult != null && !validationResult.isValid) {
+            //alert('Please fix invalid fields');
+            return false;
+        } else {
+            if (mode == "Add") {
+                var res = scheduler.addAppointment(data);
+                schedSrc.reload();
+                popup.hide();
+            } else if (mode == "Edit") {
+                scheduler.updateAppointment(selectedSched, data);
+                schedSrc.reload();
+                popup.hide();
+            }
+        }
+
+    }
+
+
+    function onCancelClick() {
+        popup.hide();
+    }
+
+    function OnAppointmentDblClick(e) {
+        selectedSched = e.appointmentData;
+        showPopup("Edit", e.appointmentData);
+    }
+
+    function showPopup(popupMode, data) {
+        mode = popupMode;
+        //console.log(form);
+
+
+        popup.option({
+            title: popupMode,
+            visible: true
+        })
+
+        if (form) {
+            //form.option('key', data.SchedId);
+            form.option('formData', data);
+
+            //console.log(data);
+        }
+        else
+            rowData = { ...data };
+
+    }
+
+
+    $.ajax("../usersapi/getvendors").done(function (data) {
+        vendors = data;
+    });
+
+
+    function onInit(e) {
+        scheduler = e.component;
+        //console.log(scheduler);
+    }
+
+    function onAppointmentFormOpening(data) {
+        data.cancel = true;
+
+    }
+
+    //li article a figure img
+</script>

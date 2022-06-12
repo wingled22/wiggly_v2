@@ -57,7 +57,7 @@ namespace Wiggly.Controllers
                     result = (from item in _context.MarketPlace
                                   join user in _context.AspNetUsers
                                   on item.User equals user.Id
-                              where item.Category == livestockType && item.Amount >=25000    
+                              where item.Category == livestockType && 25000 <= item.Amount
                               orderby item.DateCreated descending
 
                                   select new MarketPlaceViewModelRevised
@@ -108,6 +108,8 @@ namespace Wiggly.Controllers
             }
             else
             {
+                _logger.LogInformation(addressString);
+
                 if (priceRange == "option3")
                 {
                     _logger.LogInformation("is option3 above 25000");
@@ -116,7 +118,7 @@ namespace Wiggly.Controllers
                     result = (from item in _context.MarketPlace
                               join user in _context.AspNetUsers
                               on item.User equals user.Id
-                              where  item.Address.Contains(addressString) && item.Category == livestockType && item.Amount >= 25000 && EF.Functions.Like(item.Address, string.Format("%{0}%", addressString))
+                              where  item.Category == livestockType &&  25000 <= item.Amount && EF.Functions.Like(item.Address, string.Format("%{0}%", addressString))
 
                               orderby item.DateCreated descending
 
