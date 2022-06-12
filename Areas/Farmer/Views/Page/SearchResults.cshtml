@@ -40,7 +40,7 @@
         <div class="card" style="padding: 20px">
             <h5>Search Vendor</h5>
             <form action="SearchResults">
-               
+
                 <div class="form-group">
                     <input type="search" name="addressString" class="form-control form-control-lg" placeholder="Search Location" value="@ViewData["addressString"]">
                 </div>
@@ -61,7 +61,7 @@
                 <div class="card-body">
                     <h4 class="card-title">
                         <img src="../../dist/img/person-thumbnail.png" height="50" width="50" style="margin-right: 10px;" class="img-circle elevation-2" alt="User Image">
-                        @string.Format("{0} {1}",item.Firstname, item.LastName)
+                        @string.Format("{0} {1}", item.Firstname, item.LastName)
                     </h4>
 
                     <div style="padding-top: 10px;">
@@ -78,8 +78,44 @@
 
 
     </div>
-</div>  
+</div>
 
+<template id="leftMessageBubble">
+    <div class="direct-chat-msg">
+        <div class="direct-chat-infos clearfix">
+            <span class="direct-chat-name float-left">Alexander Pierce</span>
+            @*<span class="direct-chat-timestamp float-right">23 Jan 2:00 pm</span>*@
+        </div>
+        <div class="direct-chat-text">
+            Is this template really for free? That's unbelievable!
+        </div>
+    </div>
+</template>
+<!--<div id="rightMessageBubble">
+    <div class="direct-chat-msg right">
+        <div class="direct-chat-infos clearfix">
+            <span class="direct-chat-name float-right">Sarah Bullock</span>-->
+@*<span class="direct-chat-timestamp float-left">23 Jan 2:05 pm</span>*@
+<!--</div>
+
+        <div class="direct-chat-text">
+            You better believe it!
+        </div>
+    </div>
+</div>-->
+
+<template id="rightMessageBubble">
+    <div class="direct-chat-msg right">
+        <div class="direct-chat-infos clearfix">
+            <span class="direct-chat-name float-right">Sarah Bullock</span>
+            @*<span class="direct-chat-timestamp float-left">23 Jan 2:05 pm</span>*@
+        </div>
+
+        <div class="direct-chat-text">
+            You better believe it!
+        </div>
+    </div>
+</template>
 
 <div id="itemMessageModal" class="modal">
     <div class="card card-primary card-outline direct-chat direct-chat-primary" style="width:400px; margin-left:auto;margin-right:auto;">
@@ -97,25 +133,25 @@
         <div class="card-body">
             <div class="direct-chat-messages">
                 <div class="direct-chat-msg">
-                        <div class="direct-chat-infos clearfix">
-                            <span class="direct-chat-name float-left">Alexander Pierce</span>
-                            <span class="direct-chat-timestamp float-right">23 Jan 2:00 pm</span>
-                        </div>
-                        <div class="direct-chat-text">
-                            Is this template really for free? That's unbelievable!
-                        </div>
+                    <div class="direct-chat-infos clearfix">
+                        <span class="direct-chat-name float-left">Alexander Pierce</span>
+                        <span class="direct-chat-timestamp float-right">23 Jan 2:00 pm</span>
+                    </div>
+                    <div class="direct-chat-text">
+                        Is this template really for free? That's unbelievable!
+                    </div>
+                </div>
+
+                <div class="direct-chat-msg right">
+                    <div class="direct-chat-infos clearfix">
+                        <span class="direct-chat-name float-right">Sarah Bullock</span>
+                        <span class="direct-chat-timestamp float-left">23 Jan 2:05 pm</span>
                     </div>
 
-                    <div class="direct-chat-msg right">
-                        <div class="direct-chat-infos clearfix">
-                            <span class="direct-chat-name float-right">Sarah Bullock</span>
-                            <span class="direct-chat-timestamp float-left">23 Jan 2:05 pm</span>
-                        </div>
-
-                        <div class="direct-chat-text">
-                            You better believe it!
-                        </div>
+                    <div class="direct-chat-text">
+                        You better believe it!
                     </div>
+                </div>
             </div>
         </div>
         <div class="card-footer">
@@ -131,11 +167,63 @@
 </div>
 
 <script>
+    var roomMessages = [];
+    var rID;
+
     $(document).ready(function () {
 
         $("body").on("click", ".chat-now", function () {
             var modal = document.getElementById("itemMessageModal");
             modal.style.display = "block";
+
+            //console.log();
+            let vendorID = $(this).attr("data-value");
+            //get roomid with the vendor and create room if no room with the vendor
+            const getRoomPromise = new Promise(function (resolve, reject) {
+                $.ajax({
+                    method: "GET",
+                    url: "../chatapi/getroom?vendorID=" + vendorID,
+                    success: function (data) {
+                        resolve(data)
+                    },
+                    error: function (data) {
+                        reject(data)
+                    }
+                });
+            });
+
+            getRoomPromise.then((res) => {
+
+                //console.log(typeof (res));
+                rID = res;
+                const getRoomMessagesPromise = new Promise(function (resolve, reject) {
+                    $.ajax({
+                        method: "GET",
+                        url: "../chatapi/GetRoomMessages?roomID=" + res,
+                        success: function (data) {
+                            resolve(data)
+                        },
+                        error: function (data) {
+                            reject(data)
+                        }
+                    });
+                });
+
+                getRoomMessagesPromise.then((res) => {
+                    roomMessages = res;
+                    console.table(res);
+                    loadMessagesToChatPopup();
+
+                }).catch((err) => {
+                    console.log(err)
+                });
+
+            }).catch((err) => {
+
+                console.log(err);
+
+            });
+
         });
 
         $(".close").on("click", function () {
@@ -145,8 +233,63 @@
             document.getElementById("itemMessageModal").style.display = "none";
         });
 
-        //create room if no room with the vendor
         //send messge redirect to the chat page
+        $("body").on("click", "button.send-message", function () {
+            var msg = $(this).closest(".input-group").find("input").val();
+            if (msg.trim().length > 0) {
+                //code here if not
+                $(this).closest(".input-group").find("input").val("");
+                console.log(msg);
+
+                const sendMessagePromise = new Promise(function (resolve, reject) {
+                    $.ajax({
+                        method: "GET",
+                        url: "../chatapi/SendMessage?roomID=" + rID +"&message="+msg,
+                        success: function (data) {
+                            resolve(data)
+                        },
+                        error: function (data) {
+                            reject(data)
+                        }
+                    });
+                });
+
+                sendMessagePromise.then((res) => {
+                    window.location.href = "../../Farmer/Page/Chat";
+                }).catch((err) => {
+
+                });
+            }
+        });
 
     });
+
+
+
+    function loadMessagesToChatPopup() {
+        var chatParent = document.querySelector("#itemMessageModal div .card-body .direct-chat-messages");
+        chatParent.innerHTML = "";
+        if (roomMessages.length > 0) {
+            var chatMineTemplate = document.querySelector("template#rightMessageBubble");
+            var chatRecieverTemplate = document.querySelector("template#leftMessageBubble");
+            
+
+            $.each(roomMessages, function (i, item) {
+                if (item.IsSender) {
+                    let clone = chatMineTemplate.content.cloneNode(true);
+                    clone.querySelector("div div span").innerHTML = item.SenderFullname;
+                    clone.querySelector("div .direct-chat-text").innerHTML = item.MessageText;
+                    //console.log(item);
+                    chatParent.append(clone);
+                } else {
+                    let clone = chatRecieverTemplate.content.cloneNode(true);
+                    clone.querySelector("div div span").innerHTML = item.SenderFullname;
+                    clone.querySelector("div .direct-chat-text").innerHTML = item.MessageText;
+                    //console.log(item);
+                    chatParent.append(clone);
+                }
+            });
+            document.querySelector("#itemMessageModal div .card-body .direct-chat-messages .direct-chat-msg:last-child").scrollIntoView();
+        }
+    }
 </script>
