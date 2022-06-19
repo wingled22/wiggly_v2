@@ -182,6 +182,7 @@
             <p class="livestockType">Livestock type: <b>value</b></p>
             <p class="livestockQty">Quantity: <b>value</b></p>
             <p class="livestockAmount">Amount: <b>value</b> </p>
+            <p class="livestockTotalAmount">Total Amount: <b>value</b> </p>
             <p class="livestockKilos">Kilos: <b>value</b></p>
             <p class="livestockAddress">Address: <b style="line-height:normal">value</b></p>
         </div>
@@ -364,11 +365,91 @@
 </div>
 
 
+<div class="modal" id="modal-addBooking" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Booking Request</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">x</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="post">
+                    <div class="post-infos" style="line-height:10px">
+                        <h4 class="booking-info-msg">Item info</h4>
+                        <p class="booking-info-livestockType">Livestock type: <b>value</b></p>
+                        <p class="booking-info-livestockQty">Quantity: <b>value</b></p>
+                        <p class="booking-info-livestockAmount">Amount: <b>value</b> </p>
+                        <p class="booking-info-livestockKilos">Kilos: <b>value</b></p>
+                        <p class="booking-info-livestockTotalAmount">Total Amount: <b>value</b> </p>
+                        <p class="booking-info-livestockAddress">Address: <b style="line-height:normal">value</b></p>
+                    </div>
+                    <hr />
+                    <div class="form-group">
+                        <label for="booking-request-quantity">Quantity to book:</label>
+                        @*<input type="number" class="form-control" id="booking-request-quantity" aria-describedby="emailHelp" placeholder="Enter Quantity">*@
+                        <style>
+                            .inline-group-custom {
+                                max-width: 9rem;
+                                padding: .5rem;
+                            }
+
+                                .inline-group-custom .form-control {
+                                    text-align: right;
+                                }
+
+                            .form-control[type="number"]::-webkit-inner-spin-button,
+                            .form-control[type="number"]::-webkit-outer-spin-button {
+                                -webkit-appearance: none;
+                                margin: 0;
+                            }
+                        </style>
+
+                        <div class="input-group inline-group-custom">
+                            <div class="input-group-prepend">
+                                <button class="btn btn-outline-secondary btn-minus">
+                                    <i class="fa fa-minus"></i>
+                                </button>
+                            </div>
+                            <input class="form-control quantity" min="0" name="booking-request-quantity" id="booking-request-quantity" value="1" type="number">
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary btn-plus">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="booking-request-total">Total Amount:</label>
+                        <input type="number" class="form-control" id="booking-request-total" placeholder="Total amount" disabled>
+                    </div>
+                    <div class="image-container">
+                        <ul>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer left">
+                @*<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>*@
+                <button type="button" class="btn btn-success" id="booking-request-send">Request Booking</button>
+                <button type="button" class="btn btn-danger" id="booking-request-cancel">Cancel</button>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+
+
+
 <script src="~/plugins/toastr/toastr.min.js"></script>
 <script>
     var popup, form, fileUploader;
     // true if edit false if add
     var isPostEdit = false;
+    var itemToBook;
 
     //for uploading post images
     var pId;
@@ -503,6 +584,7 @@
                 clone.querySelector(".post .post-infos p.livestockType b").innerHTML = item.Category;
                 clone.querySelector(".post .post-infos p.livestockQty b").innerHTML = item.Quantity;
                 clone.querySelector(".post .post-infos p.livestockAmount b").innerHTML = item.Amount;
+                clone.querySelector(".post .post-infos p.livestockTotalAmount b").innerHTML = item.Total;
                 clone.querySelector(".post .post-infos p.livestockKilos b").innerHTML = item.Kilos;
                 clone.querySelector(".post .post-infos p.livestockAddress b").innerHTML = item.Address;
                 clone.querySelector(".post .post-infos p.livestockAddress").setAttribute("data-lat", item.Lat);
@@ -560,6 +642,12 @@
 
     }
 
+    function calculateAmountAndQuantity() {
+        var qnty = document.querySelector("#booking-request-quantity").value;
+        var total = qnty * itemToBook.Amount;
+        document.querySelector("#booking-request-total").value = total;
+    }
+
     $(document).ready(function () {
         let postId;
 
@@ -569,11 +657,36 @@
         $("body").on("click", "#book", function () {
             console.log($(this).attr("data-value"));
             var itemId = $(this).attr("data-value");
+            $('#modal-addBooking').modal("toggle");
+
+            /*
+            var p = new Promise(function (resolve, reject) {
+            $.ajax({
+                url: "../../BookingRequestAPI/AddBookingRequest?item="+itemId,
+                success: function (data) {
+                    resolve(data)
+                },
+                error: function (data) {
+                    reject(data)
+                }
+            });
+            });
+
+            p.then((data) => {
+                toastr.success('Booking Request sent!');
+
+            }).catch((err) => {
+                toastr.error('Something unexpected happened adding a booking, try again later.');
+                console.table(err);
+            });
+             */
+
             var p = new Promise(function (resolve, reject) {
                 $.ajax({
-                    url: "../../BookingRequestAPI/AddBookingRequest?item="+itemId,
+                    url: "../../MarketplaceAPI/GetItem?itemId=" + itemId,
                     success: function (data) {
-                        resolve(data)
+                        resolve(data);
+
                     },
                     error: function (data) {
                         reject(data)
@@ -581,10 +694,23 @@
                 });
             });
 
+            //populate the data to the modal
             p.then((data) => {
-                toastr.success('Booking Request sent!');
+                //toastr.success('Booking Success!');
+                console.log(data);
+                itemToBook = data;
+                //document.querySelector(".booking-info-msg").innerHTML = data.Message;
+                document.querySelector(".booking-info-livestockType b").innerHTML = data.Category;
+                document.querySelector(".booking-info-livestockQty b").innerHTML = data.Quantity;
+                document.querySelector(".booking-info-livestockAmount b").innerHTML = data.Amount;
+                document.querySelector(".booking-info-livestockTotalAmount b").innerHTML = data.Total;
+                document.querySelector(".booking-info-livestockKilos b").innerHTML = data.Kilos;
+                document.querySelector(".booking-info-livestockAddress b").innerHTML = data.Address;
+                
+                $('#modal-viewBooking').modal("toggle");
 
-            }).catch((err) => {
+            })
+            .catch((err) => {
                 toastr.error('Something unexpected happened adding a booking, try again later.');
 
                 console.table(err);
@@ -640,6 +766,53 @@
                 document.querySelector("dialog").close();
             }
         });
+
+        $('.btn-plus, .btn-minus').on('click', function (e) {
+            const isNegative = $(e.target).closest('.btn-minus').is('.btn-minus');
+            const input = $(e.target).closest('.input-group').find('input');
+            if (input.is('input')) {
+                input[0][isNegative ? 'stepDown' : 'stepUp']()
+            }
+            calculateAmountAndQuantity();
+        });
+
+        $("body").on("keyup", "#booking-request-quantity", function (e) {
+            calculateAmountAndQuantity();
+        });
+
+        $("#booking-request-send").click(function () {
+            console.log("booking-request-send");
+            var qnty = document.querySelector("#booking-request-quantity").value
+            var p = new Promise(function (resolve, reject) {
+                $.ajax({
+                    url: "../../BookingRequestAPI/AddBookingRequest?item=" + itemToBook.ItemID +"&quantity="+qnty,
+                    success: function (data) {
+                        resolve(data)
+                    },
+                    error: function (data) {
+                        reject(data)
+                    }
+                });
+            });
+
+            p.then((data) => {
+                $('#modal-addBooking').modal("toggle");
+
+                toastr.success('Booking Request sent!');
+
+            }).catch((err) => {
+                toastr.error('Something unexpected happened adding a booking, try again later.');
+                console.table(err);
+            });
+
+            //$('#modal-addBooking').modal("toggle");
+        });
+
+        $("#booking-request-cancel").click(function () {
+            console.log("sdf");
+            $('#modal-addBooking').modal("toggle");
+        });
+
 
     });
 

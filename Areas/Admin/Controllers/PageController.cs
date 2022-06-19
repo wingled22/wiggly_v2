@@ -32,6 +32,11 @@ namespace Wiggly.Areas.Admin.Controllers
             return View();
         }
 
+        public IActionResult LivestockTypes()
+        {
+            return RedirectToAction("Index", "LiveStockTypes");
+        }
+
 
     }
 }

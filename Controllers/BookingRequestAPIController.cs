@@ -42,8 +42,10 @@ namespace Wiggly.Controllers
                             Item = req.Item,
                             Category = item.Category,
                             Quantity = (int)item.Quantity,
+                            BookingQuantity = (int)req.Quantity,
                             Kilos = (int)item.Kilos,
                             Amount = (decimal)item.Amount,
+                            TotalAmount = (decimal)item.Amount * (decimal)req.Quantity,
                             DateCreated = req.DateCreated,
                             Message = string.Format("{0} {1} booked you!", vendor.Firstname, vendor.LastName),
                             Address = item.Address,
@@ -55,7 +57,7 @@ namespace Wiggly.Controllers
             return Ok(data);
         }
 
-        public IActionResult AddBookingRequest(Guid item)
+        public IActionResult AddBookingRequest(Guid item, int quantity)
         {
             var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
             var x = _context.MarketPlace.Where(q => q.Id == item).FirstOrDefault();
@@ -65,6 +67,7 @@ namespace Wiggly.Controllers
                 Item = item,
                 Vendor = loggedInUser.Id,
                 Farmer = farmer.Id,
+                Quantity = quantity,
                 DateCreated = DateTime.Now
             };
 
@@ -141,15 +144,20 @@ namespace Wiggly.Controllers
                     Farmer = loggedInUser.Id,
                     Status = "Pending",
                     TypeOfLivestock = item.Category,
-                    Quantity = item.Quantity,
+                    Quantity = bookingRequest.Quantity,
                     Kilos = item.Kilos,
-                    Amount = item.Amount,
+                    Amount = bookingRequest.Quantity * item.Amount,
                     BookDate = bookingRequest.DateUpdated,
                     BookingId = item.Id,
                     DateCreated = DateTime.Now
                 };
 
                 _context.Transaction.Add(transaction);
+                _context.SaveChanges();
+
+                item.Quantity = (int)item.Quantity - (int)bookingRequest.Quantity;
+                item.Total = item.Quantity * item.Amount;
+                _context.MarketPlace.Update(item);
                 _context.SaveChanges();
 
 

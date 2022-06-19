@@ -39,7 +39,7 @@ namespace Wiggly.Controllers
             decimal minRange = 0, maxRange = 0;
             if(priceRange == "option1")
             {
-                minRange = 5000;
+                minRange = 1000;
                 maxRange = 15000;
             }else if (priceRange == "option2")
             {

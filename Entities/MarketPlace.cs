@@ -10,6 +10,7 @@ namespace Wiggly.Entities
         public string Description { get; set; }
         public int? Quantity { get; set; }
         public decimal? Amount { get; set; }
+        public decimal? Total { get; set; }
         public int? Kilos { get; set; }
         public string Address { get; set; }
         public string Lat { get; set; }

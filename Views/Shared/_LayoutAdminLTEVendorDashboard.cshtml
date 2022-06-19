@@ -276,7 +276,8 @@
                         if (item.NotifType == "Push") {
 
                             if (item.PushNotifIsRead != "Read") {
-                                pushnotif.push({ message: item.Message, link: "https://localhost:44349/vendor/page/MarkPushNotifAsRead?notifID=" + item.Id });
+                                
+                                pushnotif.push({ message: item.Message, link: "https://wiggly20220520105532.azurewebsites.net/Vendor/Page/MarkPushNotifAsRead?notifID=" + item.Id });
                             }
                         
                            

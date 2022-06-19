@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Wiggly.Controllers;
 using Wiggly.Entities;
 using Wiggly.Identity;
 
@@ -81,7 +82,10 @@ namespace Wiggly.Areas.Vendor.Controllers
             if (!IsSubscribed())
                 return View("Subscription");
             else
-                return View();
+            {
+                List<LivestockNames> lstock = _context.LivestockType.Select(x => new LivestockNames { Name = x.Name }).ToList();
+                return View(lstock);
+            }
         }
 
         public IActionResult SearchResults(string addressString, string livestockType, string priceRange)

@@ -87,6 +87,7 @@ namespace Wiggly.Controllers
                              Category = item.Category,
                              Quantity = (int)item.Quantity,
                              Amount = (decimal)item.Amount,
+                             Total = (decimal)item.Total,
                              Kilos = (int)item.Kilos,
                              ImageList = _context.PostPhoto.Where(p => item.Id == p.Post)
                                                 .Select(p => new MarketPlaceImage { ImageId = p.Id, ImagePath = p.Path })
@@ -121,6 +122,7 @@ namespace Wiggly.Controllers
                              DateCreated = item.DateCreated.ToString(),
                              Category = item.Category,
                              Quantity = (int)item.Quantity,
+                             Total = (decimal)item.Total,
                              Amount = (decimal)item.Amount,
                              Kilos = (int)item.Kilos,
                              ImageList = _context.PostPhoto.Where(p => item.Id == p.Post && p.Path.Contains("marketplace"))
@@ -163,6 +165,7 @@ namespace Wiggly.Controllers
                 Category = val.Category,
                 Quantity = val.Quantity,
                 Amount = val.Amount,
+                Total = val.Amount * val.Quantity,
                 Kilos = val.Kilos,
                 Address = addressStr.Val,
                 Lat = latLng.Lat,
@@ -231,6 +234,7 @@ namespace Wiggly.Controllers
             item.Quantity = edited.Quantity;
             item.Amount = edited.Amount;
             item.Kilos = edited.Kilos;
+            item.Total = edited.Amount * edited.Quantity;
             item.Address = addressStr.Val;
             item.Lat = latLng.Lat;
             item.Lng = latLng.Lng;
@@ -292,6 +296,13 @@ namespace Wiggly.Controllers
             _context.PostPhoto.Remove(postPhoto);
             _context.SaveChanges();
 
+            return Ok();
+        }
+
+
+
+        public IActionResult DeductAmount()
+        {
             return Ok();
         }
 

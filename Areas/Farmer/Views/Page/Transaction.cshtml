@@ -121,7 +121,7 @@
         col.AddFor(m => m.BookDate);
         col.AddFor(m => m.LiveStockType);
         col.AddFor(m => m.Quantity);
-        col.AddFor(m => m.Kilos);
+        col.AddFor(m => m.Kilos).Visible(false);
         col.AddFor(m => m.Amount).Visible(true);
         col.AddFor(m => m.Status);
 

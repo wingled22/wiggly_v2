@@ -135,7 +135,7 @@
         col.AddFor(m => m.BookDate);
         col.AddFor(m => m.LiveStockType);
         col.AddFor(m => m.Quantity);
-        col.AddFor(m => m.Kilos);
+        col.AddFor(m => m.Kilos).Visible(false);
         col.AddFor(m => m.Amount).Visible(true);
         col.AddFor(m => m.Status);
 
@@ -280,15 +280,15 @@
             .Template(@<text>
 
                             <div class="widget-container">
-                            @(Html.DevExtreme().FileUploader()
-                                .ID("file-uploader")
-                                .Name("myFile")
-                                .Multiple(false)
-                                .Accept("*")
-                                .UploadMode(FileUploadMode.Instantly)
-                                .UploadUrl(Url.Action("UploadTransactionProofPayment", "FileUploader", new {area = "Vendor" }))
-                                .OnValueChanged("fileUploader_valueChanged")
-                            )
+                                @(Html.DevExtreme().FileUploader()
+                                    .ID("file-uploader")
+                                    .Name("myFile")
+                                    .Multiple(false)
+                                    .Accept("*")
+                                    .UploadMode(FileUploadMode.Instantly)
+                                    .UploadUrl(Url.Action("UploadTransactionProofPayment", "FileUploader", new {area = "Vendor" }))
+                                    .OnValueChanged("fileUploader_valueChanged")
+                                )
                                 <div class="content" id="selected-files">
 
                                 </div>
@@ -362,7 +362,7 @@
         }
     ];
 
-    const category = [{ Name: "Pig" }, { Name: "Cow" }, { Name: "Chicken" }, { Name: "Goat" }, { Name: "Carabao" }];
+    let category = [];
 
     let grid;
     let form, editForm;
@@ -420,9 +420,14 @@
         selectedRecord = e.row.data;
         popup.option({ visible: true })
         form.option("formData", e.row.data);
-        postImage = { ImagePath: e.row.data.ProofOfpayment };
-        postImages.push(postImage);
-        loadImageListToPopup();
+        if (e.row.data.ProofOfpayment != null) {
+            postImage = { ImagePath: e.row.data.ProofOfpayment };
+            postImages.push(postImage);
+            loadImageListToPopup();
+        } else {
+            console.log("proof of payment is null")
+        }
+
         e.event.preventDefault();
     }
 
@@ -430,6 +435,24 @@
     var farmerSelectBox;
 
     $(document).ready(function () {
+
+        var catPromise = new Promise(function (resolve, reject) {
+            $.ajax({
+                url: "../../livestockAPI/GetLivestock",
+                success: function (data) {
+                    resolve(data)
+                },
+                error: function (data) {
+                    reject(data)
+                }
+            });
+        });
+        catPromise.then((data) => {
+            category = [...data];
+        }).catch((err) => {
+            console.table(err);
+        });
+
         $.ajax("../Transaction/GetFarmersWithFullname").done(function (data) {
             asdfasdf = data;
             //console.table(data);

@@ -24,6 +24,7 @@ namespace Wiggly.Entities
         public virtual DbSet<AspNetUsers> AspNetUsers { get; set; }
         public virtual DbSet<BookingRequest> BookingRequest { get; set; }
         public virtual DbSet<Kilos> Kilos { get; set; }
+        public virtual DbSet<LivestockType> LivestockType { get; set; }
         public virtual DbSet<MarketPlace> MarketPlace { get; set; }
         public virtual DbSet<Message> Message { get; set; }
         public virtual DbSet<Notif> Notif { get; set; }
@@ -38,6 +39,7 @@ namespace Wiggly.Entities
         public virtual DbSet<RoomMember> RoomMember { get; set; }
         public virtual DbSet<Schedules> Schedules { get; set; }
         public virtual DbSet<SubscriptionRequest> SubscriptionRequest { get; set; }
+        public virtual DbSet<Table> Table { get; set; }
         public virtual DbSet<Transaction> Transaction { get; set; }
         public virtual DbSet<UserLikedPost> UserLikedPost { get; set; }
 
@@ -154,6 +156,15 @@ namespace Wiggly.Entities
                     .HasDefaultValueSql("('Pending')");
             });
 
+            modelBuilder.Entity<LivestockType>(entity =>
+            {
+                entity.Property(e => e.DateCreated).HasColumnType("datetime");
+
+                entity.Property(e => e.Name)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+            });
+
             modelBuilder.Entity<MarketPlace>(entity =>
             {
                 entity.Property(e => e.Id).ValueGeneratedNever();
@@ -183,6 +194,8 @@ namespace Wiggly.Entities
                 entity.Property(e => e.Status)
                     .HasMaxLength(10)
                     .IsUnicode(false);
+
+                entity.Property(e => e.Total).HasColumnType("decimal(18, 2)");
             });
 
             modelBuilder.Entity<Message>(entity =>
@@ -337,6 +350,11 @@ namespace Wiggly.Entities
                     .HasMaxLength(50)
                     .IsUnicode(false)
                     .HasDefaultValueSql("('Pending')");
+            });
+
+            modelBuilder.Entity<Table>(entity =>
+            {
+                entity.Property(e => e.Id).ValueGeneratedNever();
             });
 
             modelBuilder.Entity<Transaction>(entity =>

@@ -33,6 +33,7 @@ namespace Wiggly.Models
         public string Lng { get; set; }
         public int Quantity{ get; set; }
         public int Kilos { get; set; }
+        public decimal Total { get; set; }
         public decimal Amount { get; set; }
         public string Category { get; set; }
         public int UserId { get; set; }

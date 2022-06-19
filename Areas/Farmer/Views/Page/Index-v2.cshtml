@@ -153,7 +153,6 @@
         .example-container #MapLocation {
             margin-bottom: 0.75em;
         }
-
 </style>
 
 
@@ -236,9 +235,28 @@
             {
 
                 gItem.AddSimpleFor(m => m.Category).Editor(e => e.SelectBox().DataSource(new JS("category")).ValueExpr("Name").DisplayExpr("Name")).ColSpan(1).IsRequired(true);
-                gItem.AddSimpleFor(m => m.Quantity).Editor(e => e.TextBox()).ColSpan(1).IsRequired(true);
-                gItem.AddSimpleFor(m => m.Amount).Editor(e => e.TextBox()).ColSpan(1).IsRequired(true);
-                gItem.AddSimpleFor(m => m.Kilos).Editor(e => e.TextBox()).ColSpan(1).IsRequired(true);
+                gItem.AddSimpleFor(m => m.Quantity).Editor(e => e.NumberBox().OnValueChanged("AmountOnChange")).ColSpan(1).IsRequired(true);
+                gItem.AddSimpleFor(m => m.Amount).Editor(e => e.NumberBox().OnValueChanged("AmountOnChange")).ColSpan(1).IsRequired(true);
+                gItem.AddSimpleFor(m => m.Kilos).Editor(e => e.NumberBox()).ColSpan(1).IsRequired(true);
+                gItem.AddSimple()
+                .Name("Total")
+                .Template(@<text>
+                    <label class="dx-field-item-label dx-field-item-label-location-top" @*for="dx_dx-58703833-6bb3-fb22-bb7a-fb9625819474_Kilos"*@>
+                        <span class="dx-field-item-label-content">
+                            <span class="dx-field-item-label-text">Total Amount:</span>
+                            <span class="dx-field-item-required-mark">&nbsp;*</span>
+                        </span>
+                    </label>
+
+                    <div class="dx-texteditor-container">
+                        <div class="dx-texteditor-input-container">
+                            <input autocomplete="off" @*id="dx_dx-73429d97-a561-13cb-871c-f6674c8c1cf4_Kilos"*@ class="dx-texteditor-input form-control" type="text" spellcheck="false" name="TotalAmount" tabindex="0" role="textbox" aria-required="true" disabled>
+                            <div data-dx_placeholder="" class="dx-placeholder"></div>
+                        </div>
+                        
+                    </div>
+                </text>)
+                ;
 
             });
 
@@ -314,6 +332,8 @@
             <p class="livestockQty">Quantity: <b>value</b></p>
             <p class="livestockAmount">Amount: <b>value</b> </p>
             <p class="livestockKilos">Kilos: <b>value</b></p>
+            <p class="livestockTotalAmount">Total Amount: <b>value</b> </p>
+
             <p class="livestockAddress">Address: <b>value</b></p>
         </div>
         <div class="image-container">
@@ -322,13 +342,13 @@
         </div>
 
         @*<p>
-            <a href="#" class="link-black text-sm like-post .liked"><i class="far fa-heart mr-1"></i> Like</a>
-            <span class="float-right" id="comment">
-                <a href="#" class="link-black text-sm">
-                    <i class="far fa-comments mr-1"></i> Comments
-                </a>
-            </span>
-        </p>*@
+                <a href="#" class="link-black text-sm like-post .liked"><i class="far fa-heart mr-1"></i> Like</a>
+                <span class="float-right" id="comment">
+                    <a href="#" class="link-black text-sm">
+                        <i class="far fa-comments mr-1"></i> Comments
+                    </a>
+                </span>
+            </p>*@
 
     </div>
     <!-- /.post -->
@@ -422,19 +442,21 @@
     </section>
 
     <!--<section class="col-lg-3 connectedSortable">-->
-        <!-- Custom tabs (Charts with tabs)-->
-        <!--<div class="card">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-calendar-alt mr-1"></i>
-                    Filters here biatches
-                </h3>
-            </div>--><!-- /.card-header -->
-            <!--<div class="card-body timeline-parent">
+    <!-- Custom tabs (Charts with tabs)-->
+    <!--<div class="card">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fas fa-calendar-alt mr-1"></i>
+                Filters here biatches
+            </h3>
+        </div>-->
+    <!-- /.card-header -->
+    <!--<div class="card-body timeline-parent">
 
-            </div>--><!-- /.card-body -->
-        <!--</div>-->
-        <!-- /.card -->
+    </div>-->
+    <!-- /.card-body -->
+    <!--</div>-->
+    <!-- /.card -->
     <!--</section>-->
 </div>
 
@@ -499,10 +521,14 @@
 
 <script>
     var popup, form, fileUploader;
+    var totalField;
+    function totalFieldInit(e) {
+        totalField = e.component;
+    }
     // true if edit false if add
     var isPostEdit = false;
 
-    const category = [{ Name: "Pig" }, { Name: "Cow" }, { Name: "Chicken" }, { Name: "Goat" }, { Name: "Carabao" }];
+    let category = [];
 
     //for uploading post images
     var pId;
@@ -527,8 +553,6 @@
         popup = e.component;
     }
 
-
-
     //popup open
     function openPostPopup() {
         isPostEdit = false;
@@ -539,10 +563,6 @@
         //}
         initGeolocation();
     }
-
-
-
-
 
     //var for geolocation
     var myMap;
@@ -660,7 +680,6 @@
         }
     }
 
-
     var addressMapInformation;
     var addressMapInformationLyrOSM;
     var addressMapInformationMarker;
@@ -703,7 +722,6 @@
 
         }
     }
-
 
     //Exit/cancel post popup
     function onCancelClick() {
@@ -803,7 +821,7 @@
                 let username = clone.querySelector(".post .user-block .username .post-author");
                 username.innerHTML = item.UserFullname;
 
-               
+
                 clone.querySelector(".post .user-block .username .edit").setAttribute("data-value", item.ItemID);
 
 
@@ -812,7 +830,8 @@
 
                 clone.querySelector(".post .post-infos p.livestockType b").innerHTML = item.Category;
                 clone.querySelector(".post .post-infos p.livestockQty b").innerHTML = item.Quantity;
-                clone.querySelector(".post .post-infos p.livestockAmount b").innerHTML = item.Amount;
+                clone.querySelector(".post .post-infos p.livestockAmount b").innerHTML = item.Amount.toLocaleString();
+                clone.querySelector(".post .post-infos p.livestockTotalAmount b").innerHTML = item.Total.toLocaleString();
                 clone.querySelector(".post .post-infos p.livestockKilos b").innerHTML = item.Kilos;
                 clone.querySelector(".post .post-infos p.livestockAddress b").innerHTML = item.Address;
                 clone.querySelector(".post .post-infos p.livestockAddress").setAttribute("data-lat", item.Lat);
@@ -866,8 +885,36 @@
         }
     }
 
+    function AmountOnChange(e) {
+        console.log("amount is changed");
+        var amnt = $("input[name=Amount]").attr("value");
+        var qnty = $("input[name=Quantity]").attr("value");
+        console.log(amnt);
+        console.log(qnty);
+        var ttl = qnty * amnt;
+        document.querySelector("input[name=TotalAmount]").value = ttl.toLocaleString();
+    }
+
     $(document).ready(function () {
         let postId;
+
+        var catPromise= new Promise(function (resolve, reject) {
+            $.ajax({
+                url: "../../livestockAPI/GetLivestock",
+                success: function (data) {
+                    resolve(data)
+                },
+                error: function (data) {
+                    reject(data)
+                }
+            });
+        });
+        catPromise.then((data) => {
+            category = [...data];
+        }).catch((err) => {
+            console.table(err);
+        });
+
         //function LoadPost
 
         loadPosts();
@@ -927,7 +974,7 @@
             //get data out of the postID
             $.ajax({
                 url: "../../MarketPlaceAPI/GetItem?itemID="+pId,
-               
+
             })
             .done(function (data) {
                 console.table(data);
@@ -1030,33 +1077,33 @@
 
 
 @*<div class="modal fade" id="addressInfoModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLongTitle">View Address</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body" >
-                <div class="example-container" style="height:450px;">
-                    <div class="row">
-                        <section class="col col-12 header location-address">Address : </section>
-                        <section class="col col-12">
-                            <div class="row">
-                                <section class="col col-12">
-                                    <div id="addressMapLocationInformation" style="height: 350px; "></div>
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">View Address</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" >
+                    <div class="example-container" style="height:450px;">
+                        <div class="row">
+                            <section class="col col-12 header location-address">Address : </section>
+                            <section class="col col-12">
+                                <div class="row">
+                                    <section class="col col-12">
+                                        <div id="addressMapLocationInformation" style="height: 350px; "></div>
 
-                                </section>
-                            </div>
-                        </section>
+                                    </section>
+                                </div>
+                            </section>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
             </div>
         </div>
-    </div>
-</div>*@
+    </div>*@
 
