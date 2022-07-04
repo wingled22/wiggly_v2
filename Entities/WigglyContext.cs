@@ -41,6 +41,7 @@ namespace Wiggly.Entities
         public virtual DbSet<SubscriptionRequest> SubscriptionRequest { get; set; }
         public virtual DbSet<Table> Table { get; set; }
         public virtual DbSet<Transaction> Transaction { get; set; }
+        public virtual DbSet<UnitOfMeasure> UnitOfMeasure { get; set; }
         public virtual DbSet<UserLikedPost> UserLikedPost { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -385,6 +386,13 @@ namespace Wiggly.Entities
 
                 entity.Property(e => e.TypeOfLivestock)
                     .HasMaxLength(50)
+                    .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<UnitOfMeasure>(entity =>
+            {
+                entity.Property(e => e.Name)
+                    .HasMaxLength(150)
                     .IsUnicode(false);
             });
 

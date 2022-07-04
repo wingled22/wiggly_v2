@@ -17,3 +17,5 @@ explanation:
 
 to make an API controller
 	dotnet aspnet-codegenerator controller -name [CUSTOM-NAME]Controller -actions -api —outDir Controllers
+
+	dotnet aspnet-codegenerator controller -name UnitOfMeasureController -m UnitOfMeasure -dc WigglyContext -outDir Areas/Admin/Controllers --useDefaultLayout --referenceScriptLibraries

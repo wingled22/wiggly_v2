@@ -13,12 +13,12 @@
 --delete from [Transaction]
 --delete from UserLikedPost
 
-use Wiggly
+--use Wiggly
 
---select * from MarketPlace
+select * from MarketPlace
 
 select * from BookingRequest
 
---select * from [Transaction]
+select * from [Transaction]
 
---select * from LivestockType
+select * from LivestockType
