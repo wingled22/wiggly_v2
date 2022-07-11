@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Wiggly.Controllers;
 
 namespace Wiggly.Models
 {
@@ -15,9 +16,9 @@ namespace Wiggly.Models
         public string Description { get; set; }
         public string BuyOrSell { get; set; }
         public string Category { get; set; }
-        public int UserId{ get; set; }
-        public string UserFullname{ get; set; }
-        public string DateCreated{ get; set; }
+        public int UserId { get; set; }
+        public string UserFullname { get; set; }
+        public string DateCreated { get; set; }
         public string Image { get; set; }
         public bool IsEditable { get; set; }
         public List<MarketPlaceImage> ImageList { get; set; }
@@ -43,6 +44,7 @@ namespace Wiggly.Models
         public bool IsEditable { get; set; }
         public string Status { get; set; }
         public List<MarketPlaceImage> ImageList { get; set; }
+        public List<MarketPlaceItemDetails> ItemDetails { get; set; }
 
     }
 

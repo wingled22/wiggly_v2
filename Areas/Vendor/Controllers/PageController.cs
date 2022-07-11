@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Wiggly.Controllers;
 using Wiggly.Entities;
 using Wiggly.Identity;
+using Wiggly.Models;
 
 namespace Wiggly.Areas.Vendor.Controllers
 {
@@ -32,7 +33,7 @@ namespace Wiggly.Areas.Vendor.Controllers
             if (!IsSubscribed())
                 return View("Subscription");
             else
-                return View("Index-v2");
+                return View("Index-v4");
         }
 
         public IActionResult Transaction()
@@ -101,6 +102,61 @@ namespace Wiggly.Areas.Vendor.Controllers
                 return View("Subscription");
             else
                 return View();
+        }
+
+
+        public IActionResult BookingRequest(Guid item)
+        {
+            ViewData["itemID"] = item;
+            if (!IsSubscribed())
+                return View("Subscription");
+            else
+            {
+                var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
+                var posts = (from mpItem in _context.MarketPlace
+                             join user in _context.AspNetUsers
+                             on mpItem.User equals user.Id
+
+                             orderby mpItem.DateCreated descending
+                             where mpItem.Id == item
+                             select new MarketPlaceViewModelRevised
+                             {
+                                 ItemID = mpItem.Id,
+                                 UserId = user.Id,
+                                 UserFullname = string.Format("{0} {1}", user.Firstname, user.LastName),
+                                 Address = mpItem.Address,
+                                 Lat = mpItem.Lat,
+                                 Lng = mpItem.Lng,
+                                 DateCreated = mpItem.DateCreated.ToString(),
+                                 Category = mpItem.Category,
+                                 Quantity = (int)mpItem.Quantity,
+                                 Total = (decimal)mpItem.Total,
+                                 Amount = (decimal)mpItem.Amount,
+                                 Kilos = (int)mpItem.Kilos,
+                                 ImageList = _context.PostPhoto.Where(p => mpItem.Id == p.Post && p.Path.Contains("marketplace"))
+                                                    .Select(p => new MarketPlaceImage { ImageId = p.Id, ImagePath = p.Path })
+                                                    .ToList(),
+                                 ItemDetails = _context.MarketplaceItemLivestock
+                                                    .Where(q => q.MarketplaceItem == mpItem.Id && q.Quantity != 0)
+                                                    .Select(q => new MarketPlaceItemDetails
+                                                    {
+                                                        Id = q.Id,
+                                                        MarketplaceItem = q.MarketplaceItem,
+                                                        Category = q.Category,
+                                                        Unit = q.Unit,
+                                                        Quantity = q.Quantity,
+                                                        Kilos = q.Kilos,
+                                                        Price = q.Price,
+                                                        Amount = (decimal)q.Quantity * q.Price
+                                                    })
+                                                    .ToList(),
+                                 //Liked = _context.UserLikedPost.Any(q => q.Post == item.Id && q.User == loggedInUser.Id),
+                                 IsEditable = loggedInUser.Id == user.Id ? true : false
+
+                             }).FirstOrDefault();
+                return View(posts);
+
+            }
         }
 
         public IActionResult MarkPushNotifAsRead(Guid notifID)

@@ -33,7 +33,7 @@ namespace Wiggly.Areas.Farmer.Controllers
             if (!IsSubscribed())
                 return View("Subscription");
             else
-                return View("Index-v2");
+                return View("Index-v4");
         }
 
         public IActionResult Calendar()

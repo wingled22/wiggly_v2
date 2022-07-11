@@ -1,0 +1,1192 @@
+﻿@using Wiggly
+@namespace Wiggly.Models
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using DevExtreme.AspNet.Mvc
+@model Wiggly.Entities.Schedules;
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "_LayoutAdminLTEFarmerDashboard";
+}
+
+<link rel="stylesheet" href="~/plugins/leaflet/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+<dialog>
+    <div class="example-container" style="height:450px;">
+        <div class="row">
+            <section class="col col-12 header location-address">Address : </section>
+            <section class="col col-12">
+                <div class="row">
+                    <section class="col col-12">
+                        <div id="addressMapLocationInformation" style="height: 350px; "></div>
+
+                    </section>
+                </div>
+            </section>
+        </div>
+    </div>
+</dialog>
+<style>
+    .image-container {
+        overflow: auto;
+    }
+
+    ul {
+        text-align: left;
+        display: flex;
+    }
+
+    li {
+        list-style: none;
+        display: inline-block; /*pour limiter l'espace occupé   par l'image li*/
+    }
+
+    article {
+        position: relative;
+    }
+
+        article button {
+            position: absolute;
+            right: 20px;
+            top: 5px;
+        }
+
+    img {
+        width: 150px;
+        height: 150px;
+        display: block;
+        object-fit: cover;
+    }
+
+    figure {
+        /*background: #7D5976;*/
+        text-align: center;
+        padding: 10px;
+        margin: 10px;
+    }
+
+    a {
+        color: white;
+        text-decoration: none;
+    }
+
+        a:hover {
+            text-decoration: none;
+            color: pink;
+        }
+
+    span.description {
+        padding: 10px;
+        display: block;
+    }
+
+
+    /* The Modal (background) */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 2147483648; /* Sit on top */
+        padding-top: 40px; /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
+    }
+
+    /* Modal Content (Image) */
+    .modal-content {
+        margin: auto;
+        display: block;
+        width: 80%;
+        height: 80%;
+        max-width: 700px;
+    }
+
+    .liked {
+        color: #e83e8c;
+    }
+
+
+    .timeline-parent {
+        color: #666;
+    }
+
+    .timeline-row {
+        margin: 10px;
+        padding: .5rem;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #666;
+    }
+
+        .timeline-row:last-child {
+            border-bottom: none;
+        }
+
+        .timeline-row:hover {
+            background: #bfbfbf;
+        }
+
+    .example-container {
+        background: white;
+        width: 600px;
+        box-sizing: border-box;
+        font-family: helvetica;
+        font-size: 16px;
+        /*        -webkit-box-shadow: 1px 5px 5px 0px rgba(0,0,0,0.15);
+        -moz-box-shadow: 1px 5px 5px 0px rgba(0,0,0,0.15);*/
+        /*box-shadow: 1px 5px 5px 0px rgba(0,0,0,0.15);*/
+        border-radius: 8px;
+    }
+
+        .example-container * {
+            box-sizing: inherit;
+            font-size: inherit;
+        }
+
+        .example-container .header {
+            margin: 1em 0;
+        }
+
+        .example-container #MapLocation {
+            margin-bottom: 0.75em;
+        }
+</style>
+
+
+<!== modals below ==>
+@* addpost popupmodal and other components *@
+@(Html.DevExtreme().Popup()
+    .ID("addPostPopup")
+    .Title("Post")
+    .Width(700)
+    .Height(750)
+    .ContentTemplate(new TemplateName("customPopupContentTemplate"))
+    .ToolbarItems(items =>
+    {
+        items.Add()
+            .Widget(editor => editor.Button()
+                .Text("Confirm")
+                .Type(ButtonType.Success)
+                .OnClick("onConfirmClick")
+            )
+            .Location(ToolbarItemLocation.After)
+            .Toolbar(Toolbar.Bottom);
+        items.Add()
+            .Widget(editor => editor.Button()
+                .Text("Cancel")
+                .Type(ButtonType.Success)
+                .OnClick("onCancelClick")
+            )
+            .Location(ToolbarItemLocation.After)
+            .Toolbar(Toolbar.Bottom);
+
+    })
+    .DragEnabled(true)
+    .CloseOnOutsideClick(false)
+    .ShowCloseButton(true)
+    .OnInitialized("onPopupInitialized")
+
+)
+@*custom template inside is form*@
+@using (Html.DevExtreme().NamedTemplate("customPopupContentTemplate"))
+{
+    @(Html.DevExtreme().Form<Wiggly.Models.MarketPlaceViewModelRevised>()
+        .ID("formDetails")
+        .ColCount(2)
+        .ActiveStateEnabled(false)
+        .LabelLocation(FormLabelLocation.Top)
+        .MinColWidth(300)
+        .ShowValidationSummary(true)
+        .ReadOnly(false)
+        .ScrollingEnabled(true)
+        .ActiveStateEnabled(false)
+        .Items(items =>
+        {
+
+            items.AddGroup()
+            .ColCount(2)
+            .ColSpan(2)
+            .Items(groupItems =>
+            {
+                groupItems.AddSimple()
+                .Name("Address")
+                .DataField("Address")
+                .ColSpan(2)
+                .Template(@<text>
+                    <div class="example-container"  style="width:630px;height:450px;">
+                        <div class="row">
+                          <section class="col col-12 header location-address">Address : </section>
+                          <section class="col col-12">
+                            <div class="row">
+                              <section class="col col-12">
+                                <div id="MapLocation" style="height: 350px"></div>
+                              </section>
+                            </div>
+                          </section>
+                        </div>
+                    </div>
+                </text>);
+            });
+
+
+            items.AddGroup().Caption("List of Livestock")
+            .ColCount(2)
+            .ColSpan(2)
+            .Items(groupItems =>
+            {
+                groupItems.AddSimple()
+                .Name("Total")
+                .ColSpan(2)
+                .Template(@<text>
+                    @(Html.DevExtreme().DataGrid()
+                        .ID("gridContainer")
+                        .Columns(columns => {
+                        columns.Add().DataField("Category").ValidationRules(v => v.AddRequired())
+                            .Lookup(lookup => lookup.DataSource(new JS("category"))
+                            .ValueExpr("Name")
+                            .DisplayExpr("Name"));
+
+                        columns.Add().DataField("Quantity").DataType(GridColumnDataType.Number).ValidationRules(v => v.AddRequired());
+
+                        columns.Add().DataField("Unit").Lookup(lookup => lookup.DataSource(new JS("unitOfMeasures"))
+                            .ValueExpr("Name")
+                            .DisplayExpr("Name"))
+                            .ValidationRules(v => v.AddRequired());
+
+                        columns.Add().DataField("Kilos").DataType(GridColumnDataType.Number).ValidationRules(v => v.AddRequired());
+
+                        columns.Add().DataField("Price")
+                            .DataType(GridColumnDataType.Number)
+                            .ValidationRules(v => v.AddRequired());
+
+                    columns.Add().DataField("Amount").AllowEditing(false).DataType(GridColumnDataType.Number);
+                    })
+                    .DataSource(new JS("sampleData"))
+                    .Editing(e => e.AllowDeleting(true).AllowAdding(true).AllowUpdating(true))
+                    .ShowBorders(true)
+                    .OnRowInserting("OnRowInserting")
+                    .OnRowUpdating("OnRowUpdating")
+                    )
+                </text>);
+            });
+
+            items.AddGroup()
+            //.Caption("Photos")
+            .ColCount(2)
+            .ColSpan(2)
+            .Items(groupItems =>
+            {
+                //groupItems.AddSimple().Name("Image").DataField("Image").ColSpan(2).Template(new TemplateName("FileUploadTemplate"));
+                groupItems.AddSimple()
+                .Name("Image")
+                .DataField("Image")
+                .ColSpan(2)
+                .Template(@<text>
+
+                    <div class="widget-container">
+                    @(Html.DevExtreme().FileUploader()
+                        .ID("file-uploader")
+                        .Name("myFile")
+                        .Multiple(false)
+                        .Accept("*")
+                        .UploadMode(FileUploadMode.Instantly)
+                        .UploadUrl(Url.Action("Upload", "FileUploader", new {area = "Vendor" }))
+                        .OnValueChanged("fileUploader_valueChanged")
+                    )
+                        <div class="content" id="selected-files">
+
+                        </div>
+                    </div>
+                </text>);
+            });
+
+        })
+            .ShowColonAfterLabel(true).Visible(true).OnInitialized("onFormInitialized")
+        )
+}
+
+@using (Html.DevExtreme().NamedTemplate("FileUploadTemplate"))
+{
+    @(Html.DevExtreme().FileUploader()
+            .ID("file-uploader")
+            .Name("myFile")
+            .Multiple(true)
+            .Accept("images/")
+            .UploadMode(FileUploadMode.Instantly)
+            .UploadUrl("/Farmer/FileUploader/UploadImageFromPost")
+            .OnValueChanged("fileUploader_valueChanged")
+
+        )
+}
+
+
+
+
+<!-- Post Template -->
+<template id="postTemplate">
+    <!-- Post -->
+    <div class="post">
+        <div class="user-block">
+            <img class="img-circle img-bordered-sm" src="../../dist/img/person-thumbnail.png" alt="user image">
+            <span class="username">
+                <span class="post-author" href="#">Jonathan Burke Jr.</span>
+                <a class="float-right btn-tool edit" role="button"><i class="fas fa-pen"></i></a>
+            </span>
+            <span class="description">Shared publicly - 7:30 PM today</span>
+        </div>
+        <!-- /.user-block -->
+
+        <div class="post-infos" style="line-height:10px">
+            <p class="livestockAddress">Address: <b>value</b></p>
+            <table class="table table-hover table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">Category</th>
+                        <th scope="col">Unit</th>
+                        <th scope="col">Qty</th>
+                        <th scope="col">Kilos</th>
+                        <th scope="col">Price</th>
+                        <th scope="col">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                   
+                </tbody>
+            </table>
+
+        </div>
+        <div class="image-container">
+            <ul>
+            </ul>
+        </div>
+
+        @*<p>
+                <a href="#" class="link-black text-sm like-post .liked"><i class="far fa-heart mr-1"></i> Like</a>
+                <span class="float-right" id="comment">
+                    <a href="#" class="link-black text-sm">
+                        <i class="far fa-comments mr-1"></i> Comments
+                    </a>
+                </span>
+            </p>*@
+
+    </div>
+    <!-- /.post -->
+</template>
+
+<template id="item-details">
+    <tr>
+        <td class="itemdata-cat"></td>
+        <td class="itemdata-unit"></td>
+        <td class="itemdata-qty"></td>
+        <td class="itemdata-kilos"></td>
+        <td class="itemdata-price"></td>
+        <td class="itemdata-total"></td>
+    </tr>
+</template>
+
+<template id="postImagesTemplate">
+    <li>
+        <article>
+
+            <a href="">
+
+                <figure>
+
+                    <img src="http://www.awwwards.com/awards/images/2013/07/bootstrap-resources-cover2.jpg" alt="">
+                </figure>
+            </a>
+        </article>
+    </li>
+</template>
+
+<template id="postFormImagesTemplate">
+    <li>
+        <article>
+            <button type="button" class="close image-delete" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <a href="">
+
+                <figure>
+
+                    <img src="http://www.awwwards.com/awards/images/2013/07/bootstrap-resources-cover2.jpg" alt="">
+                </figure>
+            </a>
+        </article>
+    </li>
+</template>
+<!-- Comment Template -->
+<template id="commentTemplate">
+    <div class="card-comment">
+        <!-- User image -->
+        @*<img class="img-circle img-sm" src="../dist/img/user5-128x128.jpg" alt="User Image">*@
+        <div class="comment-text">
+            <span class="username">
+                Nora Havisham
+            </span><!-- /.username -->
+            <span class="text-muted float-left date">8:03 PM Today</span><br />
+            <p>
+                The point of using Lorem Ipsum is that it hrs a morer-less
+                normal distribution of letters, as opposed to using
+                'Content here, content here', making it look like readable English.
+            </p>
+
+        </div>
+        <!-- /.comment-text -->
+    </div>
+</template>
+
+
+<template id="timelineRowTemplate">
+    <div class="timeline-row">
+        <b class="sched-date">Today, November 1,2021</b>
+        <p class="sched-agenda">Live cow delivery Live cow delivery Live cow delivery Live cow delivery Live cow delivery Live cow delivery</p>
+    </div>
+</template>
+
+<!== post list here  ==>
+
+<div class="row">
+
+    <section class="col-lg-9 connectedSortable">
+        <!-- Custom tabs (Charts with tabs)-->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-inbox mr-1"></i>
+                    Post
+                </h3>
+                <button type="button" class="btn btn-primary float-right" onclick="openPostPopup()">Create Post</button>
+                @*<button style="margin-right:10px;" type="button" class="btn btn-primary float-right" onclick="toggleLiked()">Show Liked Post</button>*@
+
+            </div><!-- /.card-header -->
+            <div class="card-body">
+                <div class=" post-container">
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+
+<!-- modal popup-->
+<div class="modal fade comment-modal" id="commentModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content" style="overflow:scroll;">
+            <!-- modal header-->
+            <div class="modal-header">
+                <div class="user-block">
+                    <img class="img-circle" src="../dist/img/person-thumbnail.png" alt="User Image">
+                    <span class="username"><a href="#">Jonathan Burke Jr.</a></span>
+                    <span class="description">Shared publicly - 7:30 PM Today</span>
+                </div>
+                <!-- /.user-block -->
+                <div class="card-tools">
+                    <a href="#" class="float-right btn-tool"><i class="fa-solid fa-comment-pen"></i></a>
+
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="card-body">
+                    <p>
+                        the coast of the Semantics, a large language ocean.
+                        A small river named Duden flows by their place and supplies
+                        it with the necessary regelialia. It is a paradisematic
+                        country, in which roasted parts of sentences fly into
+                        your mouth.
+                    </p>
+                    <div class="image-container">
+                        <ul>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card-footer card-comments">
+
+                </div>
+            </div>
+            <div class="modal-footer" style="display:block">
+                @*<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>*@
+                @*<button type="button" class="btn btn-primary">Save changes</button>*@
+                <input type="text" name="Comment" class="form-control" id="comment-field" placeholder="Press enter to post comment">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="imageModal" class="modal">
+
+    <span class="close">&times;</span>
+
+    <img class="modal-content">
+
+</div>
+
+
+
+<script>
+    var popup, form, fileUploader;
+    var totalField;
+    function totalFieldInit(e) {
+        totalField = e.component;
+    }
+    // true if edit false if add
+    var isPostEdit = false;
+
+    let category = [];
+
+    //for uploading post images
+    var pId;
+    var postImage;
+    var postImages = [];
+    var posts = [];
+    var showLiked = true;
+
+    var sampleData = [];
+    var unitOfMeasures = [];
+
+    var sss;
+
+    function OnRowInserting(e) {
+        e.data = {...e.data, Amount : e.data.Quantity * e.data.Price }
+    }
+
+    function OnRowUpdating(e) {
+        
+        sss = e;
+        if (e.newData.Quantity != undefined && e.newData.Price == undefined) {
+            e.newData = { ...e.newData, Amount: e.newData.Quantity * e.oldData.Price }
+        } else if (e.newData.Quantity == undefined && e.newData.Price != undefined) {
+            e.newData = { ...e.newData, Amount: e.oldData.Quantity * e.newData.Price }
+        } else if (e.newData.Quantity != undefined && e.newData.Price != undefined) {
+            e.newData = { ...e.newData, Amount: e.newData.Quantity * e.newData.Price }
+        }
+    }
+
+    function addSubItem() {
+        console.log("add sub item blah blah blah");
+        /*        dx_dx-97941c5e-b39d-4ba2-3bc2-624ed9490e7e_Quantity*/
+        /*        dx_dx-61e57246-9f31-6ed3-a931-5959501f63be_Quantity*/
+        var validationResult = form.validate();
+        if (validationResult != null && !validationResult.isValid) {
+            console.log("Invalid");
+            return false;
+        } else {
+            console.log(document.querySelector("#cbCategory input").value);
+
+        }
+
+    }
+
+    function OnUploadStarted(e,t,d) {
+        console.log(e);
+        console.log(t);
+        console.log(d);
+    }
+
+    //custom form initialization
+    function onFormInitialized(e) {
+        form = e.component;
+    }
+
+    //Custom popUpInitialization
+    function onPopupInitialized(e) {
+        popup = e.component;
+    }
+
+    //popup open
+    function openPostPopup() {
+        isPostEdit = false;
+        popup.option("visible", true);
+        //if (form) {
+        //    //form.option('key', data.SchedId);
+        //    //console.log(data);
+        //}
+        initGeolocation();
+    }
+
+    //var for geolocation
+    var myMap;
+    var lyrOSM;
+    var marker;
+    var mapLocationDisplayPopup;
+    var displayName;
+    var locationLatLng;
+    var curLocation = [11.0530536, 124.0110354];
+
+    function initGeolocation(latitude, longitude, locationName) {
+        displayName = locationName;
+        if (myMap == null) {
+            // create map object
+            myMap = L.map('MapLocation').setView(curLocation, 18);
+            mapLocationDisplayPopup = L.popup();
+            //add basemap layer
+            lyrOSM = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png');
+            myMap.addLayer(lyrOSM);
+            var geocoder = L.Control.geocoder({
+                defaultMarkGeocode: false
+            })
+                .on('markgeocode', function (e) {
+                    var latlng = e.geocode.center;
+                    if (marker != undefined) {
+                        myMap.removeLayer(marker);
+                        marker = null;
+                        locationLatLng = null;
+                    }
+                    var p = new Promise(function (resolve, reject) {
+                        $.ajax({
+                            url: "https://nominatim.openstreetmap.org/reverse?format=json&lat=" + latlng.lat + "&lon=" + latlng.lng,
+                            success: function (data) {
+                                resolve(data)
+                            },
+                            error: function (data) {
+                                reject(data)
+                            }
+                        });
+                    });
+                    p.then((data) => {
+                        console.log(data);
+                        console.log(data.display_name);
+                        marker = L.marker(latlng).addTo(myMap);
+                        displayName = data.display_name;
+                        locationLatLng = latlng;
+                        mapLocationDisplayPopup.setLatLng(latlng).setContent(displayName).openOn(myMap);
+                    }).catch((err) => {
+                        console.table(err);
+                    });
+
+                    console.log(latlng);
+                    myMap.fitBounds(e.geocode.bbox);
+                })
+                .addTo(myMap);
+
+            myMap.on('click', function (e) {
+                // console.log(e);
+                if (marker != undefined) {
+                    myMap.removeLayer(marker);
+                    marker = null;
+                    locationLatLng = null;
+                } else {
+                    console.log("no marker");
+                }
+                var p = new Promise(function (resolve, reject) {
+                    $.ajax({
+                        url: "https://nominatim.openstreetmap.org/reverse?format=json&lat=" + e.latlng.lat + "&lon=" + e.latlng.lng,
+                        success: function (data) {
+                            resolve(data)
+                        },
+                        error: function (data) {
+                            reject(data)
+                        }
+                    });
+                });
+                p.then((data) => {
+                    console.log(data);
+                    marker = L.marker(e.latlng).addTo(myMap);
+                    displayName = data.display_name;
+                    locationLatLng = e.latlng;
+                    mapLocationDisplayPopup.setLatLng(e.latlng).setContent(displayName).openOn(myMap);
+                    document.querySelector('.location-address').innerHTML = displayName;
+                }).catch((err) => {
+                    console.table(err);
+                });
+            });
+
+            if (latitude != null && longitude != null) {
+                var newLatLangFromItem = { lat: latitude, lng: longitude };
+                locationLatLng = newLatLangFromItem;
+
+                marker = L.marker(newLatLangFromItem).addTo(myMap);
+                mapLocationDisplayPopup.setLatLng(newLatLangFromItem).setContent(locationName).openOn(myMap);
+                //myMap.fitBounds(e.geocode.bbox);
+            }
+        } else {
+
+            if (latitude != null && longitude != null) {
+                if (marker != null) {
+                    myMap.removeLayer(marker);
+                    myMap.removeLayer(mapLocationDisplayPopup);
+                    marker = null;
+                    locationLatLng = null;
+                }
+
+                var newLatLangFromItem = { lat: latitude, lng: longitude };
+                locationLatLng = newLatLangFromItem;
+
+                marker = L.marker(newLatLangFromItem).addTo(myMap);
+                mapLocationDisplayPopup.setLatLng(newLatLangFromItem).setContent(locationName).openOn(myMap);
+                //myMap.fitBounds(e.geocode.bbox);
+
+            }
+        }
+    }
+
+    var addressMapInformation;
+    var addressMapInformationLyrOSM;
+    var addressMapInformationMarker;
+    var addressMapInformationPopup;
+
+    function initAddressMapInformation(latitude, longitude, addressName) {
+        var itemLatLng = { lat: parseFloat(latitude), lng: parseFloat(longitude) };
+
+        if (addressMapInformation == null) {
+            if (latitude != null && longitude != null) {
+                // create map object
+                addressMapInformation = L.map('addressMapLocationInformation', {
+                    center: new L.LatLng(latitude, longitude),
+                }).setView(itemLatLng, 18);
+
+
+                lyrOSM = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png');
+                addressMapInformationPopup = L.popup();
+                addressMapInformation.addLayer(lyrOSM);
+
+
+                var geocoder = L.Control.geocoder().addTo(addressMapInformation);
+
+                addressMapInformationMarker = L.marker(itemLatLng).addTo(addressMapInformation);
+                addressMapInformationPopup.setLatLng(itemLatLng).setContent(addressName).openOn(addressMapInformation);
+
+            }
+        } else {
+
+            if (addressMapInformationMarker != null) {
+                addressMapInformation.removeLayer(addressMapInformationMarker);
+                //addressMapInformation.removeLayer(addressMapInformationPopup);
+                addressMapInformationMarker = null;
+            }
+
+            addressMapInformationPopup = L.popup();
+
+            addressMapInformationMarker = L.marker(itemLatLng).addTo(addressMapInformation);
+            addressMapInformationPopup.setLatLng(itemLatLng).setContent(addressName).openOn(addressMapInformation);
+
+        }
+    }
+
+    //Exit/cancel post popup
+    function onCancelClick() {
+        popup.hide();
+    }
+
+    //save post
+    function onConfirmClick() {
+        let data = form.option("formData");
+
+        let dataToPost = {
+            PostBody: data.PostBody
+        };
+
+        let imageDataToPost = {
+            postImages
+        };
+
+        //var validationResult = form.validate();
+        if (sampleData.length == 0 ) {
+            console.log("Invalid");
+            window.alert('Please add livestock items.');
+            return false;
+        } else
+        if (displayName == null || locationLatLng == null) {
+            window.alert('Plese specify the address');
+            return false;
+        } else {
+            if (!isPostEdit) {
+                var ll = { Lat: locationLatLng.lat.toString(), Lng: locationLatLng.lng.toString() };
+
+                $.ajax({
+                    method: "POST",
+                    url: "../../marketplaceapi/saveitem",
+                    data: {
+                        values: JSON.stringify(data),
+                        livestockDetails: JSON.stringify(sampleData),
+                        postImages: JSON.stringify(postImages),
+                        address: JSON.stringify({ Val: displayName }),
+                        latlngStr: JSON.stringify(ll)
+                    }
+                }).done(function () {
+
+                    popup.hide();
+                    isPostEdit = false;
+                    loadPosts();
+
+                }).fail(function (data) {
+                    console.log("error");
+                    console.log(data);
+                });
+            }
+            else {
+                var ll = {
+                    Lat: locationLatLng.lat.toString(), Lng: locationLatLng.lng.toString()
+                };
+                $.ajax({
+                    method: "POST",
+                    url: "../../marketplaceapi/UpdateItem",
+                    data: {
+                        key: pId,
+                        values: JSON.stringify(data),
+                        postImages: JSON.stringify(postImages),
+                        address: JSON.stringify({ Val: displayName }),
+                        latlngStr: JSON.stringify(ll)
+                    }
+                }).done(function () {
+                    //console.log("postSaved");
+                    loadPosts();
+                    popup.hide();
+                }).fail(function (data) {
+                    console.log("error");
+                    console.log(data);
+                });
+
+                console.log(data);
+            }
+            //console.table(data);
+        }
+    }
+
+    /*
+     * function responsible for loading post
+     */
+    function loadPosts() {
+        //ajax to get the list of post
+        $.ajax({
+            url: "../../MarketPlaceAPI/GetItemsFromLoggedInUser"
+        }).done(function (data) {
+            console.table(data);
+            posts = data;
+            let postTemplate = document.querySelector('template#postTemplate');
+            var postParentContainer = document.querySelector('.card-body .post-container');
+            let postImagesTemplate = document.querySelector('template#postImagesTemplate');
+            let trTemplate = document.querySelector('template#item-details');
+
+            $('.card-body .post-container').empty();
+            $.each(data, function (i, item) {
+                let clone = postTemplate.content.cloneNode(true);
+
+                let username = clone.querySelector(".post .user-block .username .post-author");
+                username.innerHTML = item.UserFullname;
+
+
+                clone.querySelector(".post .user-block .username .edit").setAttribute("data-value", item.ItemID);
+
+
+                let time = clone.querySelector(".post .user-block .description");
+                time.innerHTML = item.DateCreated;
+
+                //clone.querySelector(".post .post-infos p.livestockType b").innerHTML = item.Category;
+                //clone.querySelector(".post .post-infos p.livestockQty b").innerHTML = item.Quantity;
+                //clone.querySelector(".post .post-infos p.livestockAmount b").innerHTML = item.Amount.toLocaleString();
+                //clone.querySelector(".post .post-infos p.livestockTotalAmount b").innerHTML = item.Total.toLocaleString();
+                //clone.querySelector(".post .post-infos p.livestockKilos b").innerHTML = item.Kilos;
+                clone.querySelector(".post .post-infos p.livestockAddress b").innerHTML = item.Address;
+                clone.querySelector(".post .post-infos p.livestockAddress").setAttribute("data-lat", item.Lat);
+                clone.querySelector(".post .post-infos p.livestockAddress").setAttribute("data-lng", item.Lng);
+                clone.querySelector(".post .post-infos p.livestockAddress").setAttribute("data-displayName", item.Address);
+
+                //console.log(item.ItemDetails);
+
+                $.each(item.ItemDetails, function (n, detail) {
+                    let trDetailClone = trTemplate.content.cloneNode(true);
+                    trDetailClone.querySelector(".itemdata-cat").innerHTML = detail.Category;
+                    trDetailClone.querySelector(".itemdata-unit").innerHTML = detail.Unit;
+                    trDetailClone.querySelector(".itemdata-qty").innerHTML = detail.Quantity;
+                    trDetailClone.querySelector(".itemdata-kilos").innerHTML = detail.Kilos;
+                    trDetailClone.querySelector(".itemdata-price").innerHTML = detail.Price;
+                    trDetailClone.querySelector(".itemdata-total").innerHTML = detail.Price*detail.Quantity;
+                    clone.querySelector(".post .post-infos table tbody").append(trDetailClone);
+                });
+
+                let postImagesParent = clone.querySelector(".post .image-container ul");
+
+
+                //console.table(item.ImageList);
+                $.each(item.ImageList, function (i, image) {
+                    let imageClone = postImagesTemplate.content.cloneNode(true);
+
+                    let img = imageClone.querySelector("li article a figure img");
+                    let a = imageClone.querySelector("li article a");
+
+                    img.setAttribute("src", image.ImagePath);
+                    a.setAttribute("href", image.ImagePath);
+                    postImagesParent.append(imageClone);
+                });
+
+                postParentContainer.appendChild(clone);
+
+
+            });
+        });
+    }
+
+    /*
+    * function responsible on loading imagelist when the pop up to edit the post was shown
+    */
+    function loadImageListToPopup() {
+        let parent = document.querySelector("#selected-files.content");
+        let postImagesTemplate = document.querySelector('template#postFormImagesTemplate');
+        parent.innerHTML = "";
+
+        if (postImages.length > 0) {
+            $.each(postImages, function (i, image) {
+                let imageClone = postImagesTemplate.content.cloneNode(true);
+
+                let img = imageClone.querySelector("li article a figure img");
+                let a = imageClone.querySelector("li article a");
+                let button = imageClone.querySelector("li article button");
+
+                img.setAttribute("src", image.ImagePath);
+                a.setAttribute("href", image.ImagePath);
+                button.setAttribute("data-value", image.ImageId)
+                parent.append(imageClone);
+            });
+        }
+    }
+
+    function AmountOnChange(e) {
+        console.log("amount is changed");
+        var amnt = $("input[name=Amount]").attr("value");
+        var qnty = $("input[name=Quantity]").attr("value");
+        console.log(amnt);
+        console.log(qnty);
+        var ttl = qnty * amnt;
+        document.querySelector("input[name=TotalAmount]").value = ttl.toLocaleString();
+    }
+
+    $(document).ready(function () {
+        let postId;
+
+        var catPromise= new Promise(function (resolve, reject) {
+            $.ajax({
+                url: "../../livestockAPI/GetLivestock",
+                success: function (data) {
+                    resolve(data)
+                },
+                error: function (data) {
+                    reject(data)
+                }
+            });
+        });
+        catPromise.then((data) => {
+            category = [...data];
+        }).catch((err) => {
+            console.table(err);
+        });
+
+
+
+        var unitsPromise = new Promise(function (resolve, reject) {
+            $.ajax({
+                url: "../../UnitOfMeasureAPI/GetUnits",
+                success: function (data) {
+                    resolve(data)
+                },
+                error: function (data) {
+                    reject(data)
+                }
+            });
+        });
+        unitsPromise.then((data) => {
+            unitOfMeasures = [...data];
+        }).catch((err) => {
+            console.table(err);
+        });
+
+        //function LoadPost
+
+        loadPosts();
+
+
+        //dx-fileuploader-files-container
+        var domModificationCounter = 0;
+        $("body").on('DOMSubtreeModified', '.dx-fileuploader-file-status-message', function () {
+
+            if ($(".dx-fileuploader-file-status-message").text() == "Uploaded") {
+                afterUpload();
+                console.log(postImages);
+            } else {
+            }
+        });
+
+
+        //image is clicked on the post row
+        $('body').on('click', "li article a", function (e) {
+            e.preventDefault();
+            var modal = document.getElementById("imageModal");
+            modal.style.display = "block";
+            let imgSrc = $(this).attr("href");
+
+            $("#imageModal img").attr("src", $(this).attr("href"));
+
+
+        });
+
+        $(".close").on("click", function () {
+            var modal = document.getElementById("imageModal");
+            modal.style.display = "none";
+        });
+
+        //like functionality to the posts
+        $("body").on('click', '.like-post',function (e) {
+            e.preventDefault();
+            let postId = $(this).attr("data-value");
+            let dataToSend = {
+                post : postId
+            };
+            $.ajax({
+                url: "@Url.Action("LikeUnlikePost", "PostAPI",new { area = "Farmer"})",
+                data: dataToSend
+            }).done(function (data) {
+                loadPosts();
+            });
+        });
+
+
+        //edit functionality for post
+        $(".post-container").on("click", "a.edit", function (e) {
+            e.preventDefault();
+            //console.log($(this).attr("data-value"));
+            pId = $(this).attr("data-value");
+
+            //get data out of the postID
+            $.ajax({
+                url: "../../MarketPlaceAPI/GetItem?itemID="+pId,
+
+            })
+            .done(function (data) {
+                console.table(data);
+                popup.option("visible", true);
+                form.option('formData', data);
+                initGeolocation(data.Lat, data.Lng, data.Address);
+                isPostEdit = true;
+
+                postImages = data.ImageList;
+                console.log(postImages);
+                loadImageListToPopup();
+            });
+            //separate the images from the data
+            //populate the data to the images list
+        });
+
+        //address is clicked
+        $("body").on("click", ".livestockAddress ", function (event) {
+            event.stopPropagation();
+            console.log($(this).attr('data-lat'));
+            console.log($(this).attr('data-lng'));
+            //$("#addressInfoModal").modal("toggle");
+            document.querySelector("dialog").showModal();
+            console.log($(this).attr('data-displayName'));
+            document.querySelector(".location-address").innerHTML = "Address : " + $(this).attr('data-displayName');
+            initAddressMapInformation($(this).attr('data-lat'), $(this).attr('data-lng'), $(this).attr('data-displayName'));
+        });
+
+        $('dialog').click(function (e) {
+            let dialog = document.querySelector("dialog");
+
+            if (e.target === dialog) {
+                document.querySelector("dialog").close();
+            }
+        });
+
+        $('body').on('click', ".image-delete", function (e) {
+            //TODO: delete image here
+            //console.log($(this).next("a").attr("href"));
+            //console.log($(this).attr("data-value"));
+            var imageId = $(this).attr("data-value");
+            $.ajax({
+                url : "@Url.Action("DeletePostPhoto", "PostAPI",new { area = "Farmer"})",
+                data: {
+                    image: imageId
+                }
+
+            }).done(function () {
+                //loadImageListToPopup();
+                //get data out of the postID
+                $.ajax({
+                    url: "@Url.Action("GetPost", "PostAPI",new { area = "Farmer"})",
+                    data: {
+                        postId: pId
+                    }
+                })
+                .done(function (data) {
+                    postImages = data.ImageList;
+                    console.log(postImages);
+                    loadImageListToPopup();
+                });
+            });
+
+        });
+
+
+
+    });
+
+    //if file upload data values was changed
+    function fileUploader_valueChanged(e, t, d) {
+        var files = e.value;
+        e.component.option("onUploaded", "onUploaded");
+        var result = e.component.option("uploadUrl", "../../MarketplaceFileUpload/UploadItemImage");
+
+        if (files.length > 0) {
+            $("#selected-files .selected-item").remove();
+
+            //TODO: show the uploaded images
+
+        }
+        else
+            $("#selected-files").hide();
+    }
+
+
+    function afterUpload() {
+        $.ajax({
+            url: "../../MarketplaceFileUpload/GetUploadedItemImage"
+        }).done(function (data) {
+            postImage = { ImagePath: data };
+            postImages.push(postImage);
+            loadImageListToPopup();
+        });
+    }
+
+
+
+</script>
+
+
+@*<div class="modal fade" id="addressInfoModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">View Address</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" >
+                    <div class="example-container" style="height:450px;">
+                        <div class="row">
+                            <section class="col col-12 header location-address">Address : </section>
+                            <section class="col col-12">
+                                <div class="row">
+                                    <section class="col col-12">
+                                        <div id="addressMapLocationInformation" style="height: 350px; "></div>
+
+                                    </section>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>*@
+

@@ -26,6 +26,7 @@ namespace Wiggly.Entities
         public virtual DbSet<Kilos> Kilos { get; set; }
         public virtual DbSet<LivestockType> LivestockType { get; set; }
         public virtual DbSet<MarketPlace> MarketPlace { get; set; }
+        public virtual DbSet<MarketplaceItemLivestock> MarketplaceItemLivestock { get; set; }
         public virtual DbSet<Message> Message { get; set; }
         public virtual DbSet<Notif> Notif { get; set; }
         public virtual DbSet<Payment> Payment { get; set; }
@@ -197,6 +198,21 @@ namespace Wiggly.Entities
                     .IsUnicode(false);
 
                 entity.Property(e => e.Total).HasColumnType("decimal(18, 2)");
+            });
+
+            modelBuilder.Entity<MarketplaceItemLivestock>(entity =>
+            {
+                entity.Property(e => e.Category)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Kilos).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.Unit)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
             });
 
             modelBuilder.Entity<Message>(entity =>

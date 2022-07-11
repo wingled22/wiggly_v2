@@ -1,0 +1,250 @@
+﻿@using Wiggly
+@namespace Wiggly.Models
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using DevExtreme.AspNet.Mvc
+@model Wiggly.Models.MarketPlaceViewModelRevised
+
+@{
+    ViewData["Title"] = "Request Booking";
+    Layout = "_LayoutAdminLTEVendorDashboard";
+}
+
+<h1>@*@ViewData["itemID"]*@</h1>
+<div class="invoice p-3 mb-3">
+    <!-- title row -->
+    <!-- info row -->
+    <div class="row invoice-info">
+        <div class="col-sm-4 invoice-col">
+            To
+            <address>
+                <strong>@Model.UserFullname</strong><br>
+                @Model.Address
+            </address>
+        </div>
+
+    </div>
+    <div class="row">
+        <div class="col-12 table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">Select</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Unit</th>
+                        <th scope="col">Qty</th>
+                        <th scope="col">Kilos</th>
+                        <th scope="col">Price</th>
+                        <th scope="col">Qty To Book</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    @foreach (var item in Model.ItemDetails)
+                    {
+                        <tr>
+                            <td>
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" name="@item.Id" checked>
+                                </div>
+                            </td>
+                            <td class="itemdata-cat">@item.Category</td>
+                            <td class="itemdata-unit">@item.Unit</td>
+                            <td class="itemdata-qty">@item.Quantity</td>
+                            <td class="itemdata-kilos">@item.Kilos</td>
+                            <td class="itemdata-price">@item.Price</td>
+                            <td class="itemdata-qtyToBook">
+                                <style>
+                                    .inline-group-custom {
+                                        max-width: 9rem;
+                                        padding: .5rem;
+                                    }
+
+                                        .inline-group-custom .form-control {
+                                            text-align: right;
+                                        }
+
+                                    .form-control[type="number"]::-webkit-inner-spin-button,
+                                    .form-control[type="number"]::-webkit-outer-spin-button {
+                                        -webkit-appearance: none;
+                                        margin: 0;
+                                    }
+                                </style>
+
+                                <div class="input-group inline-group-custom">
+                                    <div class="input-group-prepend">
+                                        <button class="btn btn-outline-secondary btn-minus">
+                                            <i class="fa fa-minus"></i>
+                                        </button>
+                                    </div>
+                                    <input class="form-control quantity" min="1" max="@item.Quantity" 
+                                           name="booking-request-quantity" 
+                                           id="booking-request-quantity" 
+                                           value="@item.Quantity" 
+                                           data-itemPrice="@item.Price" 
+                                           data-itemId="@item.Id" 
+                                           type="number">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-outline-secondary btn-plus">
+                                            <i class="fa fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <!-- /.col -->
+    </div>
+    <!-- /.row -->
+
+    <div class="row invoice-info">
+        <div class="col-sm-4 invoice-col">
+            <h4>
+                @{
+                    decimal totalAmount = 0;
+                    foreach (var item in Model.ItemDetails)
+                    {
+                        decimal subTotal = (decimal)item.Price * (decimal)item.Quantity;
+                        totalAmount = totalAmount + subTotal;
+                    }
+                }
+
+                Total: <span id="totalAmount">@totalAmount</span>
+                <br>
+            </h4>
+        </div>
+        <br />
+        <br />
+
+    </div>
+
+    <div class="row no-print">
+        <div class="col-12">
+            <button type="button" class="btn btn-danger cancel-booking">
+                <i class="fas fa-times"></i> Cancel
+                Payment
+            </button>
+            <button type="button" class="btn btn-primary submit-booking" style="margin-right: 5px;">
+                <i class="fas fa-check"></i> Submit Request
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    var selecteditems = [];
+    var checkedRows;
+    //var selectedData = {};
+
+    $(document).ready(function () {
+
+        $('.btn-plus, .btn-minus').on('click', function (e) {
+            const isNegative = $(e.target).closest('.btn-minus').is('.btn-minus');
+            const input = $(e.target).closest('.input-group').find('input');
+            if (input.is('input')) {
+                input[0][isNegative ? 'stepDown' : 'stepUp']()
+            }
+            //calculateAmountAndQuantity();
+            var totalPrice = 0;
+
+            var rowsToCalc = $('input[type=checkbox]:checked');
+            if (rowsToCalc.length > 0) {
+                $.each(rowsToCalc, function (i, item) {
+                    var tr = item.closest('tr');
+                    console.log(tr);
+                    var id = tr.querySelector('td.itemdata-qtyToBook div input').getAttribute('data-itemId');
+                    var qty = tr.querySelector('td.itemdata-qtyToBook div input').value;
+
+                    var price = tr.querySelector('td.itemdata-price').innerHTML;
+
+                    totalPrice = totalPrice + (qty * price);
+                })
+            }
+            $('#totalAmount').text(totalPrice);
+
+        });
+
+        $('.cancel-booking').on('click', function (e) {
+            history.back();
+        });
+
+        //calculatetotal when data is input is changed
+        //calculatetotal when data is checkbox is changed
+        $("input[type=checkbox]").change(function () {
+            //Do st uff
+            console.log("textbox is changed");
+
+            var totalPrice = 0;
+            var rowsToCalc = $('input[type=checkbox]:checked');
+            if (rowsToCalc.length > 0) {
+                $.each(rowsToCalc, function (i, item) {
+                    var tr = item.closest('tr');
+                    console.log(tr);
+                    var id = tr.querySelector('td.itemdata-qtyToBook div input').getAttribute('data-itemId');
+                    var qty = tr.querySelector('td.itemdata-qtyToBook div input').value;
+
+                    var price = tr.querySelector('td.itemdata-price').innerHTML;
+
+                    totalPrice = totalPrice + (qty * price);
+                })
+            }
+            $('#totalAmount').text(totalPrice);
+
+        });
+
+        $("input[type=number]").change(function () {
+            //Do st uff
+            console.log("textbox is changed");
+            var totalPrice = 0;
+
+            var rowsToCalc = $('input[type=checkbox]:checked');
+            if (rowsToCalc.length > 0) {
+                $.each(rowsToCalc, function (i, item) {
+                    var tr = item.closest('tr');
+                    console.log(tr);
+                    var id = tr.querySelector('td.itemdata-qtyToBook div input').getAttribute('data-itemId');
+                    var qty = tr.querySelector('td.itemdata-qtyToBook div input').value;
+
+                    var price = tr.querySelector('td.itemdata-price').innerHTML;
+
+                    totalPrice = totalPrice + (qty * price);
+                })
+            }
+            $('#totalAmount').text(totalPrice);
+
+        });
+
+
+
+        $('.submit-booking').on('click', function (e) {
+            //get checked row
+            checkedRows = $('input[type=checkbox]:checked');
+
+            if (checkedRows.length > 0) {
+                $.each(checkedRows, function (i, item) {
+                    var tr = item.closest('tr');
+                    console.log(tr);
+                    var id = tr.querySelector('td.itemdata-qtyToBook div input').getAttribute('data-itemId');
+                    var qty = tr.querySelector('td.itemdata-qtyToBook div input').value;
+
+
+                    console.log(id);
+                    console.log(qty);
+
+                    var selectedData = {
+                        ItemId: id,
+                        Quantity: qty
+                    };
+                    selecteditems.push(selectedData);
+
+                })
+            } else {
+                alert("select items to book");
+            }
+        });
+    });
+</script>
