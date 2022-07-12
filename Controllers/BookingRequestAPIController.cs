@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,6 +26,88 @@ namespace Wiggly.Controllers
             _logger = logger;
         }
 
+
+        public IActionResult GetBookingRequestFarmerv2(int id)
+        {
+            var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
+
+            var data = (from req in _context.BookingRequest
+                        join vendor in _context.AspNetUsers
+                        on req.Vendor equals vendor.Id
+                        join item in _context.MarketPlace
+                        on req.Item equals item.Id
+                        where req.Id == id
+                        select new BookingRequestViewModelRevised
+                        {
+                            Id = req.Id,
+                            Item = req.Item,
+                            DateCreated = req.DateCreated,
+                            Message = string.Format("{0} {1} booked you!", vendor.Firstname, vendor.LastName),
+                            Address = item.Address,
+                            Long = item.Lng,
+                            Lat = item.Lat,
+                            Status = item.Status,
+                            SubItems = _context.BookingRequestSubItem
+                                        .Where(q => q.MarketPlaceItem == req.Item)
+                                        .Join(
+                                            _context.MarketplaceItemLivestock, e =>
+                                            e.SubItemId, d => d.Id, (e, d)
+                                            => new BookingSubItems
+                                            {
+                                                QuantityBooked = e.Quantity,
+                                                Unit = d.Unit,
+                                                Category = d.Category,
+                                                Price = d.Price,
+                                                Amount = d.Price * e.Quantity
+                                            }
+                                        )
+
+                                        .ToList()
+
+                        }).FirstOrDefault();
+
+            return Ok(data);
+        }
+
+        public IActionResult sampleGetData(int id) {
+            var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
+
+            var data = (from req in _context.BookingRequest
+                        join vendor in _context.AspNetUsers
+                        on req.Vendor equals vendor.Id
+                        join item in _context.MarketPlace
+                        on req.Item equals item.Id
+                        where req.Id == id
+                        select new BookingRequestViewModelRevised
+                        {
+                            Id = req.Id,
+                            Item = req.Item,
+                            DateCreated = req.DateCreated,
+                            Message = string.Format("{0} {1} booked you!", vendor.Firstname, vendor.LastName),
+                            Address = item.Address,
+                            Long = item.Lng,
+                            Lat = item.Lat,
+                            Status = item.Status,
+                            SubItems = _context.BookingRequestSubItem
+                                        .Where(q => q.MarketPlaceItem == req.Item)
+                                        .Join(
+                                            _context.MarketplaceItemLivestock, e => 
+                                            e.SubItemId ,d => d.Id, (e, d) 
+                                            => new BookingSubItems {
+                                                QuantityBooked = e.Quantity,
+                                                Unit = d.Unit,
+                                                Category = d.Category,
+                                                Price = d.Price,
+                                                Amount = d.Price * e.Quantity
+                                            }
+                                        )
+                                        
+                                        .ToList()
+
+                        }).FirstOrDefault();
+
+            return Ok(data);
+        }
 
         public IActionResult GetBookingRequestFarmer(int id)
         {
@@ -56,6 +139,62 @@ namespace Wiggly.Controllers
 
             return Ok(data);
         }
+
+
+        public IActionResult AddBookingRequestv2(Guid item, string itemsList)
+        {
+            var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
+            var x = _context.MarketPlace.Where(q => q.Id == item).FirstOrDefault();
+            var farmer = _context.AspNetUsers.Where(q => q.Id == x.User).FirstOrDefault();
+
+            List<BookingRequestDetails> items = new List<BookingRequestDetails>();
+            JsonConvert.PopulateObject(itemsList, items);
+
+            BookingRequest bookingRequest = new BookingRequest()
+            {
+                Item = item,
+                Vendor = loggedInUser.Id,
+                Farmer = farmer.Id,
+                //Quantity = quantity,
+                DateCreated = DateTime.Now
+            };
+
+            _context.BookingRequest.Add(bookingRequest);
+            _context.SaveChanges();
+
+            //save booking request details
+            List<BookingRequestSubItem> subItems = new List<BookingRequestSubItem>();
+            
+            foreach (var subItem in items)
+            {
+                subItems.Add(new BookingRequestSubItem {
+                    BookingReqId = bookingRequest.Id,
+                    MarketPlaceItem = item,
+                    SubItemId = subItem.ItemId,
+                    Quantity = subItem.Quantity
+                });
+            }
+
+            _context.BookingRequestSubItem.AddRange(subItems);
+            _context.SaveChanges();
+
+            Notif notif = new Notif()
+            {
+                Id = Guid.NewGuid(),
+                Recipient = x.User,
+                Message = string.Format("{0} {1} booked you", loggedInUser.Firstname, loggedInUser.LastName),
+                DateCreated = DateTime.Now,
+                DateCreatedString = DateTime.Now.ToString("MMMM dd, yyyy"),
+                NotifType = "Booking",
+                BookingRequest = bookingRequest.Id
+            };
+
+            _context.Notif.Add(notif);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
 
         public IActionResult AddBookingRequest(Guid item, int quantity)
         {
@@ -261,6 +400,13 @@ namespace Wiggly.Controllers
             _context.Notif.Remove(b);
             _context.SaveChanges();
         }
+
+    }
+
+    class BookingRequestDetails
+    {
+        public int ItemId { get; set; }
+        public int Quantity { get; set; }
 
     }
 }

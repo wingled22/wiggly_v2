@@ -9,6 +9,9 @@
     Layout = "_LayoutAdminLTEVendorDashboard";
 }
 
+<link href="~/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css" rel="stylesheet" />
+<script src="~/plugins/sweetalert2/sweetalert2.all.min.js"></script>
+
 <h1>@*@ViewData["itemID"]*@</h1>
 <div class="invoice p-3 mb-3">
     <!-- title row -->
@@ -76,12 +79,12 @@
                                             <i class="fa fa-minus"></i>
                                         </button>
                                     </div>
-                                    <input class="form-control quantity" min="1" max="@item.Quantity" 
-                                           name="booking-request-quantity" 
-                                           id="booking-request-quantity" 
-                                           value="@item.Quantity" 
-                                           data-itemPrice="@item.Price" 
-                                           data-itemId="@item.Id" 
+                                    <input class="form-control quantity" min="1" max="@item.Quantity"
+                                           name="booking-request-quantity"
+                                           id="booking-request-quantity"
+                                           value="@item.Quantity"
+                                           data-itemPrice="@item.Price"
+                                           data-itemId="@item.Id"
                                            type="number">
                                     <div class="input-group-append">
                                         <button class="btn btn-outline-secondary btn-plus">
@@ -136,11 +139,14 @@
 </div>
 
 <script>
+    var marketplaceItemID = "@ViewData["itemID"]";
     var selecteditems = [];
     var checkedRows;
     //var selectedData = {};
 
     $(document).ready(function () {
+
+        
 
         $('.btn-plus, .btn-minus').on('click', function (e) {
             const isNegative = $(e.target).closest('.btn-minus').is('.btn-minus');
@@ -240,6 +246,48 @@
                         Quantity: qty
                     };
                     selecteditems.push(selectedData);
+
+                    ////ajax promise to send data to server
+                    var p = new Promise(function (resolve, reject) {
+                        $.ajax({
+                            url: "../../BookingRequestAPI/AddBookingRequestv2?item=" + marketplaceItemID,
+                            data: {
+                                itemsList : JSON.stringify(selecteditems)
+                            },
+                            success: function (data) {
+                                resolve(data);
+
+                            },
+                            error: function (data) {
+                                reject(data)
+                            }
+                        });
+                    });
+
+                    p.then((data) => {
+                        ////toastr.success('Booking Success!');
+                        //console.log(data);
+                        //itemToBook = data;
+                        ////document.querySelector(".booking-info-msg").innerHTML = data.Message;
+                        Swal.fire({
+
+                            title: 'Good job!',
+                            text: 'You clicked the button!',
+                            icon: 'success',
+                            allowOutsideClick: false,
+                            allowEnterKey: false,
+                            allowEscapeKey: false
+                        }).then(function () {
+                            history.back();
+                        });
+
+
+                    })
+                    .catch((err) => {
+                        toastr.error('Something unexpected happened adding a booking, try again later.');
+
+                        console.table(err);
+                    });
 
                 })
             } else {

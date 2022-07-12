@@ -66,7 +66,6 @@
       <Folder Include="Areas\Admin\Data\" />
       <Folder Include="Areas\Farmer\Data\" />
       <Folder Include="Areas\Vendor\Data\" />
-      <Folder Include="Entities\" />
       <Folder Include="wwwroot\upload\marketplace\" />
       <Folder Include="wwwroot\upload\transaction\" />
       <Folder Include="wwwroot\upload\subscription\" />

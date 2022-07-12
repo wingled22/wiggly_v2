@@ -23,6 +23,7 @@ namespace Wiggly.Entities
         public virtual DbSet<AspNetUserTokens> AspNetUserTokens { get; set; }
         public virtual DbSet<AspNetUsers> AspNetUsers { get; set; }
         public virtual DbSet<BookingRequest> BookingRequest { get; set; }
+        public virtual DbSet<BookingRequestSubItem> BookingRequestSubItem { get; set; }
         public virtual DbSet<Kilos> Kilos { get; set; }
         public virtual DbSet<LivestockType> LivestockType { get; set; }
         public virtual DbSet<MarketPlace> MarketPlace { get; set; }
@@ -156,6 +157,13 @@ namespace Wiggly.Entities
                     .HasMaxLength(50)
                     .IsUnicode(false)
                     .HasDefaultValueSql("('Pending')");
+            });
+
+            modelBuilder.Entity<BookingRequestSubItem>(entity =>
+            {
+                entity.Property(e => e.BookingReqId).HasColumnName("BookingReqID");
+
+                entity.Property(e => e.SubItemId).HasColumnName("SubItemID");
             });
 
             modelBuilder.Entity<LivestockType>(entity =>

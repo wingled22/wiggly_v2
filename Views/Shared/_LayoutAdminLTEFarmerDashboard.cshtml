@@ -236,15 +236,11 @@
                     <div class="post">
                         <div class="post-infos" style="line-height:10px">
                             <h4 class="booking-info-msg">Some one booked you</h4>
-                            <p class="booking-info-livestockType">Livestock type: <b>value</b></p>
-                            <p class="booking-info-livestockQty">Quantity: <b>value</b></p>
-                            <p class="booking-info-livestockAmount">Amount: <b>value</b> </p>
                             <p class="booking-info-livestockAddress">Address: <b style="line-height: normal">value</b></p>
                             <hr />
 
                             @*<p class="booking-info-livestockKilos">Kilos: <b>value</b></p>*@
 
-                            <p class="booking-info-livestock-req-quantity">Quantity to book: <b>value</b> </p>
 
                             <p class="booking-info-livestockTotalAmount">Total Amount: <b>value</b> </p>
 
@@ -325,7 +321,7 @@
                 //get the data
                 var p = new Promise(function (resolve, reject) {
                     $.ajax({
-                        url: "../../BookingRequestAPI/GetBookingRequestFarmer?id=" + bookingRequest,
+                        url: "../../BookingRequestAPI/GetBookingRequestFarmerv2?id=" + bookingRequest,
                         success: function (data) {
                             resolve(data);
 
@@ -339,23 +335,15 @@
                 p.then((data) => {
                     //toastr.success('Booking Success!');
                     console.log(data);
-                    document.querySelector(".booking-info-msg").innerHTML = data.Message;
-                    document.querySelector(".booking-info-livestockType b").innerHTML = data.Category;
                     document.querySelector(".booking-info-livestockAddress b").innerHTML = data.Address;
-
-                    document.querySelector(".booking-info-livestockQty b").innerHTML = data.Quantity;
-                    document.querySelector(".booking-info-livestockAmount b").innerHTML = data.Amount;
-                    //document.querySelector(".booking-info-livestockKilos b").innerHTML = data.Kilos;
-                    document.querySelector(".booking-info-livestock-req-quantity b").innerHTML = data.BookingQuantity;
-                    
-                    document.querySelector(".booking-info-livestockTotalAmount b").innerHTML = data.TotalAmount;
-
                     document.querySelector("#booking-accepted").setAttribute("data-value", data.Id);
                     document.querySelector("#booking-accepted").setAttribute("data-notifID", notificationID);
 
                     document.querySelector("#booking-declined").setAttribute("data-value", data.Id);
                     document.querySelector("#booking-declined").setAttribute("data-notifID", notificationID);
+                    document.querySelector(".booking-info-msg").innerHTML = data.Message;
 
+                 
                     $('#modal-viewBooking').modal("toggle");
 
                 }).catch((err) => {
@@ -367,6 +355,7 @@
 
                 //window.location.replace("/farmer/ViewBookingRequest?bookingRequest="+bookingRequest);
             });
+
 
             $("body").on("click", "#booking-accepted", function () {
                 //console.log("booking will be accepted");
