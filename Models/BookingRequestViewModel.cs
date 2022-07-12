@@ -49,6 +49,7 @@ namespace Wiggly.Models
         public string Unit { get; set; }
         public int? QuantityBooked { get; set; }
         public decimal? Price { get; set; }
+        public decimal? Kilos { get; set; }
         public decimal? Amount { get; set; }
     }
 }

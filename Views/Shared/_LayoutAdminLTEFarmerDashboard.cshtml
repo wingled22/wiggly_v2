@@ -224,7 +224,7 @@
 
 
     <div class="modal" id="modal-viewBooking" role="dialog">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title">Booking Request</h4>
@@ -239,9 +239,21 @@
                             <p class="booking-info-livestockAddress">Address: <b style="line-height: normal">value</b></p>
                             <hr />
 
-                            @*<p class="booking-info-livestockKilos">Kilos: <b>value</b></p>*@
-
-
+                            <table class="table table-hover table-striped">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Category</th>
+                                        <th scope="col">Unit</th>
+                                        <th scope="col">Kilos</th>
+                                        <th scope="col">Qty Booked</th>
+                                        <th scope="col">Price</th>
+                                        <th scope="col">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bookingRequestModalTBody">
+                                </tbody>
+                            </table>
+                            <hr />
                             <p class="booking-info-livestockTotalAmount">Total Amount: <b>value</b> </p>
 
                         </div>
@@ -262,6 +274,17 @@
         </div>
         <!-- /.modal-dialog -->
     </div>
+
+    <template id="requestSubItemDetails">
+        <tr>
+            <td class="itemdata-cat"></td>
+            <td class="itemdata-unit"></td>
+            <td class="itemdata-kilos"></td>
+            <td class="itemdata-qty"></td>
+            <td class="itemdata-price"></td>
+            <td class="itemdata-total"></td>
+        </tr>
+    </template>
 
 
     <script>
@@ -343,7 +366,24 @@
                     document.querySelector("#booking-declined").setAttribute("data-notifID", notificationID);
                     document.querySelector(".booking-info-msg").innerHTML = data.Message;
 
-                 
+                    let trTemplate = document.querySelector('template#requestSubItemDetails');
+
+                    document.querySelector("#bookingRequestModalTBody").innerHTML = "";
+                    var total = 0;
+                    $.each(data.SubItems, function (n, detail) {
+                        let trDetailClone = trTemplate.content.cloneNode(true);
+                        trDetailClone.querySelector(".itemdata-cat").innerHTML = detail.Category;
+                        trDetailClone.querySelector(".itemdata-unit").innerHTML = detail.Unit;
+                        trDetailClone.querySelector(".itemdata-qty").innerHTML = detail.QuantityBooked;
+                        trDetailClone.querySelector(".itemdata-kilos").innerHTML = detail.Kilos;
+                        trDetailClone.querySelector(".itemdata-price").innerHTML = detail.Price;
+                        trDetailClone.querySelector(".itemdata-total").innerHTML = detail.Amount;
+                        document.querySelector("#bookingRequestModalTBody").append(trDetailClone);
+                        total = total + detail.Amount;
+                    });
+
+                    document.querySelector(".booking-info-livestockTotalAmount b").innerHTML = total;
+
                     $('#modal-viewBooking').modal("toggle");
 
                 }).catch((err) => {

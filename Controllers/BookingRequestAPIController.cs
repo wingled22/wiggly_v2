@@ -58,11 +58,10 @@ namespace Wiggly.Controllers
                                                 Unit = d.Unit,
                                                 Category = d.Category,
                                                 Price = d.Price,
-                                                Amount = d.Price * e.Quantity
+                                                Amount = d.Price * e.Quantity,
+                                                Kilos = d.Kilos
                                             }
-                                        )
-
-                                        .ToList()
+                                        ).ToList()
 
                         }).FirstOrDefault();
 
