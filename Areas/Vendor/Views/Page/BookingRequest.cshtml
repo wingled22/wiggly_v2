@@ -247,49 +247,42 @@
                     };
                     selecteditems.push(selectedData);
 
-                    ////ajax promise to send data to server
-                    var p = new Promise(function (resolve, reject) {
-                        $.ajax({
-                            url: "../../BookingRequestAPI/AddBookingRequestv2?item=" + marketplaceItemID,
-                            data: {
-                                itemsList : JSON.stringify(selecteditems)
-                            },
-                            success: function (data) {
-                                resolve(data);
 
-                            },
-                            error: function (data) {
-                                reject(data)
-                            }
-                        });
+
+                });
+
+                ////ajax promise to send data to server
+                var p = new Promise(function (resolve, reject) {
+                    $.ajax({
+                        url: "../../BookingRequestAPI/AddBookingRequestv2?item=" + marketplaceItemID,
+                        data: {
+                            itemsList: JSON.stringify(selecteditems)
+                        },
+                        success: function (data) {
+                            resolve(data);
+
+                        },
+                        error: function (data) {
+                            reject(data)
+                        }
                     });
-
-                    p.then((data) => {
-                        ////toastr.success('Booking Success!');
-                        //console.log(data);
-                        //itemToBook = data;
-                        ////document.querySelector(".booking-info-msg").innerHTML = data.Message;
-                        Swal.fire({
-
-                            title: 'Good job!',
-                            text: 'You clicked the button!',
-                            icon: 'success',
-                            allowOutsideClick: false,
-                            allowEnterKey: false,
-                            allowEscapeKey: false
-                        }).then(function () {
-                            history.back();
-                        });
-
-
-                    })
-                    .catch((err) => {
+                });
+                p.then((data) => {
+                    Swal.fire({
+                        title: 'Booking success!',
+                        text: 'Please wait for the farmer to accept your booking request.',
+                        icon: 'success',
+                        allowOutsideClick: false,
+                        allowEnterKey: false,
+                        allowEscapeKey: false
+                    }).then(function () {
+                        history.back();
+                    });
+                }).catch((err) => {
                         toastr.error('Something unexpected happened adding a booking, try again later.');
 
                         console.table(err);
                     });
-
-                })
             } else {
                 alert("select items to book");
             }

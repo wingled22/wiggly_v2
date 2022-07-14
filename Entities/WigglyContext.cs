@@ -43,6 +43,7 @@ namespace Wiggly.Entities
         public virtual DbSet<SubscriptionRequest> SubscriptionRequest { get; set; }
         public virtual DbSet<Table> Table { get; set; }
         public virtual DbSet<Transaction> Transaction { get; set; }
+        public virtual DbSet<TransactionSubItem> TransactionSubItem { get; set; }
         public virtual DbSet<UnitOfMeasure> UnitOfMeasure { get; set; }
         public virtual DbSet<UserLikedPost> UserLikedPost { get; set; }
 
@@ -409,6 +410,25 @@ namespace Wiggly.Entities
                     .IsUnicode(false);
 
                 entity.Property(e => e.TypeOfLivestock)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<TransactionSubItem>(entity =>
+            {
+                entity.Property(e => e.Category)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Kilos).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.SubTotal).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.TransactionId).HasColumnName("TransactionID");
+
+                entity.Property(e => e.Units)
                     .HasMaxLength(50)
                     .IsUnicode(false);
             });

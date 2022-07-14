@@ -269,6 +269,7 @@
                     .ShowBorders(true)
                     .OnRowInserting("OnRowInserting")
                     .OnRowUpdating("OnRowUpdating")
+                    .OnInitialized("subGridInit")
                     )
                 </text>);
             });
@@ -340,7 +341,7 @@
         <!-- /.user-block -->
 
         <div class="post-infos" style="line-height:10px">
-            <p class="livestockAddress">Address: <b>value</b></p>
+            <p style="line-height: normal;" class="livestockAddress">Address: <b>value</b></p>
             <table class="table table-hover table-striped">
                 <thead>
                     <tr>
@@ -553,6 +554,11 @@
     var unitOfMeasures = [];
 
     var sss;
+    var subGrid;
+
+    function subGridInit(e) {
+        subGrid = e.component;
+    }
 
     function OnRowInserting(e) {
         e.data = {...e.data, Amount : e.data.Quantity * e.data.Price }
@@ -605,6 +611,12 @@
     function openPostPopup() {
         isPostEdit = false;
         popup.option("visible", true);
+        form.option('formData', {});
+
+        let gridSrc = subGrid.getDataSource();
+        let gridStr = gridSrc.store();
+        subGrid.refresh(true);
+        gridSrc.reload();
         //if (form) {
         //    //form.option('key', data.SchedId);
         //    //console.log(data);
@@ -812,7 +824,7 @@
                         latlngStr: JSON.stringify(ll)
                     }
                 }).done(function () {
-
+                    location.reload();
                     popup.hide();
                     isPostEdit = false;
                     loadPosts();
@@ -868,57 +880,59 @@
 
             $('.card-body .post-container').empty();
             $.each(data, function (i, item) {
-                let clone = postTemplate.content.cloneNode(true);
+                if (item.ItemDetails.length > 0) {
+                    let clone = postTemplate.content.cloneNode(true);
 
-                let username = clone.querySelector(".post .user-block .username .post-author");
-                username.innerHTML = item.UserFullname;
-
-
-                clone.querySelector(".post .user-block .username .edit").setAttribute("data-value", item.ItemID);
+                    let username = clone.querySelector(".post .user-block .username .post-author");
+                    username.innerHTML = item.UserFullname;
 
 
-                let time = clone.querySelector(".post .user-block .description");
-                time.innerHTML = item.DateCreated;
-
-                //clone.querySelector(".post .post-infos p.livestockType b").innerHTML = item.Category;
-                //clone.querySelector(".post .post-infos p.livestockQty b").innerHTML = item.Quantity;
-                //clone.querySelector(".post .post-infos p.livestockAmount b").innerHTML = item.Amount.toLocaleString();
-                //clone.querySelector(".post .post-infos p.livestockTotalAmount b").innerHTML = item.Total.toLocaleString();
-                //clone.querySelector(".post .post-infos p.livestockKilos b").innerHTML = item.Kilos;
-                clone.querySelector(".post .post-infos p.livestockAddress b").innerHTML = item.Address;
-                clone.querySelector(".post .post-infos p.livestockAddress").setAttribute("data-lat", item.Lat);
-                clone.querySelector(".post .post-infos p.livestockAddress").setAttribute("data-lng", item.Lng);
-                clone.querySelector(".post .post-infos p.livestockAddress").setAttribute("data-displayName", item.Address);
-
-                //console.log(item.ItemDetails);
-
-                $.each(item.ItemDetails, function (n, detail) {
-                    let trDetailClone = trTemplate.content.cloneNode(true);
-                    trDetailClone.querySelector(".itemdata-cat").innerHTML = detail.Category;
-                    trDetailClone.querySelector(".itemdata-unit").innerHTML = detail.Unit;
-                    trDetailClone.querySelector(".itemdata-qty").innerHTML = detail.Quantity;
-                    trDetailClone.querySelector(".itemdata-kilos").innerHTML = detail.Kilos;
-                    trDetailClone.querySelector(".itemdata-price").innerHTML = detail.Price;
-                    trDetailClone.querySelector(".itemdata-total").innerHTML = detail.Price*detail.Quantity;
-                    clone.querySelector(".post .post-infos table tbody").append(trDetailClone);
-                });
-
-                let postImagesParent = clone.querySelector(".post .image-container ul");
+                    clone.querySelector(".post .user-block .username .edit").setAttribute("data-value", item.ItemID);
 
 
-                //console.table(item.ImageList);
-                $.each(item.ImageList, function (i, image) {
-                    let imageClone = postImagesTemplate.content.cloneNode(true);
+                    let time = clone.querySelector(".post .user-block .description");
+                    time.innerHTML = item.DateCreated;
 
-                    let img = imageClone.querySelector("li article a figure img");
-                    let a = imageClone.querySelector("li article a");
+                    //clone.querySelector(".post .post-infos p.livestockType b").innerHTML = item.Category;
+                    //clone.querySelector(".post .post-infos p.livestockQty b").innerHTML = item.Quantity;
+                    //clone.querySelector(".post .post-infos p.livestockAmount b").innerHTML = item.Amount.toLocaleString();
+                    //clone.querySelector(".post .post-infos p.livestockTotalAmount b").innerHTML = item.Total.toLocaleString();
+                    //clone.querySelector(".post .post-infos p.livestockKilos b").innerHTML = item.Kilos;
+                    clone.querySelector(".post .post-infos p.livestockAddress b").innerHTML = item.Address;
+                    clone.querySelector(".post .post-infos p.livestockAddress").setAttribute("data-lat", item.Lat);
+                    clone.querySelector(".post .post-infos p.livestockAddress").setAttribute("data-lng", item.Lng);
+                    clone.querySelector(".post .post-infos p.livestockAddress").setAttribute("data-displayName", item.Address);
 
-                    img.setAttribute("src", image.ImagePath);
-                    a.setAttribute("href", image.ImagePath);
-                    postImagesParent.append(imageClone);
-                });
+                    //console.log(item.ItemDetails);
 
-                postParentContainer.appendChild(clone);
+                    $.each(item.ItemDetails, function (n, detail) {
+                        let trDetailClone = trTemplate.content.cloneNode(true);
+                        trDetailClone.querySelector(".itemdata-cat").innerHTML = detail.Category;
+                        trDetailClone.querySelector(".itemdata-unit").innerHTML = detail.Unit;
+                        trDetailClone.querySelector(".itemdata-qty").innerHTML = detail.Quantity;
+                        trDetailClone.querySelector(".itemdata-kilos").innerHTML = detail.Kilos;
+                        trDetailClone.querySelector(".itemdata-price").innerHTML = detail.Price;
+                        trDetailClone.querySelector(".itemdata-total").innerHTML = detail.Price * detail.Quantity;
+                        clone.querySelector(".post .post-infos table tbody").append(trDetailClone);
+                    });
+
+                    let postImagesParent = clone.querySelector(".post .image-container ul");
+
+
+                    //console.table(item.ImageList);
+                    $.each(item.ImageList, function (i, image) {
+                        let imageClone = postImagesTemplate.content.cloneNode(true);
+
+                        let img = imageClone.querySelector("li article a figure img");
+                        let a = imageClone.querySelector("li article a");
+
+                        img.setAttribute("src", image.ImagePath);
+                        a.setAttribute("href", image.ImagePath);
+                        postImagesParent.append(imageClone);
+                    });
+
+                    postParentContainer.appendChild(clone);
+                }
 
 
             });
@@ -1054,24 +1068,26 @@
             //console.log($(this).attr("data-value"));
             pId = $(this).attr("data-value");
 
-            //get data out of the postID
-            $.ajax({
-                url: "../../MarketPlaceAPI/GetItem?itemID="+pId,
+            window.location = '/farmer/Page/EditPost?Id=' + pId;
 
-            })
-            .done(function (data) {
-                console.table(data);
-                popup.option("visible", true);
-                form.option('formData', data);
-                initGeolocation(data.Lat, data.Lng, data.Address);
-                isPostEdit = true;
+            ////get data out of the postID
+            //$.ajax({
+            //    url: "../../MarketPlaceAPI/GetItem?itemID="+pId,
 
-                postImages = data.ImageList;
-                console.log(postImages);
-                loadImageListToPopup();
-            });
-            //separate the images from the data
-            //populate the data to the images list
+            //})
+            //.done(function (data) {
+            //    console.table(data);
+            //    popup.option("visible", true);
+            //    form.option('formData', data);
+            //    initGeolocation(data.Lat, data.Lng, data.Address);
+            //    isPostEdit = true;
+
+            //    postImages = data.ImageList;
+            //    console.log(postImages);
+            //    loadImageListToPopup();
+            //});
+            ////separate the images from the data
+            ////populate the data to the images list
         });
 
         //address is clicked

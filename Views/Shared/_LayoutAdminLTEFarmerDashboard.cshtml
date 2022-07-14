@@ -403,7 +403,7 @@
                 var notifId = $(this).attr("data-notifID");
                 var p = new Promise(function (resolve, reject) {
                     $.ajax({
-                        url: "../../BookingRequestAPI/AcceptOrDeclineBooking?id=" + brId + "&status=Accepted&notificationId=" + notifId,
+                        url: "../../BookingRequestAPI/AcceptOrDeclineBookingv2?id=" + brId + "&status=Accepted&notificationId=" + notifId,
                         success: function (data) {
                             resolve(data);
                         },

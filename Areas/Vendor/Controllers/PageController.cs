@@ -89,19 +89,25 @@ namespace Wiggly.Areas.Vendor.Controllers
             }
         }
 
-        public IActionResult SearchResults(string addressString, string livestockType, string priceRange)
+        public IActionResult SearchResults(string addressString, string livestockType, string rFrom, string rTo)
         {
             _logger.LogInformation(addressString);
             _logger.LogInformation(livestockType);
-            _logger.LogInformation(priceRange);
+            _logger.LogInformation(rFrom);
+            _logger.LogInformation(rTo);
 
             ViewData["addressString"] = addressString;
             ViewData["livestockType"] = livestockType;
-            ViewData["priceRange"] = priceRange;
+            ViewData["rFrom"] = rFrom;
+            ViewData["rTo"] = rTo;
+
             if (!IsSubscribed())
                 return View("Subscription");
-            else
-                return View();
+            else {
+                List<LivestockNames> lstock = _context.LivestockType.Select(x => new LivestockNames { Name = x.Name }).ToList();
+                return View(lstock);
+            }
+            
         }
 
 
@@ -159,6 +165,9 @@ namespace Wiggly.Areas.Vendor.Controllers
             }
         }
 
+
+
+
         public IActionResult MarkPushNotifAsRead(Guid notifID)
         {
             var notif = _context.Notif.Where(q => q.Id == notifID).FirstOrDefault();
@@ -179,5 +188,7 @@ namespace Wiggly.Areas.Vendor.Controllers
             else
                 return true;
         }
+
+
     }
 }

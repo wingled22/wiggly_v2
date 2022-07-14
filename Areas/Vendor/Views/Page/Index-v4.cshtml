@@ -581,6 +581,7 @@
         $.ajax({
             url: "../../MarketPlaceAPI/GetItems"
         }).done(function (data) {
+            
             posts = data;
             let postTemplate = document.querySelector('template#postTemplate');
             var postParentContainer = document.querySelector('.card-body .post-container');
@@ -589,65 +590,68 @@
 
             $('.card-body .post-container').empty();
             $.each(data, function (i, item) {
-                let clone = postTemplate.content.cloneNode(true);
 
-                let username = clone.querySelector(".post .user-block .username .post-author");
-                username.innerHTML = item.UserFullname;
+                if (item.ItemDetails.length > 0) {
 
-                //if (!item.IsEditable) {
-                //    clone.querySelector(".post .user-block .username .edit").innerHTML = "";
+                    let clone = postTemplate.content.cloneNode(true);
+                    let username = clone.querySelector(".post .user-block .username .post-author");
+                    username.innerHTML = item.UserFullname;
 
-                //} else {
-                //    clone.querySelector(".post .user-block .username .edit").setAttribute("data-value", item.Id);
-                //}
+                    //if (!item.IsEditable) {
+                    //    clone.querySelector(".post .user-block .username .edit").innerHTML = "";
 
-
-                let time = clone.querySelector(".post .user-block .description");
-                time.innerHTML = item.DateCreated;
-
-                //clone.querySelector(".post .post-infos p.livestockType b").innerHTML = item.Category;
-                //clone.querySelector(".post .post-infos p.livestockQty b").innerHTML = item.Quantity;
-                //clone.querySelector(".post .post-infos p.livestockAmount b").innerHTML = item.Amount;
-                //clone.querySelector(".post .post-infos p.livestockTotalAmount b").innerHTML = item.Total;
-                //clone.querySelector(".post .post-infos p.livestockKilos b").innerHTML = item.Kilos;
-                clone.querySelector(".post .post-infos p.livestockAddress b").innerHTML = item.Address;
-                clone.querySelector(".post .post-infos p.livestockAddress").setAttribute("data-lat", item.Lat);
-                clone.querySelector(".post .post-infos p.livestockAddress").setAttribute("data-lng", item.Lng);
-                clone.querySelector(".post .post-infos p.livestockAddress").setAttribute("data-displayName", item.Address);
-
-                console.log(item.ItemDetails);
-
-                $.each(item.ItemDetails, function (n, detail) {
-                    let trDetailClone = trTemplate.content.cloneNode(true);
-                    trDetailClone.querySelector(".itemdata-cat").innerHTML = detail.Category;
-                    trDetailClone.querySelector(".itemdata-unit").innerHTML = detail.Unit;
-                    trDetailClone.querySelector(".itemdata-qty").innerHTML = detail.Quantity;
-                    trDetailClone.querySelector(".itemdata-kilos").innerHTML = detail.Kilos;
-                    trDetailClone.querySelector(".itemdata-price").innerHTML = detail.Price;
-                    trDetailClone.querySelector(".itemdata-total").innerHTML = detail.Price * detail.Quantity;
-                    clone.querySelector(".post .post-infos table tbody").append(trDetailClone);
-                });
-
-                clone.querySelector(".post p span").setAttribute("data-value", item.ItemID);
+                    //} else {
+                    //    clone.querySelector(".post .user-block .username .edit").setAttribute("data-value", item.Id);
+                    //}
 
 
-                let postImagesParent = clone.querySelector(".post .image-container ul");
+                    let time = clone.querySelector(".post .user-block .description");
+                    time.innerHTML = item.DateCreated;
+
+                    //clone.querySelector(".post .post-infos p.livestockType b").innerHTML = item.Category;
+                    //clone.querySelector(".post .post-infos p.livestockQty b").innerHTML = item.Quantity;
+                    //clone.querySelector(".post .post-infos p.livestockAmount b").innerHTML = item.Amount;
+                    //clone.querySelector(".post .post-infos p.livestockTotalAmount b").innerHTML = item.Total;
+                    //clone.querySelector(".post .post-infos p.livestockKilos b").innerHTML = item.Kilos;
+                    clone.querySelector(".post .post-infos p.livestockAddress b").innerHTML = item.Address;
+                    clone.querySelector(".post .post-infos p.livestockAddress").setAttribute("data-lat", item.Lat);
+                    clone.querySelector(".post .post-infos p.livestockAddress").setAttribute("data-lng", item.Lng);
+                    clone.querySelector(".post .post-infos p.livestockAddress").setAttribute("data-displayName", item.Address);
+
+                    console.log(item.ItemDetails);
+
+                    $.each(item.ItemDetails, function (n, detail) {
+                        let trDetailClone = trTemplate.content.cloneNode(true);
+                        trDetailClone.querySelector(".itemdata-cat").innerHTML = detail.Category;
+                        trDetailClone.querySelector(".itemdata-unit").innerHTML = detail.Unit;
+                        trDetailClone.querySelector(".itemdata-qty").innerHTML = detail.Quantity;
+                        trDetailClone.querySelector(".itemdata-kilos").innerHTML = detail.Kilos;
+                        trDetailClone.querySelector(".itemdata-price").innerHTML = detail.Price;
+                        trDetailClone.querySelector(".itemdata-total").innerHTML = detail.Price * detail.Quantity;
+                        clone.querySelector(".post .post-infos table tbody").append(trDetailClone);
+                    });
+
+                    clone.querySelector(".post p span").setAttribute("data-value", item.ItemID);
 
 
-                //console.table(item.ImageList);
-                $.each(item.ImageList, function (i, image) {
-                    let imageClone = postImagesTemplate.content.cloneNode(true);
+                    let postImagesParent = clone.querySelector(".post .image-container ul");
 
-                    let img = imageClone.querySelector("li article a figure img");
-                    let a = imageClone.querySelector("li article a");
 
-                    img.setAttribute("src", image.ImagePath);
-                    a.setAttribute("href", image.ImagePath);
-                    postImagesParent.append(imageClone);
-                });
+                    //console.table(item.ImageList);
+                    $.each(item.ImageList, function (i, image) {
+                        let imageClone = postImagesTemplate.content.cloneNode(true);
 
-                postParentContainer.appendChild(clone);
+                        let img = imageClone.querySelector("li article a figure img");
+                        let a = imageClone.querySelector("li article a");
 
+                        img.setAttribute("src", image.ImagePath);
+                        a.setAttribute("href", image.ImagePath);
+                        postImagesParent.append(imageClone);
+                    });
+
+                    postParentContainer.appendChild(clone);
+
+                }
 
             });
         });
