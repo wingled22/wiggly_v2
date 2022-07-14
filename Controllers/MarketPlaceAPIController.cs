@@ -57,6 +57,20 @@ namespace Wiggly.Controllers
                              ImageList = _context.PostPhoto.Where(p => item.Id == p.Post)
                                                 .Select(p => new MarketPlaceImage { ImageId = p.Id, ImagePath = p.Path })
                                                 .ToList(),
+                             ItemDetails = _context.MarketplaceItemLivestock
+                                                .Where(q => q.MarketplaceItem == item.Id && q.Quantity != 0)
+                                                .Select(q => new MarketPlaceItemDetails
+                                                {
+                                                    Id = q.Id,
+                                                    MarketplaceItem = q.MarketplaceItem,
+                                                    Category = q.Category,
+                                                    Unit = q.Unit,
+                                                    Quantity = q.Quantity,
+                                                    Kilos = q.Kilos,
+                                                    Price = q.Price,
+                                                    Amount = (decimal)q.Quantity * q.Price
+                                                })
+                                                .ToList(),
                              //Liked = _context.UserLikedPost.Any(q => q.Post == item.Id && q.User == loggedInUser.Id),
                              IsEditable = loggedInUser.Id == user.Id ? true : false
 
@@ -92,7 +106,19 @@ namespace Wiggly.Controllers
                              ImageList = _context.PostPhoto.Where(p => item.Id == p.Post)
                                                 .Select(p => new MarketPlaceImage { ImageId = p.Id, ImagePath = p.Path })
                                                 .ToList(),
-                             //Liked = _context.UserLikedPost.Any(q => q.Post == item.Id && q.User == loggedInUser.Id),
+                             ItemDetails = _context.MarketplaceItemLivestock
+                                                .Where(q=> q.MarketplaceItem == item.Id && q.Quantity != 0)
+                                                .Select(q => new MarketPlaceItemDetails{
+                                                    Id = q.Id ,
+                                                    MarketplaceItem = q.MarketplaceItem,
+                                                    Category = q.Category,
+                                                    Unit = q.Unit,
+                                                    Quantity = q.Quantity,
+                                                    Kilos = q.Kilos,
+                                                    Price = q.Price,
+                                                    Amount = (decimal)q.Quantity*q.Price
+                                                })
+                                                .ToList(),
                              IsEditable = loggedInUser.Id == user.Id ? true : false
 
                          }).ToList();
@@ -107,8 +133,7 @@ namespace Wiggly.Controllers
             var posts = (from item in _context.MarketPlace
                          join user in _context.AspNetUsers
                          on item.User equals user.Id
-                         //join photos in _context.PostPhoto
-                         //on item.Id equals photos.Post
+                        
                          orderby item.DateCreated descending
                          where item.Id == itemId
                          select new MarketPlaceViewModelRevised
@@ -128,6 +153,20 @@ namespace Wiggly.Controllers
                              ImageList = _context.PostPhoto.Where(p => item.Id == p.Post && p.Path.Contains("marketplace"))
                                                 .Select(p => new MarketPlaceImage { ImageId = p.Id, ImagePath = p.Path })
                                                 .ToList(),
+                             ItemDetails = _context.MarketplaceItemLivestock
+                                                .Where(q => q.MarketplaceItem == item.Id && q.Quantity != 0)
+                                                .Select(q => new MarketPlaceItemDetails
+                                                {
+                                                    Id = q.Id,
+                                                    MarketplaceItem = q.MarketplaceItem,
+                                                    Category = q.Category,
+                                                    Unit = q.Unit,
+                                                    Quantity = q.Quantity,
+                                                    Kilos = q.Kilos,
+                                                    Price = q.Price,
+                                                    Amount = (decimal)q.Quantity * q.Price
+                                                })
+                                                .ToList(),
                              //Liked = _context.UserLikedPost.Any(q => q.Post == item.Id && q.User == loggedInUser.Id),
                              IsEditable = loggedInUser.Id == user.Id ? true : false
 
@@ -139,7 +178,7 @@ namespace Wiggly.Controllers
 
 
         [HttpPost]
-        public IActionResult SaveItem(string values, string postImages, string address, string latlngStr)
+        public IActionResult SaveItem(string values, string livestockDetails, string postImages, string address, string latlngStr)
         {
             if (string.IsNullOrEmpty(values))
                 return BadRequest("Value sent is empty");
@@ -162,11 +201,6 @@ namespace Wiggly.Controllers
                 Id = Guid.NewGuid(),
                 User = loggedInUser.Id,
                 DateCreated = DateTime.Now,
-                Category = val.Category,
-                Quantity = val.Quantity,
-                Amount = val.Amount,
-                Total = val.Amount * val.Quantity,
-                Kilos = val.Kilos,
                 Address = addressStr.Val,
                 Lat = latLng.Lat,
                 Lng = latLng.Lng
@@ -176,6 +210,26 @@ namespace Wiggly.Controllers
                 return BadRequest("Error adding item");
 
             _context.MarketPlace.Add(newItem);
+            _context.SaveChanges();
+
+            //save item details
+            var livestockList = new List<MarketPlaceItemDetails>();
+            JsonConvert.PopulateObject(livestockDetails, livestockList);
+
+            var livestockItems = new List<MarketplaceItemLivestock>();
+            foreach (var item in livestockList)
+            {
+                livestockItems.Add(new MarketplaceItemLivestock { 
+                    MarketplaceItem = newItem.Id,
+                    Category = item.Category,
+                    Unit = item.Unit,
+                    Quantity = item.Quantity,
+                    Kilos = item.Kilos,
+                    Price = item.Price                    
+                });
+            }
+
+            _context.MarketplaceItemLivestock.AddRange(livestockItems);
             _context.SaveChanges();
 
 
@@ -212,7 +266,7 @@ namespace Wiggly.Controllers
         }
 
         [HttpPost]
-        public ActionResult UpdateItem(Guid key, string values, string postImages, string address, string latlngStr)
+        public ActionResult UpdateItem(Guid key, string values,  string postImages, string address, string latlngStr)
         {
             var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
 
@@ -317,4 +371,18 @@ namespace Wiggly.Controllers
         public string Lat { get; set; }
         public string Lng { get; set; }
     }
+
+    public class MarketPlaceItemDetails
+    {
+        public int Id { get; set; }
+        public Guid? Key { get; set; }
+        public Guid? MarketplaceItem { get; set; }
+        public string Category { get; set; }
+        public string Unit { get; set; }
+        public int? Quantity { get; set; }
+        public decimal? Kilos { get; set; }
+        public decimal? Price { get; set; }
+        public decimal? Amount { get; set; }
+    }
+
 }

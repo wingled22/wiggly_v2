@@ -99,8 +99,63 @@ namespace Wiggly.Areas_Admin_Controllers
             {
                 try
                 {
+                    var old = _context.UnitOfMeasure.Where(q => q.Id == id).AsNoTracking().FirstOrDefault();
+
+                    var mpItems = _context.MarketPlace.Where(q => q.Category == old.Name).ToList();
+                    var transactions = _context.Transaction.Where(q => q.TypeOfLivestock == old.Name).ToList();
+                    var mpSubItems = _context.MarketplaceItemLivestock.Where(q => q.Category == old.Name).ToList();
+                    var transactionSubItems = _context.TransactionSubItem.Where(q => q.Category == old.Name).ToList();
+
+                    //if (mpItems.Count() > 0)
+                    //{
+                    //    foreach (var item in mpItems)
+                    //    {
+                    //        item. = unitOfMeasure.Name;
+                    //    }
+                    //}
+
+                    //if (transactions.Count() > 0)
+                    //{
+                    //    foreach (var item in transactions)
+                    //    {
+                    //        item.uni = unitOfMeasure.Name;
+                    //    }
+                    //}
+
+                    if (mpSubItems.Count() > 0)
+                    {
+                        foreach (var item in mpSubItems)
+                        {
+                            item.Unit = unitOfMeasure.Name;
+                        }
+                    }
+
+                    if (transactionSubItems.Count() > 0)
+                    {
+                        foreach (var item in transactionSubItems)
+                        {
+                            item.Units = unitOfMeasure.Name;
+                        }
+                    }
+
                     _context.Update(unitOfMeasure);
                     await _context.SaveChangesAsync();
+
+                    //_context.MarketPlace.UpdateRange(mpItems);
+                    //await _context.SaveChangesAsync();
+
+                    //_context.Transaction.UpdateRange(transactions);
+                    //await _context.SaveChangesAsync();
+
+                    _context.MarketplaceItemLivestock.UpdateRange(mpSubItems);
+                    await _context.SaveChangesAsync();
+
+                    _context.TransactionSubItem.UpdateRange(transactionSubItems);
+                    await _context.SaveChangesAsync();
+
+
+                    //_context.Update(unitOfMeasure);
+                    //await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {

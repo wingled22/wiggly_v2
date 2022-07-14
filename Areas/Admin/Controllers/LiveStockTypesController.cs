@@ -104,7 +104,8 @@ namespace Wiggly.Areas.Admin.Controllers
 
                     var mpItems = _context.MarketPlace.Where(q => q.Category == old.Name).ToList();
                     var transactions = _context.Transaction.Where(q => q.TypeOfLivestock == old.Name).ToList();
-
+                    var mpSubItems = _context.MarketplaceItemLivestock.Where(q => q.Category == old.Name).ToList();
+                    var transactionSubItems = _context.TransactionSubItem.Where(q => q.Category == old.Name).ToList();
                    
                     if(mpItems.Count() > 0)
                     {
@@ -122,6 +123,22 @@ namespace Wiggly.Areas.Admin.Controllers
                         }
                     }
 
+                    if (mpSubItems.Count() > 0)
+                    {
+                        foreach (var item in mpSubItems)
+                        {
+                            item.Category = livestockType.Name;
+                        }
+                    }
+
+                    if (transactionSubItems.Count() > 0)
+                    {
+                        foreach (var item in transactionSubItems)
+                        {
+                            item.Category = livestockType.Name;
+                        }
+                    }
+
                     _context.Update(livestockType);
                     await _context.SaveChangesAsync();
 
@@ -129,6 +146,12 @@ namespace Wiggly.Areas.Admin.Controllers
                     await _context.SaveChangesAsync();
 
                     _context.Transaction.UpdateRange(transactions);
+                    await _context.SaveChangesAsync();
+
+                    _context.MarketplaceItemLivestock.UpdateRange(mpSubItems);
+                    await _context.SaveChangesAsync();
+
+                    _context.TransactionSubItem.UpdateRange(transactionSubItems);
                     await _context.SaveChangesAsync();
 
 

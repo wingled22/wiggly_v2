@@ -133,8 +133,8 @@
             .DisplayExpr(new JS("FarmerGridDisplayExpr"))
             .ValueExpr("Id"));
         col.AddFor(m => m.BookDate);
-        col.AddFor(m => m.LiveStockType);
-        col.AddFor(m => m.Quantity);
+        col.AddFor(m => m.LiveStockType).Visible(false);
+        col.AddFor(m => m.Quantity).Visible(false);
         col.AddFor(m => m.Kilos).Visible(false);
         col.AddFor(m => m.Amount).Visible(true);
         col.AddFor(m => m.Status);
@@ -177,6 +177,7 @@
     })
     .OnInitNewRow("OnInitNewRow")
     .OnInitialized("gridInit")
+    .OnEditingStart("OnEditingStart")
 )
 @(Html.DevExtreme().Popup()
     .ID("popupTransaction")
@@ -214,91 +215,118 @@
 @using (Html.DevExtreme().NamedTemplate("customPopupContentTemplate"))
 {
     @(Html.DevExtreme().Form<Wiggly.Areas.Vendor.Models.TransactionInfoViewModel>()
-    .ID("formDetails")
-    .ColCount(2)
-    .ActiveStateEnabled(false)
-    .LabelLocation(FormLabelLocation.Top)
-    .MinColWidth(300)
-    .ShowValidationSummary(true)
-    .ReadOnly(false)
-    .ScrollingEnabled(true)
-    .ActiveStateEnabled(false)
-    .Items(items =>
-    {
-
-    items.AddGroup()
+        .ID("formDetails")
         .ColCount(2)
-        .ColSpan(2)
-        .Items(gItem =>
+        .ActiveStateEnabled(false)
+        .LabelLocation(FormLabelLocation.Top)
+        .MinColWidth(300)
+        .ShowValidationSummary(true)
+        .ReadOnly(false)
+        .ScrollingEnabled(true)
+        .ActiveStateEnabled(false)
+        .Items(items =>
         {
-            gItem.AddSimpleFor(m => m.Farmer).ColSpan(1).IsRequired(true)
-                .Editor(e => e.SelectBox().ReadOnly(true)
-                    .DataSource(new JS("asdfasdf"))
-                    //.DataSource(ds => ds.Mvc().Controller("Transaction").LoadAction("GetFarmersWithFullname"))
-                    .ValueExpr("Id")
-                    .DisplayExpr("Fullname")
-                    .SearchEnabled(true)
-                    .Placeholder("Select Farmer")
-                  );
 
-                //gItem.AddSimpleFor(m => m.BookDate).Editor(e => e.DateBox().Type(DateBoxType.DateTime)).ColSpan(1).IsRequired(true);
+        items.AddGroup()
+            .ColCount(2)
+            .ColSpan(2)
+            .Items(gItem =>
+            {
+                gItem.AddSimpleFor(m => m.Farmer).ColSpan(1).IsRequired(true)
+                    .Editor(e => e.SelectBox().ReadOnly(true)
+                        .DataSource(new JS("asdfasdf"))
+                        //.DataSource(ds => ds.Mvc().Controller("Transaction").LoadAction("GetFarmersWithFullname"))
+                        .ValueExpr("Id")
+                        .DisplayExpr("Fullname")
+                        .SearchEnabled(true)
+                        .Placeholder("Select Farmer")
+                      );
+
+                    //gItem.AddSimpleFor(m => m.BookDate).Editor(e => e.DateBox().Type(DateBoxType.DateTime)).ColSpan(1).IsRequired(true);
+                });
+
+            //items.AddGroup().ColCount(2).ColSpan(2).Caption("Livestock").Items(gItem =>{});
+            items.AddGroup().Caption("Booked Livestocks")
+            .ColCount(2)
+            .ColSpan(2)
+            .Items(groupItems =>
+            {
+                groupItems.AddSimple()
+                .Name("Total")
+                .ColSpan(2)
+                .Template(@<text>
+                    @(Html.DevExtreme().DataGrid()
+                        .ID("gridContainer")
+                        .Columns(columns => {
+                        columns.Add().DataField("Category").ValidationRules(v => v.AddRequired())
+                            .Lookup(lookup => lookup.DataSource(new JS("category"))
+                            .ValueExpr("Name")
+                            .DisplayExpr("Name"));
+
+                        columns.Add().DataField("Quantity").DataType(GridColumnDataType.Number).ValidationRules(v => v.AddRequired());
+
+                        columns.Add().DataField("Units").Lookup(lookup => lookup.DataSource(new JS("unitOfMeasures"))
+                            .ValueExpr("Name")
+                            .DisplayExpr("Name"))
+                            .ValidationRules(v => v.AddRequired());
+
+                        columns.Add().DataField("Kilos").DataType(GridColumnDataType.Number).ValidationRules(v => v.AddRequired());
+
+                        columns.Add().DataField("Price")
+                            .DataType(GridColumnDataType.Number)
+                            .ValidationRules(v => v.AddRequired());
+
+                        columns.Add().DataField("SubTotal").AllowEditing(false).DataType(GridColumnDataType.Number);
+                    })
+                    .DataSource(new JS("sampleData"))
+                    .ShowBorders(true)
+                    .OnInitialized("subItemGridInit")
+                    )
+                </text>);
             });
 
-    items.AddGroup()
-        .ColCount(2)
-        .ColSpan(2)
-        .Caption("Livestock")
-        .Items(gItem =>
-        {
-            gItem.AddSimpleFor(m => m.LiveStockType).Editor(e => e.SelectBox().ReadOnly(true).DataSource(new JS("category")).ValueExpr("Name").DisplayExpr("Name")).ColSpan(1).IsRequired(true);
-            gItem.AddSimpleFor(m => m.Quantity).Editor(e => e.TextBox().ReadOnly(true)).ColSpan(1).IsRequired(true);
-                //gItem.AddSimpleFor(m => m.Amount).Editor(e => e.TextBox()).ColSpan(1).IsRequired(true);
-                gItem.AddSimpleFor(m => m.Kilos).Editor(e => e.TextBox().ReadOnly(true)).ColSpan(1).IsRequired(true);
-
-        });
-
-    items.AddGroup()
-        .ColCount(2)
-        .ColSpan(2)
-        .Caption("Payment")
-        .Items(gItem => {
-            gItem.AddSimpleFor(m => m.PaymentType).ColSpan(1).Editor(e => e.SelectBox().Placeholder("Select Status").DataSource(new JS("PaymentType")).DisplayExpr("Name").ValueExpr("Name"));
-            gItem.AddSimpleFor(m => m.Amount).ColSpan(1).IsRequired(true).Editor(e => e.NumberBox().ReadOnly(true));
-        });
-
-    items.AddGroup()
-        .Caption("Proof Of Payment")
-        .ColCount(2)
-        .ColSpan(2)
-        .Items(groupItems =>
-        {
-            //groupItems.AddSimple().Name("Image").DataField("Image").ColSpan(2).Template(new TemplateName("FileUploadTemplate"));
-            groupItems.AddSimple().IsRequired(true)
-            .Name("Image")
-            .DataField("Image")
+            items.AddGroup()
+            .ColCount(2)
             .ColSpan(2)
-            .Template(@<text>
+            .Caption("Payment")
+            .Items(gItem => {
+                gItem.AddSimpleFor(m => m.PaymentType).ColSpan(1).Editor(e => e.SelectBox().Placeholder("Select Status").DataSource(new JS("PaymentType")).DisplayExpr("Name").ValueExpr("Name"));
+                gItem.AddSimpleFor(m => m.Amount).ColSpan(1).IsRequired(true).Editor(e => e.NumberBox().ReadOnly(true));
+            });
 
-                            <div class="widget-container">
-                                @(Html.DevExtreme().FileUploader()
-                                    .ID("file-uploader")
-                                    .Name("myFile")
-                                    .Multiple(false)
-                                    .Accept("*")
-                                    .UploadMode(FileUploadMode.Instantly)
-                                    .UploadUrl(Url.Action("UploadTransactionProofPayment", "FileUploader", new {area = "Vendor" }))
-                                    .OnValueChanged("fileUploader_valueChanged")
-                                )
-                                <div class="content" id="selected-files">
+            items.AddGroup()
+                .Caption("Proof Of Payment")
+                .ColCount(2)
+                .ColSpan(2)
+                .Items(groupItems =>
+                {
+                    //groupItems.AddSimple().Name("Image").DataField("Image").ColSpan(2).Template(new TemplateName("FileUploadTemplate"));
+                    groupItems.AddSimple().IsRequired(true)
+                    .Name("Image")
+                    .DataField("Image")
+                    .ColSpan(2)
+                    .Template(@<text>
 
-                                </div>
-                            </div>
-                        </text>);
-                    });
+                                        <div class="widget-container">
+                                            @(Html.DevExtreme().FileUploader()
+                                                .ID("file-uploader")
+                                                .Name("myFile")
+                                                .Multiple(false)
+                                                .Accept("*")
+                                                .UploadMode(FileUploadMode.Instantly)
+                                                .UploadUrl(Url.Action("UploadTransactionProofPayment", "FileUploader", new {area = "Vendor" }))
+                                                .OnValueChanged("fileUploader_valueChanged")
+                                            )
+                                            <div class="content" id="selected-files">
 
-            })
-        .ShowColonAfterLabel(true).Visible(true).OnInitialized("onFormInitialized")
-    )
+                                            </div>
+                                        </div>
+                                    </text>);
+                                });
+
+                        })
+                    .ShowColonAfterLabel(true).Visible(true).OnInitialized("onFormInitialized")
+            )
 }
 
 
@@ -362,7 +390,9 @@
         }
     ];
 
+    var sampleData = [];
     let category = [];
+    let unitOfMeasures = [];
 
     let grid;
     let form, editForm;
@@ -376,6 +406,17 @@
         console.log("new row")
         CurrentRow = e.data;
     };
+
+    var subItemGrid;
+    function subItemGridInit(e) {
+        //CurrentRow = e.data;
+        subItemGrid = e.component;
+    };
+
+
+    function OnEditingStart(e) {
+        console.log(e);
+    }
 
     function onFormInitialized(e) {
         form = e.component;
@@ -418,15 +459,45 @@
         //console.log(e.row.data);
         isUpdate = true
         selectedRecord = e.row.data;
-        popup.option({ visible: true })
-        form.option("formData", e.row.data);
-        if (e.row.data.ProofOfpayment != null) {
-            postImage = { ImagePath: e.row.data.ProofOfpayment };
-            postImages.push(postImage);
-            loadImageListToPopup();
-        } else {
-            console.log("proof of payment is null")
-        }
+
+        postImage = [];
+
+        var transactionSubItemPromise = new Promise(function (resolve, reject) {
+            $.ajax({
+                url: "../../Vendor/Transaction/GetTransactionSubItems?transactionID=" + selectedRecord.TransactionID,
+                success: function (data) {
+                    resolve(data)
+                },
+                error: function (data) {
+                    reject(data)
+                }
+            });
+        });
+        transactionSubItemPromise.then((data) => {
+            sampleData = [...data];
+            popup.option({ visible: true })
+
+            subItemGrid.refresh(true);
+
+            form.option("formData", e.row.data);
+
+            if (e.row.data.ProofOfpayment != null) {
+                postImage = { ImagePath: e.row.data.ProofOfpayment };
+                postImages.push(postImage);
+                loadImageListToPopup();
+            } else {
+                console.log("proof of payment is null");
+                document.querySelector("#selected-files.content").innerHTML = "";
+                document.querySelector('.dx-fileuploader-files-container').innerHTML = "";
+                
+            }
+
+        }).catch((err) => {
+            console.table(err);
+        });
+
+
+       
 
         e.event.preventDefault();
     }
@@ -447,6 +518,24 @@
                 }
             });
         });
+
+        var unitsPromise = new Promise(function (resolve, reject) {
+            $.ajax({
+                url: "../../UnitOfMeasureAPI/GetUnits",
+                success: function (data) {
+                    resolve(data)
+                },
+                error: function (data) {
+                    reject(data)
+                }
+            });
+        });
+        unitsPromise.then((data) => {
+            unitOfMeasures = [...data];
+        }).catch((err) => {
+            console.table(err);
+        });
+
         catPromise.then((data) => {
             category = [...data];
         }).catch((err) => {
@@ -513,33 +602,32 @@
             let data = form.option("formData");
             console.table(data);
 
-            if (data.PaymentType == 'Cash on Hand') {
+            //if (data.PaymentType == 'Cash on Hand') {
 
-                $.ajax({
-                    type: "PUT",
-                    url: "../../vendor/transaction/PutTransaction",
-                    data: {
-                        values: JSON.stringify(data)
-                    }
-                }).done(function () {
-                    //loadPosts();
-                    let gridSrc = grid.getDataSource();
-                    let gridStr = gridSrc.store();
-                    grid.refresh(true);
-                    gridSrc.reload();
-                    popup.hide();
+            //    $.ajax({
+            //        type: "PUT",
+            //        url: "../../vendor/transaction/PutTransaction",
+            //        data: {
+            //            values: JSON.stringify(data)
+            //        }
+            //    }).done(function () {
+            //        //loadPosts();
+            //        let gridSrc = grid.getDataSource();
+            //        let gridStr = gridSrc.store();
+            //        grid.refresh(true);
+            //        gridSrc.reload();
+            //        popup.hide();
 
-                }).fail(function (data) {
-                    console.log("error");
-                    console.log(data);
-                });
+            //    }).fail(function (data) {
+            //        console.log("error");
+            //        console.log(data);
+            //    });
 
+            //} else {
+            if (postImages.length == 0) {
+                document.querySelector("#formDetails .dx-form-validation-summary.dx-validationsummary").innerHTML = "<div class=\"dx-item dx-validationsummary-item\"><div class=\"dx-item-content dx-validationsummary-item-content\">Upload an image ie. recipt of your payment.</div></div>";
+                return false;
             } else {
-                if (postImages.length == 0) {
-                    document.querySelector("#formDetails .dx-form-validation-summary.dx-validationsummary").innerHTML = "<div class=\"dx-item dx-validationsummary-item\"><div class=\"dx-item-content dx-validationsummary-item-content\">Upload an image ie. recipt of your payment.</div></div>";
-                    return false;
-                }
-
                 console.log(data.PaymentType);
                 $.ajax({
                     type: "PUT",
@@ -559,6 +647,9 @@
                     console.log(data);
                 });
             }
+
+                
+            //}
 
 
 

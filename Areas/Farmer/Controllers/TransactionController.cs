@@ -54,6 +54,12 @@ namespace Wiggly.Areas.Farmer.Controllers
             return Ok(transactions);
         }
 
+        public ActionResult GetTransactionSubItems(int transactionID)
+        {
+            var data = _context.TransactionSubItem.Where(q => q.TransactionId == transactionID).ToList();
+            return Ok(data);
+        }
+
         [HttpPut]
         public async Task<IActionResult> PutTransaction(int? key, string values)
         {

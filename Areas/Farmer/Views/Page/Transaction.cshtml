@@ -98,6 +98,7 @@
         .Controller("Transaction")
         .LoadAction("GetTransactions")
         .UpdateAction("PutTransaction")
+        //.OnUpdating("onEditIconClick")
         .Key("TransactionID")
     )
     .Selection(s => s.Mode(SelectionMode.Single))
@@ -119,8 +120,8 @@
         col.AddFor(m => m.VendorFullname);
 
         col.AddFor(m => m.BookDate);
-        col.AddFor(m => m.LiveStockType);
-        col.AddFor(m => m.Quantity);
+        col.AddFor(m => m.LiveStockType).Visible(false);
+        col.AddFor(m => m.Quantity).Visible(false);
         col.AddFor(m => m.Kilos).Visible(false);
         col.AddFor(m => m.Amount).Visible(true);
         col.AddFor(m => m.Status);
@@ -128,7 +129,6 @@
 
 
         //payment
-
         col.AddFor(m => m.PaymentType).Visible(true);
         col.AddFor(m => m.ProofOfpayment)
             .Width(150)
@@ -146,7 +146,7 @@
             .Type(GridCommandColumnType.Buttons)
             .Buttons(b =>
             {
-                b.Add().Name(GridColumnButtonName.Edit);
+                b.Add().Name(GridColumnButtonName.Edit)/*.OnClick("onEditIconClick")*/;
                 b.Add().Name(GridColumnButtonName.Delete);
                 //b.Add().Name("Details")
                 //    .Icon("info")
@@ -179,6 +179,36 @@
                     gItem.AddSimpleFor(m => m.BookDate).Editor(e => e.DateBox().ReadOnly(true).Type(DateBoxType.DateTime)).ColSpan(1);
                 });
 
+            @*//items.AddGroup().ColCount(2).ColSpan(2).Caption("Livestock").Items(gItem =>{});
+            items.AddGroup().Caption("Booked Livestocks")
+            .ColCount(2)
+            .ColSpan(2)
+            .Items(groupItems =>
+            {
+                groupItems.AddSimple()
+                .Name("Total")
+                .ColSpan(2)
+                .Template(@<text>
+                    @(Html.DevExtreme().DataGrid()
+                        .ID("gridContainer")
+                        .Columns(columns => {
+                            columns.Add().DataField("Category");
+
+                            columns.Add().DataField("Quantity");
+
+                            columns.Add().DataField("Units");
+
+                            columns.Add().DataField("Kilos");
+
+                            columns.Add().DataField("Price");
+                            columns.Add().DataField("SubTotal").AllowEditing(false).DataType(GridColumnDataType.Number);
+                        })
+                    .DataSource(new JS("sampleData"))
+                    .ShowBorders(true)
+                    .OnInitialized("subItemGridInit")
+                    )
+                </text>);
+            });*@
 
             items.AddGroup()
                 .ColCount(2)
@@ -231,8 +261,26 @@
         }
     ];
 
+
+    var sampleData = [];
+    let category = [];
+    let unitOfMeasures = [];
+    var selectedRecord;
+
     //ui components init
     var farmerSelectBox;
+
+    var subItemGrid;
+    function subItemGridInit(e) {
+        //CurrentRow = e.data;
+        console.log("subItemGridInit");
+        subItemGrid = e.component;
+    };
+
+
+    function OnEditingStart(e) {
+        console.log(e);
+    }
 
     let form;
     //custom form initialization
@@ -240,6 +288,51 @@
         form = e.component;
         console.log(form);
     }
+
+    function onEditIconClick(e) {
+        console.log("edit is clicked");
+        selectedRecord = e.row.data;
+
+        postImage = [];
+
+        var transactionSubItemPromise = new Promise(function (resolve, reject) {
+            $.ajax({
+                url: "../../Farmer/Transaction/GetTransactionSubItems?transactionID=" + selectedRecord.TransactionID,
+                success: function (data) {
+                    resolve(data)
+                },
+                error: function (data) {
+                    reject(data)
+                }
+            });
+        });
+        transactionSubItemPromise.then((data) => {
+            sampleData = [...data];
+            //popup.option({ visible: true })
+            if (subItemGrid != null) {
+                subItemGrid.refresh(true);
+            }
+
+            //form.option("formData", e.row.data);
+
+            //if (e.row.data.ProofOfpayment != null) {
+            //    postImage = { ImagePath: e.row.data.ProofOfpayment };
+            //    postImages.push(postImage);
+            //    loadImageListToPopup();
+            //} else {
+            //    console.log("proof of payment is null");
+            //    document.querySelector("#selected-files.content").innerHTML = "";
+            //    document.querySelector('.dx-fileuploader-files-container').innerHTML = "";
+
+            //}
+
+        }).catch((err) => {
+            console.table(err);
+        });
+
+        e.event.preventDefault();
+
+    };
 
 
     $.ajax("../Transaction/GetVendors").done(function (data) {

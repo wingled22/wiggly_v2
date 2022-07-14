@@ -63,6 +63,12 @@ namespace Wiggly.Areas.Vendor.Controllers
             return Ok(transactions);
         }
 
+        public ActionResult GetTransactionSubItems(int transactionID)
+        {
+            var data = _context.TransactionSubItem.Where(q => q.TransactionId == transactionID).ToList();
+            return Ok(data);
+        }
+
         [HttpPost]
         public async Task<ActionResult<Transaction>> PostTransaction(string values, string proofPayment)
         {

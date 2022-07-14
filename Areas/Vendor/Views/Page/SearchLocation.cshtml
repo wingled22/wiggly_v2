@@ -24,49 +24,45 @@
             </div>
             <div class="input-group">
                 <div class="col-md-8 offset-md-2 ">
-                    <h6 class="text-left">Type of Livestock</h6>
-                    @foreach (var item in Model)
+                    @*<h6 class="text-left">Type of Livestock</h6>*@
+                    @*@foreach (var item in Model)
                     {
                         <div class="form-check form-check-inline">
                             <input class="form-check-input" type="radio" name="livestockType" id="livestockType" value="@item.Name" checked>
                             <label class="form-check-label" for="inlineRadio1">@item.Name</label>
                         </div>
-                    }
-                    @*<div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="livestockType" id="livestockType" value="Pig" checked>
-                        <label class="form-check-label" for="inlineRadio1">Pig</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="livestockType" id="livestockType" value="Chicken">
-                        <label class="form-check-label" for="inlineRadio2">Chicken</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="livestockType" id="livestockType" value="Cow">
-                        <label class="form-check-label" for="inlineRadio2">Cow</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="livestockType" id="livestockType" value="Goat">
-                        <label class="form-check-label" for="inlineRadio2">Goat</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="livestockType" id="livestockType" value="Carabao">
-                        <label class="form-check-label" for="inlineRadio2">Carabao</label>
-                    </div>*@
+                    }*@
+
+                <div class="form-group">
+                    <label for="livestockType">Type of Livestock</label>
+                    <select class="form-control" name="livestockType">
+
+                        @foreach (var item in Model)
+                        {
+                            <option value="@item.Name">@item.Name</option>
+                        }
+                      
+                    </select>
+                </div>
+
                 </div>
                 <div class="input-group">
                     <div class="col-md-8 offset-md-2 ">
-                        <h6 class="text-left">Amount range</h6>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="priceRange" id="inlineRadio1" value="option1" checked>
-                            <label class="form-check-label" for="inlineRadio1">1,000-15,000</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="priceRange" id="inlineRadio2" value="option2">
-                            <label class="form-check-label" for="inlineRadio2">15,000-25,000</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="priceRange" id="inlineRadio3" value="option3">
-                            <label class="form-check-label" for="inlineRadio3">25,000+</label>
+                        <b>Price Range</b>
+                      
+                        <div class="row">
+                            <div class="col-4">
+                                <div class="form-group">
+                                    <label for="rFrom">From</label>
+                                    <input type="number" class="form-control" name="rFrom" placeholder="From">
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="form-group">
+                                    <label for="rTo">To</label>
+                                    <input type="number" class="form-control" name="rTo" placeholder="To">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

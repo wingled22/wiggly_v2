@@ -23,9 +23,11 @@ namespace Wiggly.Entities
         public virtual DbSet<AspNetUserTokens> AspNetUserTokens { get; set; }
         public virtual DbSet<AspNetUsers> AspNetUsers { get; set; }
         public virtual DbSet<BookingRequest> BookingRequest { get; set; }
+        public virtual DbSet<BookingRequestSubItem> BookingRequestSubItem { get; set; }
         public virtual DbSet<Kilos> Kilos { get; set; }
         public virtual DbSet<LivestockType> LivestockType { get; set; }
         public virtual DbSet<MarketPlace> MarketPlace { get; set; }
+        public virtual DbSet<MarketplaceItemLivestock> MarketplaceItemLivestock { get; set; }
         public virtual DbSet<Message> Message { get; set; }
         public virtual DbSet<Notif> Notif { get; set; }
         public virtual DbSet<Payment> Payment { get; set; }
@@ -41,6 +43,7 @@ namespace Wiggly.Entities
         public virtual DbSet<SubscriptionRequest> SubscriptionRequest { get; set; }
         public virtual DbSet<Table> Table { get; set; }
         public virtual DbSet<Transaction> Transaction { get; set; }
+        public virtual DbSet<TransactionSubItem> TransactionSubItem { get; set; }
         public virtual DbSet<UnitOfMeasure> UnitOfMeasure { get; set; }
         public virtual DbSet<UserLikedPost> UserLikedPost { get; set; }
 
@@ -157,6 +160,13 @@ namespace Wiggly.Entities
                     .HasDefaultValueSql("('Pending')");
             });
 
+            modelBuilder.Entity<BookingRequestSubItem>(entity =>
+            {
+                entity.Property(e => e.BookingReqId).HasColumnName("BookingReqID");
+
+                entity.Property(e => e.SubItemId).HasColumnName("SubItemID");
+            });
+
             modelBuilder.Entity<LivestockType>(entity =>
             {
                 entity.Property(e => e.DateCreated).HasColumnType("datetime");
@@ -197,6 +207,21 @@ namespace Wiggly.Entities
                     .IsUnicode(false);
 
                 entity.Property(e => e.Total).HasColumnType("decimal(18, 2)");
+            });
+
+            modelBuilder.Entity<MarketplaceItemLivestock>(entity =>
+            {
+                entity.Property(e => e.Category)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Kilos).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.Unit)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
             });
 
             modelBuilder.Entity<Message>(entity =>
@@ -385,6 +410,25 @@ namespace Wiggly.Entities
                     .IsUnicode(false);
 
                 entity.Property(e => e.TypeOfLivestock)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<TransactionSubItem>(entity =>
+            {
+                entity.Property(e => e.Category)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Kilos).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.SubTotal).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.TransactionId).HasColumnName("TransactionID");
+
+                entity.Property(e => e.Units)
                     .HasMaxLength(50)
                     .IsUnicode(false);
             });

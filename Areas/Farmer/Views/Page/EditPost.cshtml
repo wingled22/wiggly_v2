@@ -1,0 +1,306 @@
+﻿@using Wiggly
+@namespace Wiggly.Models
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using DevExtreme.AspNet.Mvc
+@model Wiggly.Models.MarketPlaceViewModelRevised;
+
+@{
+    ViewData["Title"] = "Edit";
+    Layout = "_LayoutAdminLTEFarmerDashboard";
+}
+
+<link rel="stylesheet" href="~/plugins/leaflet/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+<dialog>
+    <div class="example-container" style="height:450px;">
+        <div class="row">
+            <section class="col col-12 header location-address">Address : </section>
+            <section class="col col-12">
+                <div class="row">
+                    <section class="col col-12">
+                        <div id="addressMapLocationInformation" style="height: 350px; "></div>
+
+                    </section>
+                </div>
+            </section>
+        </div>
+    </div>
+</dialog>
+
+<style>
+    .image-container {
+        overflow: auto;
+    }
+
+    ul {
+        text-align: left;
+        display: flex;
+    }
+
+    li {
+        list-style: none;
+        display: inline-block; /*pour limiter l'espace occupé   par l'image li*/
+    }
+
+    article {
+        position: relative;
+    }
+
+        article button {
+            position: absolute;
+            right: 20px;
+            top: 5px;
+        }
+
+    img {
+        width: 150px;
+        height: 150px;
+        display: block;
+        object-fit: cover;
+    }
+
+    figure {
+        /*background: #7D5976;*/
+        text-align: center;
+        padding: 10px;
+        margin: 10px;
+    }
+
+    a {
+        color: white;
+        text-decoration: none;
+    }
+
+        a:hover {
+            text-decoration: none;
+            color: pink;
+        }
+
+    span.description {
+        padding: 10px;
+        display: block;
+    }
+
+
+    /* The Modal (background) */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 2147483648; /* Sit on top */
+        padding-top: 40px; /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
+    }
+
+    /* Modal Content (Image) */
+    .modal-content {
+        margin: auto;
+        display: block;
+        width: 80%;
+        height: 80%;
+        max-width: 700px;
+    }
+
+    .liked {
+        color: #e83e8c;
+    }
+
+
+    .timeline-parent {
+        color: #666;
+    }
+
+    .timeline-row {
+        margin: 10px;
+        padding: .5rem;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #666;
+    }
+
+        .timeline-row:last-child {
+            border-bottom: none;
+        }
+
+        .timeline-row:hover {
+            background: #bfbfbf;
+        }
+
+    .example-container {
+        background: white;
+        width: 600px;
+        box-sizing: border-box;
+        font-family: helvetica;
+        font-size: 16px;
+        /*        -webkit-box-shadow: 1px 5px 5px 0px rgba(0,0,0,0.15);
+        -moz-box-shadow: 1px 5px 5px 0px rgba(0,0,0,0.15);*/
+        /*box-shadow: 1px 5px 5px 0px rgba(0,0,0,0.15);*/
+        border-radius: 8px;
+    }
+
+        .example-container * {
+            box-sizing: inherit;
+            font-size: inherit;
+        }
+
+        .example-container .header {
+            margin: 1em 0;
+        }
+
+        .example-container #MapLocation {
+            margin-bottom: 0.75em;
+        }
+</style>
+
+<div class="row">
+
+    <section class="col-lg-9 connectedSortable">
+        <!-- Custom tabs (Charts with tabs)-->
+        <div class="card">
+            <div class="card-header">
+
+            </div><!-- /.card-header -->
+            <div class="card-body">
+                <div class=" post-container">
+                   
+                    <!-- Post -->
+                    <div class="post">
+                        <div class="user-block">
+                            <img class="img-circle img-bordered-sm" src="../../dist/img/person-thumbnail.png" alt="user image">
+                            <span class="username">
+                                <span class="post-author" href="#">Jonalyn Pelegrin</span>
+                                <a class="float-right btn-tool edit" role="button" data-value="5da79da5-5083-41fd-8551-9484b791a522"><i class="fas fa-pen"></i></a>
+                            </span>
+                            <span class="description">Jul  8 2022  5:05PM</span>
+                        </div>
+                        <!-- /.user-block -->
+
+                        <div class="post-infos" style="line-height:10px">
+                            <p style="line-height: normal;" class="livestockAddress" data-lat="@Model.Lat" data-lng="@Model.Lng" data-displayname="@Model.Address">
+                                Address:
+                                <b>
+                                    @Model.Address
+                                </b>
+                            </p>
+
+                            @(Html.DevExtreme().DataGrid<Wiggly.Controllers.MarketPlaceItemDetails>()
+                                .ID("gridContainer")
+                                .DataSource(ds => ds.Mvc()
+                                    .Key("Id")
+                                    .Controller("SubItemAPI")
+                                    .LoadAction("GetSubItems").LoadParams(new { postId = new JS("postID") })
+                                    .InsertAction("PostSubItems")
+                                    .UpdateAction("PutSubItems")
+                                )
+                                .HoverStateEnabled(true)
+                                .ShowColumnLines(true)
+                                .ShowRowLines(true)
+                                .RowAlternationEnabled(true)
+                                .ShowBorders(true)
+                                .SearchPanel(searchPanel => searchPanel
+                                    .Visible(true)
+                                    .Width(240)
+                                    .Placeholder("Search...")
+                                )
+                                .Columns(columns => {
+                                    columns.Add().DataField("Category").ValidationRules(v => v.AddRequired())
+                                     .Lookup(lookup => lookup.DataSource(ds => ds.OData().Url("/livestockAPI/GetLivestock"))
+                                     .ValueExpr("Name")
+                                     .DisplayExpr("Name"));
+
+                                    columns.Add().DataField("Quantity").DataType(GridColumnDataType.Number).ValidationRules(v => v.AddRequired());
+
+                                    columns.Add().DataField("Unit").Lookup(lookup => lookup.DataSource(ds => ds.OData().Url("/UnitOfMeasureAPI/GetUnits"))
+                                        .ValueExpr("Name")
+                                        .DisplayExpr("Name"))
+                                        .ValidationRules(v => v.AddRequired());
+
+                                    columns.Add().DataField("Kilos").DataType(GridColumnDataType.Number).ValidationRules(v => v.AddRequired());
+
+                                    columns.Add().DataField("Price")
+                                        .DataType(GridColumnDataType.Number)
+                                        .ValidationRules(v => v.AddRequired());
+
+                                    columns.Add().DataField("Amount").AllowEditing(false).DataType(GridColumnDataType.Number);
+
+                                })
+                                .Editing(e => {
+                                    e.UseIcons(true);
+                                    e.AllowAdding(true)
+                                    .AllowUpdating(true)
+                                    .AllowDeleting(true);
+                                })
+                                .OnInitNewRow("OnInitNewRow")
+                            )
+
+                        </div>
+                        <div class="image-container">
+                            <ul>
+                            </ul>
+                        </div>
+
+                        <a href="/farmer/page/index"><button type="button" class="btn btn-link"> Back to Dashboard</button></a>
+                    </div>
+                    <!-- /.post -->
+             
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+
+<script>
+    var postID = "@ViewData["ItemId"]";
+    let category = [];
+    var unitOfMeasures = [];
+
+
+    function OnInitNewRow(e) {
+        console.log(e);
+        e.data.MarketplaceItem = "@ViewData["ItemId"]";
+    }
+
+
+    $(document).ready(function () {
+        var catPromise = new Promise(function (resolve, reject) {
+            $.ajax({
+                url: "../../livestockAPI/GetLivestock",
+                success: function (data) {
+                    resolve(data)
+                },
+                error: function (data) {
+                    reject(data)
+                }
+            });
+        });
+        catPromise.then((data) => {
+            category = [...data];
+        }).catch((err) => {
+            console.table(err);
+        });
+
+
+
+        var unitsPromise = new Promise(function (resolve, reject) {
+            $.ajax({
+                url: "../../UnitOfMeasureAPI/GetUnits",
+                success: function (data) {
+                    resolve(data)
+                },
+                error: function (data) {
+                    reject(data)
+                }
+            });
+        });
+        unitsPromise.then((data) => {
+            unitOfMeasures = [...data];
+        }).catch((err) => {
+            console.table(err);
+        });
+    });
+</script>
