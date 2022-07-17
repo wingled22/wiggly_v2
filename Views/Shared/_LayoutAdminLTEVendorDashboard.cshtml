@@ -60,7 +60,7 @@
                 </li>
 
                 <li class="nav-item dropdown">
-                    <a class="nav-link" data-toggle="dropdown" href="#notif-parent">
+                    <a class="nav-link bell-icon" data-toggle="dropdown" href="#notif-parent">
                         <i class="far fa-bell"></i>
                         @*<span class="badge badge-warning navbar-badge" style="font-size: .6rem; font-weight: 300; padding: 2px 4px; position: absolute; right: -5px; top: 9px">15</span>*@
                     </a>
@@ -289,6 +289,11 @@
 
                         
                     });
+
+                    var bellIcon = document.querySelector(".bell-icon");
+                    var parentText = document.querySelector(".bell-icon").innerHTML;
+                    parentText = parentText + "<span class=\"badge badge-warning navbar-badge\" style=\"left: 20px;width: 20px;\">" + data.length + "</span>";
+                    document.querySelector(".bell-icon").innerHTML = parentText;
 
                     //let notf = new window.Notification("Wiggly Meetup Memo", {
                     //    body: "asdadadasd"

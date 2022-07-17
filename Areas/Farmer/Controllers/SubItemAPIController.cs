@@ -44,8 +44,8 @@ namespace Wiggly.Areas.Farmer.Controllers
                                     Quantity = q.Quantity,
                                     Kilos = q.Kilos,
                                     Price = q.Price,
-                                    Amount = (decimal)q.Quantity * q.Price
-                                })
+                                    Amount = q.Unit.ToLower().Contains("kilo") ? (q.Kilos * q.Price) * (decimal)q.Quantity : (decimal)q.Quantity * q.Price
+                            })
                                 .ToList();  
 
             if (subItems != null)
@@ -111,7 +111,19 @@ namespace Wiggly.Areas.Farmer.Controllers
             {
                 return BadRequest("No data sent!");
             }
+        }
 
+        public async Task<IActionResult> DeleteSubItems(long key)
+        {
+            var article = await _context.MarketplaceItemLivestock.FindAsync(key);
+            if (article == null)
+            {
+                return NotFound();
+            }
+
+            _context.MarketplaceItemLivestock.Remove(article);
+            await _context.SaveChangesAsync();
+            return NoContent();
         }
     }
 }

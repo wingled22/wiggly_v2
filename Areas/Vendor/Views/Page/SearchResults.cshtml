@@ -221,7 +221,10 @@
                         </tbody>
                     </table>
                 </div>
-
+                <div class="image-container">
+                    <ul>
+                    </ul>
+                </div>
                 <p>
                     <span class="float-right" id="book">
                         <a class="link-black text-sm">
@@ -423,7 +426,7 @@
                             trDetailClone.querySelector(".itemdata-qty").innerHTML = detail.Quantity;
                             trDetailClone.querySelector(".itemdata-kilos").innerHTML = detail.Kilos;
                             trDetailClone.querySelector(".itemdata-price").innerHTML = detail.Price;
-                            trDetailClone.querySelector(".itemdata-total").innerHTML = detail.Price * detail.Quantity;
+                            trDetailClone.querySelector(".itemdata-total").innerHTML = detail.Amount;
                             clone.querySelector(".post .post-infos table tbody").append(trDetailClone);
                         });
 

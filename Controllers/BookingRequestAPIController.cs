@@ -58,7 +58,7 @@ namespace Wiggly.Controllers
                                                 Unit = d.Unit,
                                                 Category = d.Category,
                                                 Price = d.Price,
-                                                Amount = d.Price * e.Quantity,
+                                                Amount = d.Unit.ToLower().Contains("kilo") ? (d.Kilos * d.Price) * (decimal)e.Quantity : (decimal)e.Quantity * d.Price,
                                                 Kilos = d.Kilos
                                             }
                                         ).ToList()
@@ -281,10 +281,12 @@ namespace Wiggly.Controllers
                         Kilos = tempsubitem.Kilos,
                         Price = tempsubitem.Price,
                         Quantity = subItem.Quantity,
-                        SubTotal = subItem.Quantity * tempsubitem.Price
+                        SubTotal = tempsubitem.Unit.ToLower().Contains("kilo") ? (tempsubitem.Kilos * tempsubitem.Price) * (decimal)subItem.Quantity : (decimal)subItem.Quantity * tempsubitem.Price
                     });
 
-                    totalAmount = totalAmount + ((decimal)subItem.Quantity * (decimal)tempsubitem.Price);
+                    //subItem.Quantity * tempsubitem.Price //
+                    var whatToAdd = (tempsubitem.Unit.ToLower().Contains("kilo") ? (tempsubitem.Kilos * tempsubitem.Price) * (decimal)subItem.Quantity : (decimal)subItem.Quantity * tempsubitem.Price);
+                    totalAmount = totalAmount + (decimal)whatToAdd;
 
                     //update obj esp. the qty minus auto
                     tempsubitem.Quantity = tempsubitem.Quantity - subItem.Quantity;
