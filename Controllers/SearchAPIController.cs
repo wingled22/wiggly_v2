@@ -146,7 +146,7 @@ namespace Wiggly.Controllers
                                                            Quantity = q.Quantity,
                                                            Kilos = q.Kilos,
                                                            Price = q.Price,
-                                                           Amount = (decimal)q.Quantity * q.Price
+                                                           Amount = q.Unit.ToLower().Contains("kilo") ? (q.Kilos * q.Price) * (decimal)q.Quantity : (decimal)q.Quantity * q.Price
                                                        })
                                                        .ToList(),
                                     //Liked = _context.UserLikedPost.Any(q => q.Post == item.Id && q.User == loggedInUser.Id),
@@ -196,7 +196,7 @@ namespace Wiggly.Controllers
                                                            Quantity = q.Quantity,
                                                            Kilos = q.Kilos,
                                                            Price = q.Price,
-                                                           Amount = (decimal)q.Quantity * q.Price
+                                                           Amount = q.Unit.ToLower().Contains("kilo") ? (q.Kilos * q.Price) * (decimal)q.Quantity : (decimal)q.Quantity * q.Price
                                                        })
                                                        .ToList(),
                                     //Liked = _context.UserLikedPost.Any(q => q.Post == item.Id && q.User == loggedInUser.Id),

@@ -110,12 +110,21 @@
                     decimal totalAmount = 0;
                     foreach (var item in Model.ItemDetails)
                     {
-                        decimal subTotal = (decimal)item.Price * (decimal)item.Quantity;
+                        //? (decimal)item.Price * item.Kilos * (decimal)item.Quantity : (decimal)item.Price * (decimal)item.Quantity
+                        decimal subTotal ;
+                        if (item.Unit.ToLower().Contains("kilo")) {
+                            subTotal = (decimal)item.Price * (decimal)item.Kilos * (decimal)item.Quantity;
+                        }
+                        else
+                        {
+                            subTotal = (decimal)item.Price * (decimal)item.Quantity;
+                        }
+
                         totalAmount = totalAmount + subTotal;
                     }
                 }
 
-                Total: <span id="totalAmount">@totalAmount</span>
+                Total: <span id="totalAmount">@totalAmount.ToString("#.##")</span>
                 <br>
             </h4>
         </div>
@@ -165,9 +174,21 @@
                     var id = tr.querySelector('td.itemdata-qtyToBook div input').getAttribute('data-itemId');
                     var qty = tr.querySelector('td.itemdata-qtyToBook div input').value;
 
+                    var unit = tr.querySelector('td.itemdata-unit').textContent.toLocaleLowerCase().includes("kilo");
+                    console.log(unit);
+
                     var price = tr.querySelector('td.itemdata-price').innerHTML;
 
-                    totalPrice = totalPrice + (qty * price);
+                    if (unit) {
+                        console.log("unit is kilos");
+                        var kilos = tr.querySelector('td.itemdata-kilos').textContent;
+                        totalPrice = totalPrice + (kilos * price) * qty;
+
+                    } else {
+                        console.log("unit is not kilos");
+                        totalPrice = totalPrice + (qty * price);
+
+                    }
                 })
             }
             $('#totalAmount').text(totalPrice);
@@ -193,9 +214,21 @@
                     var id = tr.querySelector('td.itemdata-qtyToBook div input').getAttribute('data-itemId');
                     var qty = tr.querySelector('td.itemdata-qtyToBook div input').value;
 
+                    var unit = tr.querySelector('td.itemdata-unit').textContent.toLocaleLowerCase().includes("kilo");
+                    console.log(unit);
+
                     var price = tr.querySelector('td.itemdata-price').innerHTML;
 
-                    totalPrice = totalPrice + (qty * price);
+                    if (unit) {
+                        console.log("unit is kilos");
+                        var kilos = tr.querySelector('td.itemdata-kilos').textContent.toLocaleLowerCase().includes("kilo");
+                        totalPrice = totalPrice + (kilos * price) * qty;
+
+                    } else {
+                        console.log("unit is not kilos");
+                        totalPrice = totalPrice + (qty * price);
+
+                    }
                 })
             }
             $('#totalAmount').text(totalPrice);
@@ -211,13 +244,25 @@
             if (rowsToCalc.length > 0) {
                 $.each(rowsToCalc, function (i, item) {
                     var tr = item.closest('tr');
-                    console.log(tr);
+                    //console.log(tr);
                     var id = tr.querySelector('td.itemdata-qtyToBook div input').getAttribute('data-itemId');
                     var qty = tr.querySelector('td.itemdata-qtyToBook div input').value;
 
+                    var unit = tr.querySelector('td.itemdata-unit').textContent.toLocaleLowerCase().includes("kilo");
+                    console.log(unit);
+
                     var price = tr.querySelector('td.itemdata-price').innerHTML;
 
-                    totalPrice = totalPrice + (qty * price);
+                    if (unit) {
+                        console.log("unit is kilos");
+                        var kilos = tr.querySelector('td.itemdata-kilos').textContent.toLocaleLowerCase().includes("kilo");
+                        totalPrice = totalPrice + (kilos * price) * qty;
+
+                    } else {
+                        console.log("unit is not kilos");
+                        totalPrice = totalPrice + (qty * price);
+
+                    }
                 })
             }
             $('#totalAmount').text(totalPrice);
