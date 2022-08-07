@@ -27,6 +27,135 @@ namespace Wiggly.Controllers
         }
 
 
+
+        public IActionResult AcceptBookingRequestSubItem(int id)
+        {
+            var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
+
+            var request = _context.BookingRequestSubItem.Where(q => q.Id == id).FirstOrDefault();
+
+            var item = _context.MarketplaceItemLivestock
+                           .Where(q => q.Id == request.SubItemId)
+                           .FirstOrDefault();
+
+            var bookingRequest = _context.BookingRequest
+                            .Where(q => q.Id == request.BookingReqId)
+                            .FirstOrDefault();
+
+
+            request.Status = "Accepted";
+            _context.SaveChanges();
+
+           
+
+
+            Transaction transaction = new Transaction()
+            {
+                Vendor = bookingRequest.Vendor,
+                Farmer = loggedInUser.Id,
+                Status = "Pending",
+                TypeOfLivestock = item.Category,
+                Quantity = request.Quantity,
+                Kilos = item.Kilos,
+                Amount = item.Price,
+                BookDate = request.DeliveryDate,
+                BookingReqSubitemId = id,
+                DateCreated = DateTime.Now,
+                Total = item.Unit.ToLower().Contains("kilo") ? (item.Kilos * item.Price) * (decimal)request.Quantity : (decimal)request.Quantity * item.Price
+            };
+
+            _context.Transaction.Add(transaction);
+            _context.SaveChanges();
+
+            ////deduct quantity to items
+            item.Quantity = (int)item.Quantity - (int)request.Quantity;
+            _context.MarketplaceItemLivestock.Update(item);
+            _context.SaveChanges();
+
+            DateTime d = (DateTime)request.DeliveryDate;
+            d.AddHours(2);
+
+            string note = string.Format("Category:{0} , Quantity:{1}", transaction.TypeOfLivestock, request.Quantity);
+            var schedule = new Schedules()
+            {
+                Vendor = bookingRequest.Vendor,
+                BookingEndDate = request.DeliveryDate,
+                BookingStartDate = d,
+                Status = "Pending",
+                Farmer = loggedInUser.Id,
+                Notes = note,
+                DateCreated = DateTime.Now
+            };
+
+
+            _context.Schedules.Add(schedule);
+            _context.SaveChanges();
+
+
+
+            //add a new notif
+            Notif notif = new Notif()
+            {
+                Id = Guid.NewGuid(),
+                Recipient = bookingRequest.Vendor,
+                Message = string.Format("{0} {1} accepted your booking", loggedInUser.Firstname, loggedInUser.LastName),
+                DateCreated = DateTime.Now,
+                DateCreatedString = DateTime.Now.ToString("MMMM dd, yyyy"),
+                NotifType = "Booking",
+                BookingRequest = bookingRequest.Id
+            };
+
+            _context.Notif.Add(notif);
+            _context.SaveChanges();
+
+
+         
+            /**
+            * chat to the seller
+            **/
+            //select if there is a room where the logged in user and the vendor 
+            var chatroom = getRoomID((int)bookingRequest.Vendor);
+            if (chatroom == null)
+            {
+                //Created chatRoom
+                Room room = new Room();
+                _context.Room.Add(room); _context.SaveChanges();
+
+                //add chatroom member
+                var newMembers = new List<RoomMember> { new RoomMember { UserId = loggedInUser.Id, RoomId = room.Id }, new RoomMember { UserId = bookingRequest.Vendor, RoomId = room.Id } };
+                _context.RoomMember.AddRange(newMembers);
+                _context.SaveChanges();
+
+                var newMessage = new Message()
+                {
+                    Id = Guid.NewGuid(),
+                    Room = room.Id,
+                    UserId = loggedInUser.Id,
+                    MessageText = "Good day, Already accepted your booking request!",
+                    DatetimeCreate = DateTime.Now
+                };
+                _context.Message.Add(newMessage);
+                _context.SaveChanges();
+            }
+            else
+            {
+                //send message to the 
+                var newMessage = new Message()
+                {
+                    Id = Guid.NewGuid(),
+                    Room = chatroom.Id,
+                    UserId = loggedInUser.Id,
+                    MessageText = "Good day, Already accepted your booking request!",
+                    DatetimeCreate = DateTime.Now
+                };
+
+                _context.Message.Add(newMessage);
+                _context.SaveChanges();
+            }
+
+            return Ok();
+        }
+
         public IActionResult GetBookingRequestFarmerv2(int id)
         {
             var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
@@ -170,7 +299,8 @@ namespace Wiggly.Controllers
                     BookingReqId = bookingRequest.Id,
                     MarketPlaceItem = item,
                     SubItemId = subItem.ItemId,
-                    Quantity = subItem.Quantity
+                    Quantity = subItem.Quantity,
+                    DeliveryDate = subItem.DeliveryDate
                 });
             }
 
@@ -254,7 +384,7 @@ namespace Wiggly.Controllers
                     //Amount = bookingRequest.Quantity * item.Amount,
                     BookDate = bookingRequest.DateUpdated,
                     BookingId = item.Id,
-                    DateCreated = DateTime.Now
+                    DateCreated = DateTime.Now,
                 };
 
                 _context.Transaction.Add(transaction);
@@ -549,6 +679,7 @@ namespace Wiggly.Controllers
     {
         public int ItemId { get; set; }
         public int Quantity { get; set; }
+        public DateTime DeliveryDate { get; set; }
 
     }
 }

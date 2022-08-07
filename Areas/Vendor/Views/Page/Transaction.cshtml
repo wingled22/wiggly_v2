@@ -133,10 +133,11 @@
             .DisplayExpr(new JS("FarmerGridDisplayExpr"))
             .ValueExpr("Id"));
         col.AddFor(m => m.BookDate);
-        col.AddFor(m => m.LiveStockType).Visible(false);
-        col.AddFor(m => m.Quantity).Visible(false);
-        col.AddFor(m => m.Kilos).Visible(false);
+        col.AddFor(m => m.LiveStockType).Visible(true);
+        col.AddFor(m => m.Quantity).Visible(true);
+        col.AddFor(m => m.Kilos).Visible(true);
         col.AddFor(m => m.Amount).Visible(true);
+        col.AddFor(m => m.Total).Visible(true);
         col.AddFor(m => m.Status);
 
 

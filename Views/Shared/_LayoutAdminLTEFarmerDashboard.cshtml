@@ -126,16 +126,24 @@
                         </li>
 
                         @*<li class="nav-item">
-                                <a asp-area="Farmer" asp-controller="Page" asp-action="Marketplace" class="nav-link">
-                                    <i class="nav-icon fas fa-store"></i>
-                                    <p>Marketplace</p>
-                                </a>
-                            </li>*@
+            <a asp-area="Farmer" asp-controller="Page" asp-action="Marketplace" class="nav-link">
+                <i class="nav-icon fas fa-store"></i>
+                <p>Marketplace</p>
+            </a>
+        </li>*@
 
                         <li class="nav-item">
                             <a asp-area="Farmer" asp-controller="Page" asp-action="Chat" class="nav-link">
                                 <i class="nav-icon fas fa-comments"></i>
                                 <p>Chat</p>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a asp-area="Farmer" asp-controller="Page" asp-action="PendingBooking" class="nav-link">
+                                <i class="nav-icon fas fa-list"></i>
+                                @*<i class="fa-solid fa-file-invoice-dollar"></i>*@
+                                <p>Pending booking</p>
                             </a>
                         </li>
 
@@ -349,56 +357,60 @@
                 var notificationID = $(this).attr("data-notificationID");
                 console.log(bookingRequest);
                 console.log(notificationID);
-                //get the data
-                var p = new Promise(function (resolve, reject) {
-                    $.ajax({
-                        url: "../../BookingRequestAPI/GetBookingRequestFarmerv2?id=" + bookingRequest,
-                        success: function (data) {
-                            resolve(data);
 
-                        },
-                        error: function (data) {
-                            reject(data)
-                        }
-                    });
-                });
-                //populate the data to the modal
-                p.then((data) => {
-                    //toastr.success('Booking Success!');
-                    console.log(data);
-                    document.querySelector(".booking-info-livestockAddress b").innerHTML = data.Address;
-                    document.querySelector("#booking-accepted").setAttribute("data-value", data.Id);
-                    document.querySelector("#booking-accepted").setAttribute("data-notifID", notificationID);
+                window.location.href = "pendingbooking";
 
-                    document.querySelector("#booking-declined").setAttribute("data-value", data.Id);
-                    document.querySelector("#booking-declined").setAttribute("data-notifID", notificationID);
-                    document.querySelector(".booking-info-msg").innerHTML = data.Message;
+                ////get the data
 
-                    let trTemplate = document.querySelector('template#requestSubItemDetails');
+                //var p = new Promise(function (resolve, reject) {
+                //    $.ajax({
+                //        url: "../../BookingRequestAPI/GetBookingRequestFarmerv2?id=" + bookingRequest,
+                //        success: function (data) {
+                //            resolve(data);
 
-                    document.querySelector("#bookingRequestModalTBody").innerHTML = "";
-                    var total = 0;
-                    $.each(data.SubItems, function (n, detail) {
-                        let trDetailClone = trTemplate.content.cloneNode(true);
-                        trDetailClone.querySelector(".itemdata-cat").innerHTML = detail.Category;
-                        trDetailClone.querySelector(".itemdata-unit").innerHTML = detail.Unit;
-                        trDetailClone.querySelector(".itemdata-qty").innerHTML = detail.QuantityBooked;
-                        trDetailClone.querySelector(".itemdata-kilos").innerHTML = detail.Kilos;
-                        trDetailClone.querySelector(".itemdata-price").innerHTML = detail.Price;
-                        trDetailClone.querySelector(".itemdata-total").innerHTML = detail.Amount;
-                        document.querySelector("#bookingRequestModalTBody").append(trDetailClone);
-                        total = total + detail.Amount;
-                    });
+                //        },
+                //        error: function (data) {
+                //            reject(data)
+                //        }
+                //    });
+                //});
+                ////populate the data to the modal
+                //p.then((data) => {
+                //    //toastr.success('Booking Success!');
+                //    console.log(data);
+                //    document.querySelector(".booking-info-livestockAddress b").innerHTML = data.Address;
+                //    document.querySelector("#booking-accepted").setAttribute("data-value", data.Id);
+                //    document.querySelector("#booking-accepted").setAttribute("data-notifID", notificationID);
 
-                    document.querySelector(".booking-info-livestockTotalAmount b").innerHTML = total;
+                //    document.querySelector("#booking-declined").setAttribute("data-value", data.Id);
+                //    document.querySelector("#booking-declined").setAttribute("data-notifID", notificationID);
+                //    document.querySelector(".booking-info-msg").innerHTML = data.Message;
 
-                    $('#modal-viewBooking').modal("toggle");
+                //    let trTemplate = document.querySelector('template#requestSubItemDetails');
 
-                }).catch((err) => {
-                    toastr.error('Something unexpected happened adding a booking, try again later.');
+                //    document.querySelector("#bookingRequestModalTBody").innerHTML = "";
+                //    var total = 0;
+                //    $.each(data.SubItems, function (n, detail) {
+                //        let trDetailClone = trTemplate.content.cloneNode(true);
+                //        trDetailClone.querySelector(".itemdata-cat").innerHTML = detail.Category;
+                //        trDetailClone.querySelector(".itemdata-unit").innerHTML = detail.Unit;
+                //        trDetailClone.querySelector(".itemdata-qty").innerHTML = detail.QuantityBooked;
+                //        trDetailClone.querySelector(".itemdata-kilos").innerHTML = detail.Kilos;
+                //        trDetailClone.querySelector(".itemdata-price").innerHTML = detail.Price;
+                //        trDetailClone.querySelector(".itemdata-total").innerHTML = detail.Amount;
+                //        document.querySelector("#bookingRequestModalTBody").append(trDetailClone);
+                //        total = total + detail.Amount;
+                //    });
 
-                    console.table(err);
-                });
+                //    document.querySelector(".booking-info-livestockTotalAmount b").innerHTML = total;
+
+                //    $('#modal-viewBooking').modal("toggle");
+
+                //}).catch((err) => {
+                //    toastr.error('Something unexpected happened adding a booking, try again later.');
+
+                //    console.table(err);
+                //});
                 //show modal
 
                 //window.location.replace("/farmer/ViewBookingRequest?bookingRequest="+bookingRequest);

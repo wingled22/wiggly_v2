@@ -13,11 +13,13 @@ namespace Wiggly.Entities
         public int? Quantity { get; set; }
         public decimal? Kilos { get; set; }
         public decimal? Amount { get; set; }
+        public decimal? Total { get; set; }
         public string PaymentType { get; set; }
         public string ProofOfPayment { get; set; }
         public string PaymentStatus { get; set; }
         public DateTime? BookDate { get; set; }
         public DateTime? DateCreated { get; set; }
         public Guid? BookingId { get; set; }
+        public int? BookingReqSubitemId { get; set; }
     }
 }

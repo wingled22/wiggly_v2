@@ -55,6 +55,7 @@ namespace Wiggly.Areas.Vendor.Controllers
                                     PaymentType = trnsctn.PaymentType,
                                     Status = trnsctn.PaymentStatus,
                                     Amount = trnsctn.Amount,
+                                    Total = trnsctn.Total,
                                     ProofOfpayment = trnsctn.ProofOfPayment
                                 }).ToList();
 

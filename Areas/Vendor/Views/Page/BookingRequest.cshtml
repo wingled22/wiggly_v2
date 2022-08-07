@@ -37,6 +37,7 @@
                         <th scope="col">Qty</th>
                         <th scope="col">Kilos</th>
                         <th scope="col">Price</th>
+                        <th scope="col">Delivery Date</th>
                         <th scope="col">Qty To Book</th>
                     </tr>
                 </thead>
@@ -44,57 +45,64 @@
 
                     @foreach (var item in Model.ItemDetails)
                     {
-                        <tr>
-                            <td>
-                                <div class="custom-control custom-checkbox">
-                                    <input type="checkbox" name="@item.Id" checked>
-                                </div>
-                            </td>
-                            <td class="itemdata-cat">@item.Category</td>
-                            <td class="itemdata-unit">@item.Unit</td>
-                            <td class="itemdata-qty">@item.Quantity</td>
-                            <td class="itemdata-kilos">@item.Kilos</td>
-                            <td class="itemdata-price">@item.Price</td>
-                            <td class="itemdata-qtyToBook">
-                                <style>
-                                    .inline-group-custom {
-                                        max-width: 9rem;
-                                        padding: .5rem;
+                    <tr>
+                        <td>
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" name="@item.Id" checked>
+                            </div>
+                        </td>
+                        <td class="itemdata-cat">@item.Category</td>
+                        <td class="itemdata-unit">@item.Unit</td>
+                        <td class="itemdata-qty">@item.Quantity</td>
+                        <td class="itemdata-kilos">@item.Kilos</td>
+                        <td class="itemdata-price">@item.Price</td>
+                        <td class="itemdata-date">
+                            <input type="datetime-local" class="form-control" />
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-calendar"></span>
+                            </span>
+
+                        </td>
+                        <td class="itemdata-qtyToBook">
+                            <style>
+                                .inline-group-custom {
+                                    max-width: 9rem;
+                                    padding: .5rem;
+                                }
+
+                                    .inline-group-custom .form-control {
+                                        text-align: right;
                                     }
 
-                                        .inline-group-custom .form-control {
-                                            text-align: right;
-                                        }
+                                .form-control[type="number"]::-webkit-inner-spin-button,
+                                .form-control[type="number"]::-webkit-outer-spin-button {
+                                    -webkit-appearance: none;
+                                    margin: 0;
+                                }
+                            </style>
 
-                                    .form-control[type="number"]::-webkit-inner-spin-button,
-                                    .form-control[type="number"]::-webkit-outer-spin-button {
-                                        -webkit-appearance: none;
-                                        margin: 0;
-                                    }
-                                </style>
-
-                                <div class="input-group inline-group-custom">
-                                    <div class="input-group-prepend">
-                                        <button class="btn btn-outline-secondary btn-minus">
-                                            <i class="fa fa-minus"></i>
-                                        </button>
-                                    </div>
-                                    <input class="form-control quantity" min="1" max="@item.Quantity"
-                                           name="booking-request-quantity"
-                                           id="booking-request-quantity"
-                                           value="@item.Quantity"
-                                           data-itemPrice="@item.Price"
-                                           data-itemId="@item.Id"
-                                           type="number">
-                                    <div class="input-group-append">
-                                        <button class="btn btn-outline-secondary btn-plus">
-                                            <i class="fa fa-plus"></i>
-                                        </button>
-                                    </div>
+                            <div class="input-group inline-group-custom">
+                                <div class="input-group-prepend">
+                                    <button class="btn btn-outline-secondary btn-minus">
+                                        <i class="fa fa-minus"></i>
+                                    </button>
                                 </div>
+                                <input class="form-control quantity" min="1" max="@item.Quantity"
+                                       name="booking-request-quantity"
+                                       id="booking-request-quantity"
+                                       value="@item.Quantity"
+                                       data-itemPrice="@item.Price"
+                                       data-itemId="@item.Id"
+                                       type="number">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary btn-plus">
+                                        <i class="fa fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
 
-                            </td>
-                        </tr>
+                        </td>
+                    </tr>
                     }
                 </tbody>
             </table>
@@ -136,8 +144,8 @@
     <div class="row no-print">
         <div class="col-12">
             <button type="button" class="btn btn-danger cancel-booking">
-                <i class="fas fa-times"></i> Cancel
-                Payment
+                <i class="fas fa-times"></i> 
+                Cancel Booking
             </button>
             <button type="button" class="btn btn-primary submit-booking" style="margin-right: 5px;">
                 <i class="fas fa-check"></i> Submit Request
@@ -274,21 +282,31 @@
         $('.submit-booking').on('click', function (e) {
             //get checked row
             checkedRows = $('input[type=checkbox]:checked');
-
+            var err = false;
             if (checkedRows.length > 0) {
                 $.each(checkedRows, function (i, item) {
                     var tr = item.closest('tr');
-                    console.log(tr);
+                    //console.log(tr);
                     var id = tr.querySelector('td.itemdata-qtyToBook div input').getAttribute('data-itemId');
                     var qty = tr.querySelector('td.itemdata-qtyToBook div input').value;
+                    var deliveryDate = tr.querySelector('td.itemdata-date input').value;
 
 
-                    console.log(id);
-                    console.log(qty);
+                    //console.log(id);
+                    //console.log(qty);
+                    //console.log(deliveryDate);
+
+                    if (deliveryDate.length == 0) {
+                        alert("please add a delivery Date.");
+                        err = true;
+                        return false;
+                        console.log("I will not be read");
+                    }
 
                     var selectedData = {
                         ItemId: id,
-                        Quantity: qty
+                        Quantity: qty,
+                        DeliveryDate: deliveryDate
                     };
                     selecteditems.push(selectedData);
 
@@ -297,37 +315,39 @@
                 });
 
                 ////ajax promise to send data to server
-                var p = new Promise(function (resolve, reject) {
-                    $.ajax({
-                        url: "../../BookingRequestAPI/AddBookingRequestv2?item=" + marketplaceItemID,
-                        data: {
-                            itemsList: JSON.stringify(selecteditems)
-                        },
-                        success: function (data) {
-                            resolve(data);
+                if (!err) {
+                    var p = new Promise(function (resolve, reject) {
+                        $.ajax({
+                            url: "../../BookingRequestAPI/AddBookingRequestv2?item=" + marketplaceItemID,
+                            data: {
+                                itemsList: JSON.stringify(selecteditems)
+                            },
+                            success: function (data) {
+                                resolve(data);
 
-                        },
-                        error: function (data) {
-                            reject(data)
-                        }
+                            },
+                            error: function (data) {
+                                reject(data)
+                            }
+                        });
                     });
-                });
-                p.then((data) => {
-                    Swal.fire({
-                        title: 'Booking success!',
-                        text: 'Please wait for the farmer to accept your booking request.',
-                        icon: 'success',
-                        allowOutsideClick: false,
-                        allowEnterKey: false,
-                        allowEscapeKey: false
-                    }).then(function () {
-                        history.back();
-                    });
-                }).catch((err) => {
+                    p.then((data) => {
+                        Swal.fire({
+                            title: 'Booking success!',
+                            text: 'Please wait for the farmer to accept your booking request.',
+                            icon: 'success',
+                            allowOutsideClick: false,
+                            allowEnterKey: false,
+                            allowEscapeKey: false
+                        }).then(function () {
+                            history.back();
+                        });
+                    }).catch((err) => {
                         toastr.error('Something unexpected happened adding a booking, try again later.');
 
                         console.table(err);
                     });
+                }
             } else {
                 alert("select items to book");
             }

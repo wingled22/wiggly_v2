@@ -154,6 +154,8 @@ namespace Wiggly.Entities
 
                 entity.Property(e => e.DateUpdated).HasColumnType("datetime");
 
+                entity.Property(e => e.DeliveryDate).HasColumnType("datetime");
+
                 entity.Property(e => e.Status)
                     .HasMaxLength(50)
                     .IsUnicode(false)
@@ -163,6 +165,13 @@ namespace Wiggly.Entities
             modelBuilder.Entity<BookingRequestSubItem>(entity =>
             {
                 entity.Property(e => e.BookingReqId).HasColumnName("BookingReqID");
+
+                entity.Property(e => e.DeliveryDate).HasColumnType("datetime");
+
+                entity.Property(e => e.Status)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("('Pending')");
 
                 entity.Property(e => e.SubItemId).HasColumnName("SubItemID");
             });
@@ -391,6 +400,8 @@ namespace Wiggly.Entities
 
                 entity.Property(e => e.BookingId).HasColumnName("BookingID");
 
+                entity.Property(e => e.BookingReqSubitemId).HasColumnName("BookingReqSubitemID");
+
                 entity.Property(e => e.DateCreated).HasColumnType("datetime");
 
                 entity.Property(e => e.Kilos).HasColumnType("decimal(18, 2)");
@@ -408,6 +419,8 @@ namespace Wiggly.Entities
                 entity.Property(e => e.Status)
                     .HasMaxLength(50)
                     .IsUnicode(false);
+
+                entity.Property(e => e.Total).HasColumnType("decimal(18, 2)");
 
                 entity.Property(e => e.TypeOfLivestock)
                     .HasMaxLength(50)
