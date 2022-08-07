@@ -12,6 +12,7 @@ namespace Wiggly.Entities
         public int? Amount { get; set; }
         public int? Quantity { get; set; }
         public string Status { get; set; }
+        public DateTime? DeliveryDate { get; set; }
         public DateTime? DateCreated { get; set; }
         public DateTime? DateUpdated { get; set; }
     }

@@ -52,4 +52,19 @@ namespace Wiggly.Models
         public decimal? Kilos { get; set; }
         public decimal? Amount { get; set; }
     }
+
+
+    public class FarmerPendingBookingSubItems
+    {
+        public int Id { get; set; }
+        public string Category { get; set; }
+        public string Vendor { get; set; }
+        public string Unit { get; set; }
+        public string Status { get; set; }
+        public int? QuantityBooked { get; set; }
+        public decimal? Price { get; set; }
+        public decimal? Kilos { get; set; }
+        public decimal? Amount { get; set; }
+        public DateTime? DeliveryDate{ get; set; }
+    }
 }

@@ -27,6 +27,7 @@ namespace Wiggly.Areas.Vendor.Models
         public decimal? Kilos { get; set; }
         [Required]
         public decimal? Amount { get; set; }
+        public decimal? Total { get; set; }
         public int Quantity { get; set; }
 
         [Required]

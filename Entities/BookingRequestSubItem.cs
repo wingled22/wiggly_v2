@@ -9,6 +9,8 @@ namespace Wiggly.Entities
         public int? BookingReqId { get; set; }
         public Guid? MarketPlaceItem { get; set; }
         public int? SubItemId { get; set; }
+        public string Status { get; set; }
         public int? Quantity { get; set; }
+        public DateTime? DeliveryDate { get; set; }
     }
 }
