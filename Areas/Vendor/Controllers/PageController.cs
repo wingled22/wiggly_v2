@@ -166,6 +166,47 @@ namespace Wiggly.Areas.Vendor.Controllers
         }
 
 
+        public IActionResult PendingBooking()
+        {
+            if (!IsSubscribed())
+                return View("Subscription");
+            else
+            {
+                var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
+                var data = (from reqItem in _context.BookingRequestSubItem
+                            join req in _context.BookingRequest
+                            on reqItem.BookingReqId equals req.Id
+                            join farmer in _context.AspNetUsers
+                            on req.Farmer equals farmer.Id
+                            join subItem in _context.MarketplaceItemLivestock
+                            on reqItem.SubItemId equals subItem.Id
+                            where req.Vendor == loggedInUser.Id
+
+                            select new FarmerPendingBookingSubItems
+                            {
+                                Id = reqItem.Id,
+                                Category = subItem.Category,
+                                Price = subItem.Price,
+                                Amount = subItem.Unit.ToLower().Contains("kilo") ? (subItem.Kilos * subItem.Price) * (decimal)reqItem.Quantity : (decimal)reqItem.Quantity * subItem.Price,
+                                Kilos = subItem.Kilos,
+                                QuantityBooked = reqItem.Quantity,
+                                Status = reqItem.Status,
+                                Unit = subItem.Unit,
+                                Vendor = string.Format("{0} {1}", farmer.Firstname, farmer.LastName),
+                                DeliveryDate = reqItem.DeliveryDate,
+                                
+                            }
+
+                            ).ToList();
+
+                //return View(data);
+                return View(data);
+
+            }
+        }
+
+
+
 
 
         public IActionResult MarkPushNotifAsRead(Guid notifID)
