@@ -7,7 +7,8 @@
     ViewData["Title"] = "Pending Booking";
     Layout = "_LayoutAdminLTEFarmerDashboard";
 }
-
+<link href="~/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css" rel="stylesheet" />
+<script src="~/plugins/sweetalert2/sweetalert2.all.min.js"></script>
 <h1>@ViewData["Title"]</h1>
 
 <div class="invoice p-3 mb-3">
@@ -22,6 +23,7 @@
                         <th scope="col">Unit</th>
                         <th scope="col">Kilos</th>
                         <th scope="col">Price</th>
+                        <th scope="col">Delivery Date</th>
                         <th scope="col">Quantity Booked</th>
                         <th scope="col">Amount</th>
                         <th scope="col">Actions</th>
@@ -38,12 +40,13 @@
                             <td class="itemdata-kilos">@string.Format("{0:n2}", item.Kilos)</td>
                             <td class="itemdata-price">@string.Format("{0:n2}", item.Price)</td>
                             <td class="">@item.QuantityBooked</td>
+                            <td class="">@item.DeliveryDate</td>
                             <td class="itemdata-qty">@string.Format("{0:n2}", item.Amount)</td>
                             <td>
-                                <button type="button" class="btn btn-danger cancel-booking"  data-request="@item.Id" >Cancel</button>
-                                <button type="button" class="btn btn-success accept-booking" data-request="@item.Id" >Accept</button>
+                                <button type="button" class="btn btn-danger cancel-booking" data-request="@item.Id">Decline</button>
+                                <button type="button" class="btn btn-success accept-booking" data-request="@item.Id">Accept</button>
                             </td>
-                           
+
                         </tr>
                     }
                 </tbody>
@@ -55,19 +58,24 @@
 
 <script>
     $(document).ready(function () {
+    
 
         $(".cancel-booking").click(function () {
-            var id = $(this).attr("data-request");
+            Swal.fire({
+                title: 'Please Wait !',
+                text: 'Declining the booking request...',
+                allowOutsideClick: false,
+                allowEnterKey: false,
+                allowEscapeKey: false,
+                showCancelButton: false,
+                showConfirmButton: false
 
-            
+            });
 
-        });
-
-        $(".accept-booking").click(function () {
             var id = $(this).attr("data-request");
             var acceptPromise = new Promise(function (resolve, reject) {
                 $.ajax({
-                    url: "../../BookingRequestAPI/AcceptBookingRequestSubItem?id="+id,
+                    url: "../../BookingRequestAPI/DeclineBookingRequestSubItem?id=" + id,
                     success: function (data) {
                         resolve(data)
                     },
@@ -79,7 +87,53 @@
             })
 
             acceptPromise.then((data) => {
-                window.location.reload();
+                Swal.close();
+                history.back();
+            }).catch((err) => {
+                console.table(err);
+            });
+
+        });
+
+        $(".accept-booking").click(function () {
+
+            Swal.fire({
+                title: 'Please Wait !',
+                text: 'Accepting the booking request...',
+                allowOutsideClick: false,
+                allowEnterKey: false,
+                allowEscapeKey: false,
+                showCancelButton: false,
+                showConfirmButton: false
+
+            });
+            var id = $(this).attr("data-request");
+            var acceptPromise = new Promise(function (resolve, reject) {
+                $.ajax({
+                    url: "../../BookingRequestAPI/AcceptBookingRequestSubItem?id=" + id,
+                    success: function (data) {
+                        resolve(data)
+                    },
+                    error: function (data) {
+                        reject(data)
+                    }
+                });
+
+            })
+
+            acceptPromise.then((data) => {
+
+                Swal.fire({
+                    title: 'Booking Accepted!',
+                    text: 'You successfully accepted the booking request.',
+                    icon: 'success',
+                    allowOutsideClick: false,
+                    allowEnterKey: false,
+                    allowEscapeKey: false
+                }).then(function () {
+                    history.back();
+                    //window.location.reload();
+                });
             }).catch((err) => {
                 console.table(err);
             });

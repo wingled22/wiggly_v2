@@ -86,7 +86,7 @@ namespace Wiggly.Controllers
             var posts = (from item in _context.MarketPlace
                          join user in _context.AspNetUsers
                          on item.User equals user.Id
-                         where item.User == user.Id
+                         where item.User == loggedInUser.Id
                          orderby item.DateCreated descending
 
                          select new MarketPlaceViewModelRevised

@@ -27,7 +27,16 @@ namespace Wiggly.Controllers
         }
 
 
+        public IActionResult DeclineBookingRequestSubItem(int id) {
 
+
+            var request = _context.BookingRequestSubItem.Where(q => q.Id == id).FirstOrDefault();
+
+            request.Status = "Accepted";
+            _context.SaveChanges();
+
+            return Ok();
+        }
         public IActionResult AcceptBookingRequestSubItem(int id)
         {
             var loggedInUser = _context.AspNetUsers.Where(q => q.UserName == this.User.Identity.Name).FirstOrDefault();
@@ -75,7 +84,10 @@ namespace Wiggly.Controllers
             DateTime d = (DateTime)request.DeliveryDate;
             d.AddHours(2);
 
-            string note = string.Format("Category:{0} , Quantity:{1}", transaction.TypeOfLivestock, request.Quantity);
+            var vendor = _context.AspNetUsers.Where(q => q.Id == bookingRequest.Vendor).FirstOrDefault();
+            var meatDealerName = vendor.Firstname + " " + vendor.LastName;
+
+            string note = string.Format("Meat Dealer: {0}, Address: {1} ,Category:{2} , Quantity:{3}",meatDealerName, vendor.Address, transaction.TypeOfLivestock, request.Quantity);
             var schedule = new Schedules()
             {
                 Vendor = bookingRequest.Vendor,

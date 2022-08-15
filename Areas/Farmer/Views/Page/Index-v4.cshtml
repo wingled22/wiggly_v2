@@ -262,7 +262,7 @@
                             .DataType(GridColumnDataType.Number)
                             .ValidationRules(v => v.AddRequired());
 
-                    columns.Add().DataField("Amount").AllowEditing(false).DataType(GridColumnDataType.Number);
+                    columns.Add().DataField("Amount").AllowEditing(false);
                     })
                     .DataSource(new JS("sampleData"))
                     .Editing(e => e.AllowDeleting(true).AllowAdding(true).AllowUpdating(true))
@@ -561,18 +561,22 @@
     }
 
     function OnRowInserting(e) {
-        e.data = {...e.data, Amount : e.data.Quantity * e.data.Price }
+        var amount = e.data.Quantity * e.data.Price;
+        e.data = {...e.data, Amount :  amount.toLocaleString()}
     }
 
     function OnRowUpdating(e) {
         
         sss = e;
         if (e.newData.Quantity != undefined && e.newData.Price == undefined) {
-            e.newData = { ...e.newData, Amount: e.newData.Quantity * e.oldData.Price }
+            var amount = e.newData.Quantity * e.oldData.Price;
+            e.newData = { ...e.newData, Amount: amount.toLocaleString() }
         } else if (e.newData.Quantity == undefined && e.newData.Price != undefined) {
-            e.newData = { ...e.newData, Amount: e.oldData.Quantity * e.newData.Price }
+            var amount = e.oldData.Quantity * e.newData.Price;
+            e.newData = { ...e.newData, Amount: amount.toLocaleString()  }
         } else if (e.newData.Quantity != undefined && e.newData.Price != undefined) {
-            e.newData = { ...e.newData, Amount: e.newData.Quantity * e.newData.Price }
+            var amount = e.newData.Quantity * e.newData.Price;
+            e.newData = { ...e.newData, Amount: amount.toLocaleString() }
         }
     }
 
