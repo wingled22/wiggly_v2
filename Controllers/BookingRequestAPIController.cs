@@ -328,7 +328,8 @@ namespace Wiggly.Controllers
                 DateCreated = DateTime.Now,
                 DateCreatedString = DateTime.Now.ToString("MMMM dd, yyyy"),
                 NotifType = "Booking",
-                BookingRequest = bookingRequest.Id
+                BookingRequest = bookingRequest.Id,
+                NotifIsRead = "false"
             };
 
             _context.Notif.Add(notif);

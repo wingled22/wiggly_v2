@@ -30,6 +30,12 @@
     <link href="~/css/site.css" rel="stylesheet" />
 </head>
 <body class="hold-transition sidebar-mini">
+    <style>
+        .highlightedNotif {
+            background: #ffcca0;
+        }
+    </style>
+
     <div class="preloader flex-column justify-content-center align-items-center">
         <img class="animation__shake" src="~/images/wiggly.png" alt="AdminLTELogo" height="60" width="60">
     </div>
@@ -160,11 +166,11 @@
                         </li>
 
                         @*<li class="nav-item">
-                            <a asp-area="Vendor" asp-controller="Page" asp-action="Schedule" class="nav-link">
-                                <i class="nav-icon fas fa-calendar-day"></i>
-                                <p>Calendar</p>
-                            </a>
-                        </li>*@
+                                <a asp-area="Vendor" asp-controller="Page" asp-action="Schedule" class="nav-link">
+                                    <i class="nav-icon fas fa-calendar-day"></i>
+                                    <p>Calendar</p>
+                                </a>
+                            </li>*@
 
 
 
@@ -284,18 +290,23 @@
                         if (item.NotifType == "Push") {
 
                             if (item.PushNotifIsRead != "Read") {
-                                
+
                                 pushnotif.push({ message: item.Message, link: "https://wiggly20220520105532.azurewebsites.net/Vendor/Page/MarkPushNotifAsRead?notifID=" + item.Id });
                             }
-                        
-                           
+                
+
                         } else {
                             clone.querySelector("a").innerHTML = "<i class=\"fas fa-bell mr-2\"></i> " + item.Message;
+
+                            if (item.NotifIsRead == "false") {
+                                clone.querySelector("a").classList.add("highlightedNotif");
+                            }
+                            clone.querySelector("a").setAttribute("data-notifid", item.Id);
 
                             parent.appendChild(clone);
                         }
 
-                        
+
                     });
 
                     var bellIcon = document.querySelector(".bell-icon");
@@ -327,6 +338,21 @@
 
         $(document).ready(function () {
             loadNotification();
+
+            $("body").on("click", ".dropdown-item", function () {
+
+                var notificationID = $(this).attr("data-notifid");
+                console.log(notificationID);
+
+
+                $.ajax({
+                    url: "../../vendor/NotificationAPI/ReadNotif?notif=" + notificationID
+                }).done(function () {
+                    window.location.href = "../../vendor/page/pendingbooking";
+                }).fail(function (e) {
+                    console.log(e);
+                });
+            });
         });
     </script>
 

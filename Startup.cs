@@ -40,7 +40,7 @@ namespace Wiggly
             services.AddTransient<ITextJob, TextJob>();
 
             services.AddDbContext<WigglyContext>(options =>
-             options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+             options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")).UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking));
 
 
             services.AddDbContext<WigglyIdentityContext>(options =>

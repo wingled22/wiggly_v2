@@ -34,6 +34,11 @@
     @*<link href="~/css/Site.css" rel="stylesheet" />*@
 </head>
 <body class="hold-transition sidebar-mini">
+    <style>
+        .highlightedNotif {
+            background: #ffcca0;
+        }
+    </style>
     <!-- Site wrapper -->
     <div class="wrapper">
         <!-- Navbar -->
@@ -322,10 +327,15 @@
                         //<span class="badge badge-warning navbar-badge" style="left: 20px;width: 20px;"> 15</span>
                         if (item.NotifType == "Booking") {
                             clone.querySelector("a").innerHTML = "<i class=\"fas fa-bell mr-2\"></i> " + item.Message + "<br/> <button type=\"button\" class=\"btn btn-success view-booking-notif\" data-bookingReqID=\"" + item.BookingRequest + "\" data-notificationID=\"" + item.Id + "\">View</button> ";
-
+                            
                         } else {
                             clone.querySelector("a").innerHTML = "<i class=\"fas fa-bell mr-2\"></i> " + item.Message;
                         }
+
+                        if (item.NotifIsRead == "false") {
+                            clone.querySelector("a").classList.add("highlightedNotif");
+                        }
+
                         parent.appendChild(clone);
                     });
 
@@ -358,7 +368,35 @@
                 console.log(bookingRequest);
                 console.log(notificationID);
 
-                window.location.href = "page/pendingbooking";
+
+                //var notifRead = new Promise(function (resolve, reject) {
+                //    $.ajax({
+                //        url: "../../farmer/notificationAPI/ReadNotif?notif=" + notifId,
+                //        success: function (data) {
+                //            resolve(data);
+                //        },
+                //        error: function (data) {
+                //            reject(data)
+                //        }
+                //    });
+                //});
+
+                //notifRead.then((data) => {
+                //    window.location.href = "farmer/page/pendingbooking";
+                //}).catch((err) => {
+                //    //toastr.error('Unexpected happpened!');
+                //    console.log(err);
+                //});
+
+
+                $.ajax({
+                    url: "../../farmer/NotificationAPI/ReadNotif?notif=" + notificationID
+                }).done(function () {
+                    window.location.href = "../../farmer/page/pendingbooking";
+                }).fail(function (e) {
+                    console.log(e);
+                });
+
 
                 ////get the data
 
@@ -421,6 +459,9 @@
                 //console.log("booking will be accepted");
                 var brId = $(this).attr("data-value");
                 var notifId = $(this).attr("data-notifID");
+
+                
+
                 var p = new Promise(function (resolve, reject) {
                     $.ajax({
                         url: "../../BookingRequestAPI/AcceptOrDeclineBookingv2?id=" + brId + "&status=Accepted&notificationId=" + notifId,
