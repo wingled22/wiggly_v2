@@ -146,8 +146,9 @@
             .Type(GridCommandColumnType.Buttons)
             .Buttons(b =>
             {
-                b.Add().Name(GridColumnButtonName.Edit)/*.OnClick("onEditIconClick")*/;
-                b.Add().Name(GridColumnButtonName.Delete);
+                //b.Add().Name(GridColumnButtonName.Edit)/*.OnClick("onEditIconClick")*/;
+                b.Add().Name(GridColumnButtonName.Edit).Text("Edit").CssClass("btn btn-success text-white");
+                //b.Add().Name(GridColumnButtonName.Delete);
                 //b.Add().Name("Details")
                 //    .Icon("info")
                 //    .OnClick("onInfoIconClick")
@@ -160,7 +161,7 @@
             });
     })
     .Editing(e => {
-        e.UseIcons(true);
+        //e.UseIcons(true);
         e.Mode(GridEditMode.Popup)
         .Popup(p => p
             .Width(700)
