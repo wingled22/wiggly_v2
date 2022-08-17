@@ -34,5 +34,15 @@ namespace Wiggly.Areas.Vendor.Controllers
 
             return Ok(notif);
         }
+
+        [HttpGet]
+        public IActionResult ReadNotif(Guid notif)
+        {
+            Notif notification = _context.Notif.Where(q => q.Id == notif).FirstOrDefault();
+            notification.NotifIsRead = "true";
+            _context.Notif.Update(notification);
+            _context.SaveChanges();
+            return Ok();
+        }
     }
 }

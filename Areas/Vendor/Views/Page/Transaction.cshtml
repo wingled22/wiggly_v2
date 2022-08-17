@@ -162,14 +162,14 @@
             .Type(GridCommandColumnType.Buttons)
             .Buttons(b =>
             {
-                b.Add().Name(GridColumnButtonName.Edit).OnClick("onEditIconClick");
+                b.Add().Text("Edit").CssClass("btn btn-success text-white").OnClick("onEditIconClick");
 
             });
     })
     .OnToolbarPreparing("onToolbarPreparing")
     //.OnDataErrorOccurred("OnDataErrorOccurred")
     .Editing(e => {
-        e.UseIcons(true);
+        
         e.Mode(GridEditMode.Popup)
         //.AllowAdding(true);
         .AllowUpdating(true);

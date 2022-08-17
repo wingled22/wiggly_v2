@@ -254,6 +254,11 @@ namespace Wiggly.Entities
 
                 entity.Property(e => e.Message).IsUnicode(false);
 
+                entity.Property(e => e.NotifIsRead)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("('false')");
+
                 entity.Property(e => e.NotifType)
                     .HasMaxLength(50)
                     .IsUnicode(false);
@@ -356,7 +361,7 @@ namespace Wiggly.Entities
             modelBuilder.Entity<Schedules>(entity =>
             {
                 entity.HasKey(e => e.SchedId)
-                    .HasName("PK__tmp_ms_x__BB086B45973C7644");
+                    .HasName("PK__Schedule__BB086B45F69E3C4E");
 
                 entity.Property(e => e.BookingEndDate).HasColumnType("datetime");
 

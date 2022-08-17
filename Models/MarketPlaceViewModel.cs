@@ -40,6 +40,7 @@ namespace Wiggly.Models
         public int UserId { get; set; }
         public string UserFullname { get; set; }
         public string DateCreated { get; set; }
+        public string DateBooked { get; set; }
         public string Image { get; set; }
         public bool IsEditable { get; set; }
         public string Status { get; set; }

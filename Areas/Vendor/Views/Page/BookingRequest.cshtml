@@ -37,8 +37,9 @@
                         <th scope="col">Qty</th>
                         <th scope="col">Kilos</th>
                         <th scope="col">Price</th>
-                        <th scope="col">Delivery Date</th>
                         <th scope="col">Qty To Book</th>
+                        <th scope="col">Delivery Date</th>
+
                     </tr>
                 </thead>
                 <tbody>
@@ -54,8 +55,8 @@
                         <td class="itemdata-cat">@item.Category</td>
                         <td class="itemdata-unit">@item.Unit</td>
                         <td class="itemdata-qty">@item.Quantity</td>
-                        <td class="itemdata-kilos">@item.Kilos</td>
-                        <td class="itemdata-price">@item.Price</td>
+                        <td class="itemdata-kilos">@String.Format("{0:n0}", item.Kilos)</td>
+                        <td class="itemdata-price">@String.Format("{0:n0}", item.Price)</td>
                         <td class="itemdata-date">
                             <input type="datetime-local" class="form-control" />
                             <span class="input-group-addon">
@@ -119,8 +120,9 @@
                     foreach (var item in Model.ItemDetails)
                     {
                         //? (decimal)item.Price * item.Kilos * (decimal)item.Quantity : (decimal)item.Price * (decimal)item.Quantity
-                        decimal subTotal ;
-                        if (item.Unit.ToLower().Contains("kilo")) {
+                        decimal subTotal;
+                        if (item.Unit.ToLower().Contains("kilo"))
+                        {
                             subTotal = (decimal)item.Price * (decimal)item.Kilos * (decimal)item.Quantity;
                         }
                         else
@@ -132,7 +134,8 @@
                     }
                 }
 
-                Total: <span id="totalAmount">@totalAmount.ToString("#.##")</span>
+                <!--Total: <span id="totalAmount">-->@*@totalAmount.ToString("#.##")*@<!--</span>-->
+                Total: <span id="totalAmount">@String.Format("{0:n0}", @totalAmount)</span>
                 <br>
             </h4>
         </div>
@@ -145,7 +148,7 @@
         <div class="col-12">
             <button type="button" class="btn btn-danger cancel-booking">
                 <i class="fas fa-times"></i> 
-                Cancel Booking
+                Decline Request
             </button>
             <button type="button" class="btn btn-primary submit-booking" style="margin-right: 5px;">
                 <i class="fas fa-check"></i> Submit Request
@@ -199,7 +202,7 @@
                     }
                 })
             }
-            $('#totalAmount').text(totalPrice);
+            $('#totalAmount').text(totalPrice.toLocaleString());
 
         });
 
@@ -239,7 +242,7 @@
                     }
                 })
             }
-            $('#totalAmount').text(totalPrice);
+            $('#totalAmount').text(totalPrice.toLocaleString());
 
         });
 
@@ -273,7 +276,7 @@
                     }
                 })
             }
-            $('#totalAmount').text(totalPrice);
+            $('#totalAmount').text(totalPrice.toLocaleString());
 
         });
 
