@@ -90,6 +90,35 @@ namespace Wiggly.Areas.Farmer.Controllers
             return NoContent();
         }
 
+
+        public async Task<IActionResult> ConfirmTransaction(int key)
+        {
+            Transaction transaction = _context.Transaction.Where(q => q.Id == key).FirstOrDefault();
+            if(transaction !=null )
+            {
+                transaction.PaymentStatus = "Done";
+                _context.Transaction.Update(transaction);
+                await _context.SaveChangesAsync();
+            
+            }
+            return NoContent();
+
+        }
+
+        public async Task<IActionResult> DeclineTransaction(int key)
+        {
+            Transaction transaction = _context.Transaction.Where(q => q.Id == key).FirstOrDefault();
+            if (transaction != null)
+            {
+                transaction.PaymentStatus = "Done";
+                _context.Transaction.Update(transaction);
+                await _context.SaveChangesAsync();
+
+            }
+            return NoContent();
+
+        }
+
         [HttpGet]
         public ActionResult GetVendors()
         {

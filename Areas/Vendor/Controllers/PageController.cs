@@ -41,7 +41,7 @@ namespace Wiggly.Areas.Vendor.Controllers
             if (!IsSubscribed())
                 return View("Subscription");
             else
-                return View();
+                return View("Transaction-v3");
         }
 
         public IActionResult Schedule()
