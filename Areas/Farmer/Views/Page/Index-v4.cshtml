@@ -913,10 +913,10 @@
                         let trDetailClone = trTemplate.content.cloneNode(true);
                         trDetailClone.querySelector(".itemdata-cat").innerHTML = detail.Category;
                         trDetailClone.querySelector(".itemdata-unit").innerHTML = detail.Unit;
-                        trDetailClone.querySelector(".itemdata-qty").innerHTML = detail.Quantity;
-                        trDetailClone.querySelector(".itemdata-kilos").innerHTML = detail.Kilos;
-                        trDetailClone.querySelector(".itemdata-price").innerHTML = detail.Price;
-                        trDetailClone.querySelector(".itemdata-total").innerHTML = detail.Amount;
+                        trDetailClone.querySelector(".itemdata-qty").innerHTML = detail.Quantity.toLocaleString();
+                        trDetailClone.querySelector(".itemdata-kilos").innerHTML = detail.Kilos.toLocaleString();
+                        trDetailClone.querySelector(".itemdata-price").innerHTML = detail.Price.toLocaleString();
+                        trDetailClone.querySelector(".itemdata-total").innerHTML = detail.Amount.toLocaleString();
                         clone.querySelector(".post .post-infos table tbody").append(trDetailClone);
                     });
 

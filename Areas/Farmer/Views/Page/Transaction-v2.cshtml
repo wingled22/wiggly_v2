@@ -1,0 +1,341 @@
+﻿@using Wiggly
+@namespace Wiggly.Models
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using DevExtreme.AspNet.Mvc
+@*@model Wiggly.Entities.Schedules;*@
+
+@{
+    ViewData["Title"] = "Transactions";
+    Layout = "_LayoutAdminLTEFarmerDashboard";
+}
+
+<style>
+    .image-container {
+        overflow: auto;
+    }
+
+    ul {
+        text-align: left;
+        display: flex;
+    }
+
+    li {
+        list-style: none;
+        display: inline-block; /*pour limiter l'espace occupé   par l'image li*/
+    }
+
+    article {
+        position: relative;
+    }
+
+        article button {
+            position: absolute;
+            right: 20px;
+            top: 5px;
+        }
+
+    img {
+        width: 150px;
+        height: 150px;
+        display: block;
+        object-fit: cover;
+    }
+
+    figure {
+        /*background: #7D5976;*/
+        text-align: center;
+        padding: 10px;
+        margin: 10px;
+    }
+
+    a {
+        color: white;
+        text-decoration: none;
+    }
+
+        a:hover {
+            text-decoration: none;
+            color: pink;
+        }
+
+    span.description {
+        padding: 10px;
+        display: block;
+    }
+
+
+    /* The Modal (background) */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 2147483648; /* Sit on top */
+        padding-top: 40px; /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
+    }
+
+    /* Modal Content (Image) */
+    .modal-content {
+        margin: auto;
+        display: block;
+        width: 80%;
+        height: 80%;
+        max-width: 700px;
+    }
+</style>
+
+<h1>@ViewData["Title"]</h1>
+
+
+
+@(Html.DevExtreme().DataGrid<Wiggly.Areas.Farmer.Models.TransactionInfoViewModel>()
+    .DataSource(ds => ds.Mvc()
+        .Controller("Transaction")
+        .LoadAction("GetTransactions")
+        .UpdateAction("PutTransaction")
+        .Key("TransactionID")
+    )
+    .Selection(s => s.Mode(SelectionMode.Single))
+    .HoverStateEnabled(true)
+    .ShowColumnLines(true)
+    .ShowRowLines(true)
+    .RowAlternationEnabled(true)
+    .ShowBorders(true)
+    .HeaderFilter(hf => hf.Visible(true))
+    .SearchPanel(searchPanel => searchPanel
+        .Visible(true)
+        .Width(240)
+        .Placeholder("Search...")
+    )
+    .Columns(col =>
+    {
+        col.AddFor(m => m.TransactionID).Name("Transaction ID");
+
+        col.AddFor(m => m.VendorFullname);
+
+        col.AddFor(m => m.BookDate);
+        col.AddFor(m => m.LiveStockType).Visible(true);
+        col.AddFor(m => m.Quantity).Visible(true);
+        col.AddFor(m => m.Kilos).Visible(true);
+        col.AddFor(m => m.Amount).Visible(true);
+        col.AddFor(m => m.Total).Visible(true);
+        col.AddFor(m => m.Status);
+
+
+        //payment
+        col.AddFor(m => m.PaymentType).Visible(true);
+        col.AddFor(m => m.ProofOfpayment)
+            .Width(150)
+            .AllowFiltering(false)
+            .AllowSorting(false)
+            .CellTemplate(@<text>
+                <% if (value != null ) { %>
+                    <div><img class="proof-image" style="width: 150px; height: 150px; display: block; object-fit: cover;" src="<%- value %>" alt=""/></div>
+                <% } else { %>
+                    <div></div>
+                <% } %>
+            </text>);
+
+        col.Add()
+            .Type(GridCommandColumnType.Buttons)
+            .Buttons(b =>
+            {
+                b.Add().Name(GridColumnButtonName.Edit).Text("Confirm").OnClick("onEditIconClick").CssClass("btn btn-success text-white");
+                b.Add().Name(GridColumnButtonName.Edit).Text("Decline").CssClass("btn btn-danger text-white");
+           
+            });
+    })
+    .Editing(e => {
+        //e.UseIcons(true);
+        e.Mode(GridEditMode.Popup)
+        .Popup(p => p
+            .Width(700)
+            .Height(450)
+        )
+        .AllowUpdating(true)
+        .Form(f => f.Items(items =>
+        {
+            items.AddGroup()
+                .ColCount(2)
+                .ColSpan(2)
+                .Caption("Transaction")
+                .Items(gItem =>
+                {
+                    gItem.AddSimpleFor(m => m.VendorFullname).Editor(e => e.TextBox().ReadOnly(true)).ColSpan(1);
+                    gItem.AddSimpleFor(m => m.BookDate).Editor(e => e.DateBox().ReadOnly(true).Type(DateBoxType.DateTime)).ColSpan(1);
+                });
+
+            items.AddGroup()
+                .ColCount(2)
+                .ColSpan(2)
+                .Caption("Payment")
+                .Items(gItem => {
+                    gItem.AddSimpleFor(m => m.PaymentType).ColSpan(1).Editor(e => e.SelectBox().ReadOnly(true).Placeholder("Select Status").DataSource(new JS("PaymentType")).DisplayExpr("Name").ValueExpr("Name"));
+                    gItem.AddSimpleFor(m => m.Amount).ColSpan(1).Editor(e => e.NumberBox().ReadOnly(true));
+                    gItem.AddSimpleFor(m => m.Status).ColSpan(1).IsRequired(true).Editor(e => e.SelectBox().ReadOnly(false).Placeholder("Select Status").DataSource(new JS("Status")).DisplayExpr("Name").ValueExpr("Name"));
+                });
+
+        }).OnInitialized("onFormInitialized")
+        );
+
+    })
+)
+
+<div id="imageModal" class="modal">
+
+    <span class="close">&times;</span>
+
+    <img class="modal-content">
+
+</div>
+
+
+<script>
+    var asdfasdf;
+    var Status = [
+        {
+            "Name": "Pending"
+        },
+        {
+            "Name": "Done"
+        },
+        {
+            "Name": "Cancelled"
+        }
+    ];
+
+    var PaymentType = [
+        {
+            "Name": "Bank Deposit"
+        },
+        {
+            "Name": "Gcash"
+        },
+        {
+            "Name": "Cash on Hand"
+        }
+    ];
+
+
+    var sampleData = [];
+    let category = [];
+    let unitOfMeasures = [];
+    var selectedRecord;
+
+    //ui components init
+    var farmerSelectBox;
+
+    var subItemGrid;
+    function subItemGridInit(e) {
+        //CurrentRow = e.data;
+        console.log("subItemGridInit");
+        subItemGrid = e.component;
+    };
+
+
+    function OnEditingStart(e) {
+        console.log(e);
+    }
+
+    let form;
+    //custom form initialization
+    function onFormInitialized(e) {
+        form = e.component;
+        console.log(form);
+    }
+
+    function onEditIconClick(e) {
+        console.log("edit is clicked");
+        selectedRecord = e.row.data;
+
+        postImage = [];
+
+        var transactionSubItemPromise = new Promise(function (resolve, reject) {
+            $.ajax({
+                url: "../../Farmer/Transaction/GetTransactionSubItems?transactionID=" + selectedRecord.TransactionID,
+                success: function (data) {
+                    resolve(data)
+                },
+                error: function (data) {
+                    reject(data)
+                }
+            });
+        });
+        transactionSubItemPromise.then((data) => {
+            sampleData = [...data];
+            //popup.option({ visible: true })
+            if (subItemGrid != null) {
+                subItemGrid.refresh(true);
+            }
+
+            //form.option("formData", e.row.data);
+
+            //if (e.row.data.ProofOfpayment != null) {
+            //    postImage = { ImagePath: e.row.data.ProofOfpayment };
+            //    postImages.push(postImage);
+            //    loadImageListToPopup();
+            //} else {
+            //    console.log("proof of payment is null");
+            //    document.querySelector("#selected-files.content").innerHTML = "";
+            //    document.querySelector('.dx-fileuploader-files-container').innerHTML = "";
+
+            //}
+
+        }).catch((err) => {
+            console.table(err);
+        });
+
+        e.event.preventDefault();
+
+    };
+
+
+    $.ajax("../Transaction/GetVendors").done(function (data) {
+        asdfasdf = data;
+    });
+
+    $(document).ready(function () {
+        $("body").on("click", ".proof-image", function () {
+            var modal = document.getElementById("imageModal");
+            modal.style.display = "block";
+            let imgSrc = $(this).attr("src");
+
+            $("#imageModal img").attr("src", $(this).attr("src"));
+        });
+
+        $(".close").on("click", function () {
+            var modal = document.getElementById("imageModal");
+            modal.style.display = "none";
+        });
+
+    });
+
+    function ItemTemplate(data) {
+        return data.Firstname + " " + data.LastName;
+    }
+
+
+    function FarmerDisplayExpr(item) {
+        if (item) {
+            //console.log(item);
+            return item.Firstname + " " + item.LastName;
+        } else {
+        }
+    }
+
+
+    let dExpr = (item) => function () {
+        if (item) {
+            //console.log(item);
+            return item.Firstname + " " + item.LastName;
+        } else {
+            console.log("no data")
+        }
+    }
+
+</script>

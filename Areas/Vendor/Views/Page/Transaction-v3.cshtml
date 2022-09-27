@@ -1,0 +1,718 @@
+﻿@using Wiggly
+@namespace Wiggly.Models
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using DevExtreme.AspNet.Mvc
+@model Wiggly.Entities.Transaction;
+@{
+    ViewData["Title"] = "Transaction";
+    Layout = "_LayoutAdminLTEVendorDashboard";
+
+}
+
+
+<style>
+    .image-container {
+        overflow: auto;
+    }
+
+    ul {
+        text-align: left;
+        display: flex;
+    }
+
+    li {
+        list-style: none;
+        display: inline-block; /*pour limiter l'espace occupé   par l'image li*/
+    }
+
+    article {
+        position: relative;
+    }
+
+        article button {
+            position: absolute;
+            right: 20px;
+            top: 5px;
+        }
+
+    img {
+        width: 150px;
+        height: 150px;
+        display: block;
+        object-fit: cover;
+    }
+
+    figure {
+        /*background: #7D5976;*/
+        text-align: center;
+        padding: 10px;
+        margin: 10px;
+    }
+
+    a {
+        color: white;
+        text-decoration: none;
+    }
+
+        a:hover {
+            text-decoration: none;
+            color: pink;
+        }
+
+    span.description {
+        padding: 10px;
+        display: block;
+    }
+
+
+    /* The Modal (background) */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 2147483648; /* Sit on top */
+        padding-top: 40px; /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
+    }
+
+    /* Modal Content (Image) */
+    .modal-content {
+        margin: auto;
+        display: block;
+        width: 80%;
+        height: 80%;
+        max-width: 700px;
+    }
+</style>
+
+
+<h1>Transaction</h1>
+
+
+
+@*<p>
+        <a asp-action="Index">Home Vendor</a>
+    </p>*@
+
+
+@(Html.DevExtreme().DataGrid<Wiggly.Areas.Vendor.Models.TransactionInfoViewModel>()
+    .DataSource(ds => ds.Mvc()
+        .Controller("Transaction")
+        .LoadAction("GetTransactions")
+        .InsertAction("PostTransaction")
+        .UpdateAction("PutTransaction")
+        .DeleteAction("DeleteTransaction")
+        .Key("TransactionID")
+    )
+    .Selection(s => s.Mode(SelectionMode.Single))
+    .HoverStateEnabled(true)
+    .ShowColumnLines(true)
+    .ShowRowLines(true)
+    .RowAlternationEnabled(true)
+    .ShowBorders(true)
+    .HeaderFilter(hf => hf.Visible(true))
+    .SearchPanel(searchPanel => searchPanel
+        .Visible(true)
+        .Width(240)
+        .Placeholder("Search...")
+    )
+    .Columns(col =>
+    {
+        col.AddFor(m => m.TransactionID).Name("Transaction ID");
+        col.AddFor(m => m.Farmer)
+            .Lookup(lookup => lookup.DataSource(d => d.Mvc()
+                .Controller("Transaction")
+                //.LoadAction("GetFarmers")
+                .LoadAction("GetFarmersWithFullname")
+                .Key("Id"))
+            .DisplayExpr(new JS("FarmerGridDisplayExpr"))
+            .ValueExpr("Id"));
+        col.AddFor(m => m.BookDate);
+        col.AddFor(m => m.LiveStockType).Visible(true);
+        col.AddFor(m => m.Quantity).Visible(true);
+        col.AddFor(m => m.Kilos).Visible(true);
+        col.AddFor(m => m.Amount).Visible(true);
+        col.AddFor(m => m.Total).Visible(true);
+        col.AddFor(m => m.Status);
+
+
+
+        //payment
+
+        col.AddFor(m => m.PaymentType).Visible(true);
+        col.AddFor(m => m.ProofOfpayment)
+            .Width(150)
+            .AllowFiltering(false)
+            .AllowSorting(false)
+            .CellTemplate(@<text>
+                <% if (value != null ) { %>
+                    <div><img class="proof-image" style="width: 150px; height: 150px; display: block; object-fit: cover;" src="<%- value %>" alt=""/></div>
+                <% } else { %>
+                    <div></div>
+                <% } %>
+
+
+            </text>);
+        col.Add()
+            .Type(GridCommandColumnType.Buttons)
+            .Buttons(b =>
+            {
+                b.Add().Text("Edit").CssClass("btn btn-success text-white").OnClick("onEditIconClick");
+
+            });
+    })
+    .OnToolbarPreparing("onToolbarPreparing")
+    //.OnDataErrorOccurred("OnDataErrorOccurred")
+    .Editing(e => {
+
+        e.Mode(GridEditMode.Popup)
+        //.AllowAdding(true);
+        .AllowUpdating(true);
+        //.AllowDeleting(true);
+
+    })
+    .OnInitNewRow("OnInitNewRow")
+    .OnInitialized("gridInit")
+    .OnEditingStart("OnEditingStart")
+)
+@(Html.DevExtreme().Popup()
+    .ID("popupTransaction")
+    .Title("Transaction Info")
+    .Width(700)
+    .Height(500)
+    .ContentTemplate(new TemplateName("customPopupContentTemplate"))
+    .ToolbarItems(items =>
+    {
+        items.Add()
+            .Widget(editor => editor.Button()
+                .Text("Send")
+                .Type(ButtonType.Success)
+                .OnClick("onConfirmClick")
+            )
+            .Location(ToolbarItemLocation.After)
+            .Toolbar(Toolbar.Bottom);
+        items.Add()
+            .Widget(editor => editor.Button()
+                .Text("Cancel")
+                .Type(ButtonType.Success)
+                .OnClick("onCancelClick")
+            )
+            .Location(ToolbarItemLocation.After)
+            .Toolbar(Toolbar.Bottom);
+
+    })
+    .DragEnabled(true)
+    .CloseOnOutsideClick(false)
+    .ShowCloseButton(true)
+    .OnInitialized("onPopupInitialized")
+
+)
+@*custom template inside is form*@
+@using (Html.DevExtreme().NamedTemplate("customPopupContentTemplate"))
+{
+    @(Html.DevExtreme().Form<Wiggly.Areas.Vendor.Models.TransactionInfoViewModel>()
+        .ID("formDetails")
+        .ColCount(2)
+        .ActiveStateEnabled(false)
+        .LabelLocation(FormLabelLocation.Top)
+        .MinColWidth(300)
+        .ShowValidationSummary(true)
+        .ReadOnly(false)
+        .ScrollingEnabled(true)
+        .ActiveStateEnabled(false)
+        .Items(items =>
+        {
+
+        items.AddGroup()
+            .ColCount(2)
+            .ColSpan(2)
+            .Items(gItem =>
+            {
+                gItem.AddSimpleFor(m => m.Farmer).ColSpan(1).IsRequired(true)
+                    .Editor(e => e.SelectBox().ReadOnly(true)
+                        .DataSource(new JS("asdfasdf"))
+                        //.DataSource(ds => ds.Mvc().Controller("Transaction").LoadAction("GetFarmersWithFullname"))
+                        .ValueExpr("Id")
+                        .DisplayExpr("Fullname")
+                        .SearchEnabled(true)
+                        .Placeholder("Select Farmer")
+                      );
+
+                    //gItem.AddSimpleFor(m => m.BookDate).Editor(e => e.DateBox().Type(DateBoxType.DateTime)).ColSpan(1).IsRequired(true);
+                });
+
+            //items.AddGroup().ColCount(2).ColSpan(2).Caption("Livestock").Items(gItem =>{});
+            items.AddGroup().Caption("Booked Livestocks")
+            .ColCount(2)
+            .ColSpan(2)
+            .Items(groupItems =>
+            {
+                groupItems.AddSimple()
+                .Name("Total")
+                .ColSpan(2)
+                .Template(@<text>
+                    @(Html.DevExtreme().DataGrid()
+                        .ID("gridContainer")
+                        .Columns(columns => {
+                        columns.Add().DataField("Category").ValidationRules(v => v.AddRequired())
+                            .Lookup(lookup => lookup.DataSource(new JS("category"))
+                            .ValueExpr("Name")
+                            .DisplayExpr("Name"));
+
+                        columns.Add().DataField("Quantity").DataType(GridColumnDataType.Number).ValidationRules(v => v.AddRequired());
+
+                        columns.Add().DataField("Units").Lookup(lookup => lookup.DataSource(new JS("unitOfMeasures"))
+                            .ValueExpr("Name")
+                            .DisplayExpr("Name"))
+                            .ValidationRules(v => v.AddRequired());
+
+                        columns.Add().DataField("Kilos").DataType(GridColumnDataType.Number).ValidationRules(v => v.AddRequired());
+
+                        columns.Add().DataField("Price")
+                            .DataType(GridColumnDataType.Number)
+                            .ValidationRules(v => v.AddRequired());
+
+                        columns.Add().DataField("SubTotal").AllowEditing(false).DataType(GridColumnDataType.Number);
+                    })
+                    .DataSource(new JS("sampleData"))
+                    .ShowBorders(true)
+                    .OnInitialized("subItemGridInit")
+                    )
+                </text>);
+            });
+
+            items.AddGroup()
+            .ColCount(2)
+            .ColSpan(2)
+            .Caption("Payment")
+            .Items(gItem => {
+                gItem.AddSimpleFor(m => m.PaymentType).ColSpan(1).Editor(e => e.SelectBox().Placeholder("Select Status").DataSource(new JS("PaymentType")).DisplayExpr("Name").ValueExpr("Name"));
+                gItem.AddSimpleFor(m => m.Amount).ColSpan(1).IsRequired(true).Editor(e => e.NumberBox().ReadOnly(true));
+            });
+
+            items.AddGroup()
+                .Caption("Proof Of Payment")
+                .ColCount(2)
+                .ColSpan(2)
+                .Items(groupItems =>
+                {
+                    //groupItems.AddSimple().Name("Image").DataField("Image").ColSpan(2).Template(new TemplateName("FileUploadTemplate"));
+                    groupItems.AddSimple().IsRequired(true)
+                    .Name("Image")
+                    .DataField("Image")
+                    .ColSpan(2)
+                    .Template(@<text>
+
+                                        <div class="widget-container">
+                                            @(Html.DevExtreme().FileUploader()
+                                                .ID("file-uploader")
+                                                .Name("myFile")
+                                                .Multiple(false)
+                                                .Accept("*")
+                                                .UploadMode(FileUploadMode.Instantly)
+                                                .UploadUrl(Url.Action("UploadTransactionProofPayment", "FileUploader", new {area = "Vendor" }))
+                                                .OnValueChanged("fileUploader_valueChanged")
+                                            )
+                                            <div class="content" id="selected-files">
+
+                                            </div>
+                                        </div>
+                                    </text>);
+                                });
+
+                        })
+                    .ShowColonAfterLabel(true).Visible(true).OnInitialized("onFormInitialized")
+            )
+}
+
+
+
+<template id="postFormImagesTemplate">
+    <li>
+        <article>
+            <button type="button" class="close image-delete" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <a href="">
+
+                <figure>
+
+                    <img src="http://www.awwwards.com/awards/images/2013/07/bootstrap-resources-cover2.jpg" alt="">
+                </figure>
+            </a>
+        </article>
+    </li>
+</template>
+
+
+<div id="imageModal" class="modal">
+
+    <span class="close">&times;</span>
+
+    <img class="modal-content">
+
+</div>
+
+
+
+<script>
+    var asdfasdf;
+
+    var postImage;
+    var postImages = [];
+
+
+    var Status = [
+        {
+            "Name": "Pending"
+        },
+        {
+            "Name": "Done"
+        },
+        {
+            "Name": "Cancelled"
+        }
+    ];
+
+    var PaymentType = [
+        {
+            "Name": "Bank Deposit"
+        },
+        {
+            "Name": "Gcash"
+        },
+        {
+            "Name": "Cash on Hand"
+        }
+    ];
+
+    var sampleData = [];
+    let category = [];
+    let unitOfMeasures = [];
+
+    let grid;
+    let form, editForm;
+    let popup, editPopup;
+    var selectedRecord;
+    let isUpdate = false;
+    var CurrentRow;
+
+    function OnInitNewRow(e) {
+        e.cancel = true;
+        console.log("new row")
+        CurrentRow = e.data;
+    };
+
+    var subItemGrid;
+    function subItemGridInit(e) {
+        //CurrentRow = e.data;
+        subItemGrid = e.component;
+    };
+
+
+    function OnEditingStart(e) {
+        console.log(e);
+    }
+
+    function onFormInitialized(e) {
+        form = e.component;
+    }
+
+    function onPopupInitialized(e) {
+        popup = e.component;
+    }
+
+
+    function gridInit(e) {
+        grid = e.component;
+    }
+
+    function onToolbarPreparing(e) {
+        let toolbarItems = e.toolbarOptions.items;
+        // customize addRow toolbar button
+        for (let i = 0; i < toolbarItems.length; i++) {
+            let item = toolbarItems[i];
+            if (item.name === "addRowButton") {
+                item.options.onClick = onClickAdd;
+                break;
+            }
+        }
+    }
+
+
+    function onClickAdd(e) {
+        //showPopup("Add", {})
+        isUpdate = false
+        console.log("please dont shot popup");
+        popup.option({ visible: true })
+        form.option("formData", {});
+        e.event.preventDefault();
+    }
+
+    function onEditIconClick(e) {
+        //console.log("edit was clicked");
+        //console.log(e);
+        //console.log(e.row.data);
+        isUpdate = true
+        selectedRecord = e.row.data;
+
+        postImage = [];
+
+        var transactionSubItemPromise = new Promise(function (resolve, reject) {
+            $.ajax({
+                url: "../../Vendor/Transaction/GetTransactionSubItems?transactionID=" + selectedRecord.TransactionID,
+                success: function (data) {
+                    resolve(data)
+                },
+                error: function (data) {
+                    reject(data)
+                }
+            });
+        });
+        transactionSubItemPromise.then((data) => {
+            sampleData = [...data];
+            popup.option({ visible: true })
+
+            subItemGrid.refresh(true);
+
+            form.option("formData", e.row.data);
+
+            if (e.row.data.ProofOfpayment != null) {
+                postImage = { ImagePath: e.row.data.ProofOfpayment };
+                postImages.push(postImage);
+                loadImageListToPopup();
+            } else {
+                console.log("proof of payment is null");
+                document.querySelector("#selected-files.content").innerHTML = "";
+                document.querySelector('.dx-fileuploader-files-container').innerHTML = "";
+
+            }
+
+        }).catch((err) => {
+            console.table(err);
+        });
+
+
+
+
+        e.event.preventDefault();
+    }
+
+    //ui components init
+    var farmerSelectBox;
+
+    $(document).ready(function () {
+
+        var catPromise = new Promise(function (resolve, reject) {
+            $.ajax({
+                url: "../../livestockAPI/GetLivestock",
+                success: function (data) {
+                    resolve(data)
+                },
+                error: function (data) {
+                    reject(data)
+                }
+            });
+        });
+
+        var unitsPromise = new Promise(function (resolve, reject) {
+            $.ajax({
+                url: "../../UnitOfMeasureAPI/GetUnits",
+                success: function (data) {
+                    resolve(data)
+                },
+                error: function (data) {
+                    reject(data)
+                }
+            });
+        });
+        unitsPromise.then((data) => {
+            unitOfMeasures = [...data];
+        }).catch((err) => {
+            console.table(err);
+        });
+
+        catPromise.then((data) => {
+            category = [...data];
+        }).catch((err) => {
+            console.table(err);
+        });
+
+        $.ajax("../Transaction/GetFarmersWithFullname").done(function (data) {
+            asdfasdf = data;
+            //console.table(data);
+
+        });
+
+        //image is clicked on the post row
+        $('body').on('click', "li article a", function (e) {
+            e.preventDefault();
+            var modal = document.getElementById("imageModal");
+            modal.style.display = "block";
+            let imgSrc = $(this).attr("href");
+
+            $("#imageModal img").attr("src", $(this).attr("href"));
+
+
+        });
+
+        $("body").on("click", ".proof-image", function () {
+            var modal = document.getElementById("imageModal");
+            modal.style.display = "block";
+            let imgSrc = $(this).attr("src");
+
+            $("#imageModal img").attr("src", $(this).attr("src"));
+        });
+
+        $(".close").on("click", function () {
+            var modal = document.getElementById("imageModal");
+            modal.style.display = "none";
+        });
+
+        //dx-fileuploader-files-container
+        var domModificationCounter = 0;
+        $("body").on('DOMSubtreeModified', '.dx-fileuploader-file-status-message', function () {
+
+            if ($(".dx-fileuploader-file-status-message").text() == "Uploaded") {
+                afterUpload();
+                console.log(postImages);
+            } else {
+            }
+        });
+    });
+
+    function FarmerGridDisplayExpr(item) {
+        if (item) {
+            return item.Firstname + " " + item.LastName;
+        }
+    }
+
+    function onConfirmClick() {
+
+        var validationResult = form.validate();
+        if (validationResult != null && !validationResult.isValid) {
+            return false;
+        } else {
+
+
+            let data = form.option("formData");
+            console.table(data);
+
+            //if (data.PaymentType == 'Cash on Hand') {
+
+            //    $.ajax({
+            //        type: "PUT",
+            //        url: "../../vendor/transaction/PutTransaction",
+            //        data: {
+            //            values: JSON.stringify(data)
+            //        }
+            //    }).done(function () {
+            //        //loadPosts();
+            //        let gridSrc = grid.getDataSource();
+            //        let gridStr = gridSrc.store();
+            //        grid.refresh(true);
+            //        gridSrc.reload();
+            //        popup.hide();
+
+            //    }).fail(function (data) {
+            //        console.log("error");
+            //        console.log(data);
+            //    });
+
+            //} else {
+            if (postImages.length == 0) {
+                document.querySelector("#formDetails .dx-form-validation-summary.dx-validationsummary").innerHTML = "<div class=\"dx-item dx-validationsummary-item\"><div class=\"dx-item-content dx-validationsummary-item-content\">Upload an image ie. recipt of your payment.</div></div>";
+                return false;
+            } else {
+                console.log(data.PaymentType);
+                $.ajax({
+                    type: "PUT",
+                    url: "../../vendor/transaction/PutTransaction?proofPayment=" + postImage.ImagePath,
+                    data: {
+                        values: JSON.stringify(data)
+                    }
+                }).done(function () {
+                    let gridSrc = grid.getDataSource();
+                    let gridStr = gridSrc.store();
+                    grid.refresh(true);
+                    gridSrc.reload();
+                    popup.hide();
+
+                }).fail(function (data) {
+                    console.log("error");
+                    console.log(data);
+                });
+            }
+
+
+            //}
+
+
+
+        }
+    }
+
+    function onCancelClick() {
+        popup.hide();
+    }
+
+    //proof of payment
+    //if file upload data values was changed
+    function fileUploader_valueChanged(e, t, d) {
+        var files = e.value;
+        e.component.option("onUploaded", "onUploaded");
+        var result = e.component.option("uploadUrl", "../../vendor/FileUploader/UploadTransactionProofPayment");
+
+        if (files.length > 0) {
+            $("#selected-files .selected-item").remove();
+
+            //TODO: show the uploaded images
+
+        }
+        else
+            $("#selected-files").hide();
+    }
+
+
+    function afterUpload() {
+        $.ajax({
+            url: "../../vendor/FileUploader/GetUploadTransactionProofPayment"
+        }).done(function (data) {
+            postImage = { ImagePath: data };
+            postImages.push(postImage);
+            loadImageListToPopup();
+        });
+    }
+
+    /*
+    * function responsible on loading imagelist when the pop up to edit the post was shown
+    */
+    function loadImageListToPopup() {
+        let parent = document.querySelector("#selected-files.content");
+        let postImagesTemplate = document.querySelector('template#postFormImagesTemplate');
+        parent.innerHTML = "";
+
+        if (postImages.length > 0) {
+            var image = postImages[postImages.length - 1];
+            let imageClone = postImagesTemplate.content.cloneNode(true);
+
+            let img = imageClone.querySelector("li article a figure img");
+            let a = imageClone.querySelector("li article a");
+            let button = imageClone.querySelector("li article button");
+
+            img.setAttribute("src", image.ImagePath);
+            a.setAttribute("href", image.ImagePath);
+            button.setAttribute("data-value", image.ImageId)
+            parent.append(imageClone);
+        }
+    }
+
+
+
+
+</script>

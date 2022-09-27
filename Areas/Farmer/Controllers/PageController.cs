@@ -104,7 +104,7 @@ namespace Wiggly.Areas.Farmer.Controllers
             if (!IsSubscribed())
                 return View("Subscription");
             else
-                return View();
+                return View("Transaction-v2");
         }
 
         public IActionResult Chat()
